@@ -1,0 +1,16 @@
+.ExecutionList {
+  margin: 1em;
+  box-sizing: border-box;
+  width: calc(100% - 2em);
+}
+.ExecutionList > div {
+  margin: 1em;
+}
+
+.PASSED {
+  color: rgb(200, 255, 0);
+}
+
+.FAILED {
+  color: rgba(153, 49, 49, 0.881);
+}/*# sourceMappingURL=run.css.map */

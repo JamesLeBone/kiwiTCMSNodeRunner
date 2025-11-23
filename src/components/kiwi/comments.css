@@ -1,0 +1,13 @@
+.comment-list {
+  padding: 1em;
+  text-align: right;
+}
+.comment-list > div {
+  text-align: left;
+}
+.comment-list span {
+  display: inline-block;
+  margin: 4px;
+  opacity: 0.75;
+  font-style: italic;
+}/*# sourceMappingURL=comments.css.map */

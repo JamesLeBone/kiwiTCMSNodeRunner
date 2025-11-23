@@ -1,0 +1,75 @@
+
+export function ListOpt({value, label, disabled}: {value: string|number, label: string|number, disabled?: boolean}) {
+    return <option value={value} disabled={disabled}>{label}</option>
+}
+export function OptionGroup({label, children}: {label: string, children: React.ReactNode}) {
+    return <optgroup label={label}>
+        {children}
+    </optgroup>
+}
+
+type selectionValue = string|number
+export interface selectionOption {
+    value: selectionValue,
+    label: selectionValue,
+    disabled?: boolean
+}
+
+export type SelectionProps = {
+    name: string,
+    value?: selectionValue,
+    options?: Record<string, selectionValue|selectionValue[]>[],
+    onChange: (val: selectionValue) => void
+}
+export function Selection({name, value, options, onChange}: SelectionProps) {
+    const setValue = e => onChange(e.target.value)
+    const opts = options?.map((opt, idx) => {
+        const key = Object.keys(opt)[0]
+        const val = opt[key]
+        if (Array.isArray(val)) {
+            return <OptionGroup key={idx} label={key}>
+                {val.map((v, i) => <ListOpt key={i} value={v} label={v} />)}
+            </OptionGroup>
+        }
+        return <ListOpt key={idx} value={val} label={key} />
+    })
+    
+    return <select name={name} value={value} onChange={setValue}>
+        {opts}
+    </select>
+}
+
+export type SelectionDetailedProps = {
+    name: string,
+    value?: selectionValue,
+    options: selectionOption[],
+    onChange: (val: selectionValue) => void
+}
+export function SelectionDetailed({name, value, options, onChange}: SelectionDetailedProps) {
+    const setValue = e => onChange(e.target.value)
+    const opts = options.map((opt, idx) => {
+        return <ListOpt key={idx} value={opt.value} label={opt.label} disabled={opt.disabled ?? false} />
+    })
+    
+    return <select name={name} value={value} onChange={setValue}>
+        {opts}
+    </select>
+}
+
+export function SelectBoolean({name, value, onChange}: {name: string, value?: boolean, onChange: (val: boolean) => void}) {
+    const setValue = e => {
+        const val = e.target.value === 'true' ? true : false
+        onChange(val)
+    }
+    return <select name={name} value={value ? 'true' : 'false'} onChange={setValue}>
+        <ListOpt value="true" label="True" />
+        <ListOpt value="false" label="False" />
+    </select>
+}
+
+export const CheckboxBoolean = ({name, value, onChange}: {name: string, value?: boolean, onChange: (val: boolean) => void}) => {
+    const toggleValue = e => {
+        onChange(e.target.checked)
+    }
+    return <input type="checkbox" name={name} checked={value ?? false} onChange={toggleValue} />
+}

@@ -15,11 +15,3 @@ declare interface NextPageProps {
     params: Promise<Record<string, string | string[]>>
     searchParams: Promise<Record<string, string | string[] | undefined>>
 }
-
-declare interface ServerReply {
-    status: boolean
-    message: string
-    statusType?: 'error' | 'info' | 'success' | 'warning'
-    data?: any
-}
-

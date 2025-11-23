@@ -1,0 +1,36 @@
+.messageText {
+    font-family: monospace;
+    white-space: pre;
+}
+
+.executionRun {
+    text-align: left;
+    img {
+        max-width: 88vw;
+        display: block;
+        margin: 0px auto;
+    }
+
+    .message {
+        display: flex;
+        > i {
+            padding: 4px;
+            display: inline-block;
+            min-width: 32px;
+            text-align: center;
+        }
+        > div {
+            padding-top: 4px;
+        }
+    }
+
+    .message-error {
+        color:  #ff4343;;
+    }
+    .message-warning {
+        color:  rgb(151, 151, 255);
+    }
+    .message-success {
+        color:  rgb(200, 255, 0);
+    }
+}

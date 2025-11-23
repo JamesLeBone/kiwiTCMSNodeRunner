@@ -10,12 +10,13 @@ export async function generateMetadata({ params, searchParams },parent) {
     }
 }
 
+const kiwiHost = process.env.KIWI_HOST || 'http://localhost'
 
 export default async function Home() {
 
     return <main>
         <Link href="https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.html#module-tcms.rpc.api">Kiwi API Docs</Link>
-        <Link href="http://kiwi.ftg.sil0.net/">Kiwi</Link>
+        <Link href={kiwiHost}>Kiwi</Link>
 
         <LoginWidget />
         <PasswordReset />
