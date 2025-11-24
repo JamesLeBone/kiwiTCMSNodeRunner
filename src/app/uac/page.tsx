@@ -9,13 +9,19 @@ import SessionManagement from './SessionManagement'
 import { PasswordReset, SetPassword } from './PasswordReset'
 import { LoginWidget   } from './LoginForm'
 import EmailVerification from './EmailVerification'
+import type { OperationResult } from '@lib/Operation.js'
 
 // This only works on server components, on the client side you need to use useEffect to set document.title
 export async function metadata() {
     return { title: 'Toolbox - User accounts' }
 }
 
-const determineUser = async (searchParams) => {
+declare type verfiedUser = {
+    verifiedUser: any,
+    accessToken: string,
+    userId: number
+}
+const determineUser = async (searchParams : { accessToken?: string, userId?: string }) : Promise<verfiedUser | false | OperationResult> => {
     if (typeof searchParams.accessToken == 'undefined' || typeof searchParams.userId == 'undefined') {
         return Auth.currentUser()
     }
@@ -25,14 +31,22 @@ const determineUser = async (searchParams) => {
     if (typeof searchParams.accessToken !== 'string' || searchParams.accessToken.length < 10) {
         return Auth.currentUser()
     }
+    const userIdNumber = Number.parseInt(searchParams.userId)
+    if (isNaN(userIdNumber) || userIdNumber < 1) {
+        return Auth.currentUser()
+    }
 
-    const vfUser = await Users.verifyToken(searchParams.userId, searchParams.accessToken)
+    const vfUser = await Users.verifyToken(userIdNumber, searchParams.accessToken)
     if (!vfUser.status) {
         console.info('Access token rejected', vfUser)
         return false
     }
     console.info('Access token accepted', vfUser.data)
-    return vfUser.data
+    return {
+        verifiedUser: vfUser.data,
+        accessToken: searchParams.accessToken,
+        userId: userIdNumber
+    } as verfiedUser
 }
 
 function LoggedOut() {
@@ -42,22 +56,19 @@ function LoggedOut() {
     </main>
 }
 
-export default async function UserPage({params,searchParams}) {
+export default async function UserPage({params,searchParams} : NextPageProps) {
     const sp = await searchParams
 
-    const currentUser = await determineUser(sp)
+    const cuserOperation = await determineUser(sp)
+    if (!cuserOperation) return <LoggedOut />
 
-    if (!currentUser) return <LoggedOut />
-
-    const doPrompt = await Users.promptPasswordReset(currentUser.userId)
-    .then(r => r.status && r.data)
-    // console.debug('Prompt password reset result', doPrompt)
-
-    if (doPrompt) {
+    if ('verifiedUser' in cuserOperation) {
+        const verifiedUser = cuserOperation as verfiedUser
         return <main>
-            <SetPassword username={currentUser.username} userId={sp.userId} accessToken={sp.accessToken} />
+            <SetPassword username={verifiedUser.verifiedUser.username} userId={verifiedUser.userId} accessToken={verifiedUser.accessToken} />
         </main>
     }
+    const currentUser = (cuserOperation as OperationResult).data
 
     const userList = await Users.list()
     .then(response => response.status ? response.data : [])

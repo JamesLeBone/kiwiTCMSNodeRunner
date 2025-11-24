@@ -1,6 +1,6 @@
 'use server'
 import {http,methods} from './Kiwi'
-import {reply} from '../lib/ServerMessages'
+import {reply} from '@lib/ServerMessages'
 
 const get = async (idValue, hostEntity='TestCase', idKey='case_id') => {
     const params = {}

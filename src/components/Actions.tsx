@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export function ActionBar({children,...props}) {
+export function ActionBar({children,...props} : {children: React.ReactNode, [key: string]: any}) {
     return <div className="ActionBar" {...props}>
         {children}
     </div>
@@ -12,7 +12,7 @@ export type ActionButtonProps = {
     [key: string]: any
 }
 export function ActionButton({onClick,children,...props} : ActionButtonProps) {
-    const doAction = (mouseEvent) => {
+    const doAction = (mouseEvent: React.MouseEvent<HTMLButtonElement>) => {
         mouseEvent.preventDefault()
         onClick()
     }
@@ -32,7 +32,7 @@ export function ActionButtonText({children,value,onClick,...props} : ActionButto
     const [text,setText] = useState(value || '')
     const [disabled,setDisabled] = useState(false)
 
-    const doAction = (clickEvent) => {
+    const doAction = (clickEvent: React.MouseEvent<HTMLButtonElement>) => {
         setDisabled(true)
         clickEvent.preventDefault()
         onClick(text).then(() => {
@@ -51,7 +51,7 @@ export type IconButtonProps = {
     [key: string]: any
 }
 export function IconButton({onClick,className,...props} : IconButtonProps) {
-    const doAction = (mouseEvent) => {
+    const doAction = (mouseEvent: React.MouseEvent<HTMLButtonElement>) => {
         mouseEvent.preventDefault()
         onClick()
     }

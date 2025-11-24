@@ -4,6 +4,13 @@ import { getUser, get as getUserByUsername } from './Users'
 import { SessionFingerprint } from './SessionFingerprint'
 
 const genuuid = () => require('uuid').v4()
+export type dbSession = {
+    id: number,
+    userId: number,
+    sessionTypeId: Record<string,any>,
+    createdAt: Date,
+    expiresAt: Date
+}
 
 class DbSession {
     #expiresAt : Date|null = null
@@ -30,9 +37,29 @@ class DbSession {
                 }
                 continue;
             }
-            dbSession[k] = v
+            if (k == 'expiresAt' || k == 'createdAt') {
+                dbSession[k] = new Date(v)
+                continue;
+            }
+            if (k == 'id' || k == 'userId') {
+                v = Number(v)
+                dbSession[k] = v
+            }
         }
         return dbSession
+    }
+
+    toSimpleObject() {
+        if (this.id == null || this.userId == null || this.sessionTypeId == null || this.createdAt == null || this.expiresAt == null) {
+            throw new Error('Do not return incomplete session object')
+        }
+        return {
+            id: this.id,
+            userId: this.userId,
+            sessionTypeId: this.sessionTypeId,
+            createdAt: this.createdAt,
+            expiresAt: this.expiresAt
+        } as dbSession
     }
 
     get expired() {
@@ -93,11 +120,18 @@ class DbSession {
             this.#expiresAt = expiresAt
             return
         }
+        if (expiresAt == null) {
+            this.#expiresAt = null
+            return
+        }
         const expiry = parseInt(expiresAt)
         if (Number.isNaN(expiry)) {
             throw new Error('Invalid number type for expiresAt, must be an integer')
         }
         const read = db.dates.fromSql(expiry)
+        if (read == null) {
+            throw new Error('Invalid SQL date value for expiresAt')
+        }
         if (Number.isNaN(read.getTime())) {
             throw new Error('Invalid SQL date string for expiresAt')
         }
@@ -125,7 +159,7 @@ const verify = async (secret:string):Promise<SessionVerification> => {
     // console.info('Verifying session:', secret, sessionTypeId)
     const session = await DbSession.getBySecret(secret)
     if (!session) return {status: false, message: 'Session not found'}
-    if (session.expired) {
+    if (session.expired || session.sessionTypeId == null || session.userId == null) {
         return {status: false, message: 'Session expired'}
     }
 
@@ -182,14 +216,11 @@ const clear = async (username:string,sessionId:number|null) => {
     }
 }
 
-const list = async (userId:number) => {
+const list = async (userId:number) : Promise<DbSession[]> => {
     const list = await db.fetch(`Select * FROM SESSIONS WHERE USER_ID = ?`, [userId])
     // console.debug('Session list for user', userId, ':', list)
-    const sessionList = list.map((r:any) => {
-        const s = r
-        s.sessionTypeId = JSON.parse(s.sessionTypeId)
-        const newExpiry = db.dates.fromSql(Number.parseFloat(r.expiresAt))
-        s.expiresAt = newExpiry
+    const sessionList = list.map((r:Object) => {
+        const s = DbSession.readDbRecord(r)! // we know r is an object from db
         return s
     })
     return sessionList

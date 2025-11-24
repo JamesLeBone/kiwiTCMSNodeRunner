@@ -1,5 +1,5 @@
 import { db } from '../db/Database'
-import { Operation } from './Operation'
+import { Operation } from '@lib/Operation'
 import type { credentialFieldSet } from './Credentials'
 
 export async function addType(description:string,fields:credentialFieldSet) : Promise<Operation> {

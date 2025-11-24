@@ -1,7 +1,7 @@
 'use server'
 
 import {http,methods} from './Kiwi'
-import {reply} from '../lib/ServerMessages'
+import {reply} from '@lib/ServerMessages'
 
 // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.testplan.html
 

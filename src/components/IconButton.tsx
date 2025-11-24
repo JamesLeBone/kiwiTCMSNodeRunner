@@ -1,7 +1,7 @@
 declare type inputProps = {
     className?: string,
     title: string,
-    action?: Function,
+    action: Function,
     children?: React.ReactNode,
     active?: boolean,
     href?: string | false

@@ -1,7 +1,7 @@
 'use server'
 
 import {http,IndividualTag,methods, promiseBoolean} from './Kiwi'
-import {reply} from '../lib/ServerMessages'
+import { success, error } from '@lib/ServerMessages'
 import { DjangoEntity } from './Django'
 // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.tag.html
 const entityName = 'Tag'
@@ -9,18 +9,18 @@ const entityName = 'Tag'
 export const addToTestCase = async (caseId:number, tagName:string) => {
     const conn = http
     const login = await conn.login()
-    if (!login) return reply(false, 'Failed to login')
+    if (!login) return error('Failed to login')
     
     console.debug('Adding tag', tagName, 'to test case', caseId, {case_id:caseId, tag:tagName})
     const addTag = await promiseBoolean( conn.call('TestCase.add_tag', {case_id:caseId, tag:tagName}) )
     conn.logout()
 
-    return addTag ? reply(true, 'Tag added to test case') : reply(false, 'Failed to add tag to test case')
+    return addTag ? success('Tag added to test case') : error('Failed to add tag to test case')
 }
 export const removeFromTestCase = async (caseId: number, tagName: string) => {
     const conn = http
     const login = await conn.login()
-    if (!login) return reply(false, 'Failed to login')
+    if (!login) return error('Failed to login')
 
     const removeTag = await promiseBoolean( conn.call('TestCase.remove_tag', {case_id:caseId, tag:tagName}) )
     conn.logout()
@@ -33,7 +33,7 @@ export const get = async (tagId:number) => {
 
     const listResults = await conn.getList(entityName,tagId)
     const tagResult = methods.amalgomateTags(listResults as IndividualTag[])
-    return reply(true, 'List obtained', null, tagResult)
+    return success('List obtained', tagResult)
 }
 
 const tagSearch = async (search : Promise<DjangoEntity[]>) => {
@@ -52,7 +52,7 @@ export const search = async (params: searchOptions) => {
     const searchResult = conn.search(entityName, params)
     const tags = await tagSearch(searchResult)
     
-    return reply(true, 'Search completed', null, tags)
+    return success('Search completed', tags)
 }
 
 export declare type attachableEntityNames = 'TestCase' // | 'TestRun' | 'Bug' | 'TestPlan'
@@ -65,14 +65,14 @@ export const getAttached = async (sourceEntity:attachableEntityNames, id:number)
     if (sourceEntity == 'TestCase') {
         param.case = id
     } else {
-        return reply(false, 'Unsupported source entity for tags: '+sourceEntity)
+        return error('Unsupported source entity for tags: '+sourceEntity)
     }
 
     const conn = http
     
     const searchPromise = conn.search(entityName, param, false)
     const tagList = await tagSearch(searchPromise)
-    return reply(true, 'List obtained', null, tagList)
+    return success('List obtained', tagList)
 }
 
 export declare type TagDetail = {
@@ -86,10 +86,10 @@ export declare type TagDetail = {
 
 export const getDetail = async (tagName:string) => {
     const conn = http
-    const searchPromise = conn.search(entityName, {name:tagName}, false, false)
+    const searchPromise = conn.search(entityName, {name:tagName}, false)
     const tagList = await tagSearch(searchPromise)
     if (tagList.length == 0) {
-        return reply(false, 'Tag not found: '+tagName)
+        return error('Tag not found: '+tagName)
     }
     const tag = tagList[0]
     const detail : TagDetail = {
@@ -114,7 +114,7 @@ export const getDetail = async (tagName:string) => {
         detail.plans.push(s)
     }
     
-    return reply(true, 'Tag found', null, detail)
+    return success('Tag found', detail)
 }
 
 // export {

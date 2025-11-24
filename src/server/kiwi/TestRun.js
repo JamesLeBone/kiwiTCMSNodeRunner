@@ -6,7 +6,7 @@ Use another statement for destructuring after the import.
 import { http: { get, search }, methods } from './Kiwi'
 */
 import {http,methods} from './Kiwi'
-import {reply} from '../lib/ServerMessages'
+import {reply} from '@lib/ServerMessages'
 
 const get = async id => {
     const testRun = await http.get('TestRun', id)

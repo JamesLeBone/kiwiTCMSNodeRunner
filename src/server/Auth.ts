@@ -5,9 +5,11 @@ import * as Sessions from './lib/Sessions'
 import { getCurrentUser } from '@server/lib/Auth'
 
 // Use this
-import * as ServerMessages from './lib/ServerMessages'
+import * as ServerMessages from '@lib/ServerMessages'
+import { serverMessagePromise } from '@lib/ServerMessages'
+import { OperationResultPromise } from '../lib/Operation'
 
-async function logout() {
+async function logout() : serverMessagePromise {
     const cookieStore = await cookies()
     // cookieStore.clear() // Clear all cookies
     cookieStore.delete('sessionId')
@@ -26,7 +28,7 @@ export type loginCredentails = {
     password: string
 }
 
-async function login({ username, password }: loginCredentails) {
+async function login({ username, password }: loginCredentails) : serverMessagePromise {
     if (typeof username == 'undefined' || typeof password == 'undefined') {
         console.error('Missing username or password')
         return ServerMessages.error('missing username and password')
@@ -66,8 +68,8 @@ async function login({ username, password }: loginCredentails) {
     return resp
 }
 
-async function currentUser() {
-    return await getCurrentUser()
+async function currentUser() : OperationResultPromise {
+    return await getCurrentUser().then(o => o.toSimpleObject())
 }
 async function getUserId() { 
     const u = await getCurrentUser()

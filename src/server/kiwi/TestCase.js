@@ -8,7 +8,7 @@ import { http: { get, search }, methods } from './Kiwi'
 @see https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.testcase.html
 */
 import {http,methods} from './Kiwi'
-import {reply} from '../lib/ServerMessages'
+import {reply} from '@lib/ServerMessages'
 
 const django2Case = dj => {
     dj.convertJson('arguments')

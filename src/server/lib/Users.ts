@@ -4,7 +4,7 @@ import { db } from '../db/Database'
 import * as email from './Email'
 // import * as sessions from './Sessions.js'
 import { v4 as genuuid } from 'uuid' //= require('uuid')
-import { Operation, operation2Message } from './ServerMessages'
+import { Operation } from '@lib/Operation'
 
 const ops = {
     notFound: Operation.error('userNotFound', 'User not found'),
@@ -169,7 +169,8 @@ const setPasswordResetToken = async (userId:number, token:Object) => {
     return res ? true : false
 }
 
-async function sendPasswordResetEmail(user) {
+async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
+    if (!user.email) return ops.inputValdiationError.email
     const hasValidEmail = validEmail(user.email)
     if (!hasValidEmail) return ops.inputValdiationError.email
 
@@ -211,16 +212,22 @@ async function sendPasswordResetEmail(user) {
     </body></html>
     `
 
-    const [success,data] = await email.send(user, 'Dragon Toolbox - Password reset', body, html)
-    if (!success) {
-        operation.setError(data)
+    const sendTo = {
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email
+    }
+
+    const sendResult = await email.send(sendTo, 'Dragon Toolbox - Password reset', body, html)
+    if (!sendResult.success) {
+        operation.setError(sendResult.message)
         return operation
     }
     const transporterId = await email.getTransporterId()
     if (transporterId === 'ethereal') {
         console.debug('Email sent via ethereal.  Here is the url:', url)
     }
-    operation.setSuccess('Password reset email sent', data)
+    operation.setSuccess('Password reset email sent')
     return operation
 }
 
@@ -230,21 +237,12 @@ const getToken = async (userId:number) => {
     return login.passwordResetToken
 }
 
-declare type tokenVerificationResult = {
-    status: boolean,
-    message: string,
-    data?: any
-}
-
-async function verifyToken(userId:number,accessToken:string): Promise<tokenVerificationResult> {
+async function verifyToken(userId:number,accessToken:string): Promise<Operation> {
     const operation = new Operation('verifyToken')
     operation.setError('Token not valid')
 
     const token = await getToken(userId)
-    if (!token) return {
-        status: false,
-        message: 'No token found for user'
-    }
+    if (!token) return operation.setError('No token found for user')
 
     let rt:ResetToken;
     try {
@@ -254,35 +252,19 @@ async function verifyToken(userId:number,accessToken:string): Promise<tokenVerif
         console.debug('verifyToken: reconstructed token', rt)
     } catch (e) {
         console.error('Error parsing token',token,e)
-        return {
-            status: false,
-            message: 'Invalid Token stored'
-        }
+        return operation.setError('Invalid Token stored')
     }
 
     if (rt.value != accessToken) {
         console.debug('setPassword: failed to verify token', rt.value, accessToken)
-        return {
-            status: false,
-            message: 'Token mismatch'
-        }
+        return operation.setError('Token mismatch')
     }
     if (rt.expiry < Date.now()) {
-        return {
-            status: false,
-            message: 'Token expired'
-        }
+        return operation.setError('Token expired')
     }
     const user = await getUser(userId)
-    if (!user) return {
-        status: false,
-        message: 'User not found for token'
-    }
-    return {
-        status: true,
-        message: 'Token verified',
-        data: user
-    }
+    if (!user) return operation.setError('User not found for token')
+    return operation.setSuccess('Token verified', user)
 }
 
 const promptPasswordReset = async (userId:number) => {

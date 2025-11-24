@@ -1,5 +1,5 @@
 import { db } from '../db/Database'
-import { Operation } from './Operation'
+import { Operation } from '@lib/Operation'
 import ncrypt from 'ncrypt-js'
 import { getUser } from './Users'
 import { getCurrentUser } from '@server/lib/Auth'

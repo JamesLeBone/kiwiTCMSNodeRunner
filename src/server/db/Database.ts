@@ -72,7 +72,7 @@ const methods = {
         return dbi.methods.fetch(sql, Object.values(params))
     },
     upsert: async (table:string, idFieldName:string, data:dataSetRowConvertible, keyValues=[]) => {
-        const keyDataValues = {}
+        const keyDataValues: dataSetRowConvertible = {}
         for (const k of keyValues) {
             keyDataValues[k] = data[k]
         }

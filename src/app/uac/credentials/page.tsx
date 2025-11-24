@@ -4,7 +4,7 @@ export const metadata = {
     title: 'Toolbox - Credential Store'
 }
 
-export default async function Page({params,searchParams}) {
+export default async function Page() {
     const currentUser = await Auth.currentUser()
     if (!currentUser) {
         return <p>You are not logged in</p>

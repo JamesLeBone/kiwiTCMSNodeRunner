@@ -1,10 +1,20 @@
 
+export declare type statusType = 'error' | 'info' | 'success' | 'warning'
+
+export interface OperationResult {
+    id: string
+    status: statusType
+    message: string
+    data?: any
+}
+export type OperationResultPromise = Promise<OperationResult>
+
 export class Operation {
     id:string
-    status:string
+    status:statusType
     message:string
     data:any
-    constructor(id:string, status:string='info', message:string='Result not determined', data:any=null) {
+    constructor(id:string, status:statusType='info', message:string='Result not determined', data:any=null) {
         this.id = id
         this.status = status
         this.message = message
@@ -42,13 +52,20 @@ export class Operation {
         return this.status === 'error'
     }
 
-    toJSON() {
+    toSimpleObject() : OperationResult {
         return {
             id: this.id,
             status: this.status,
             message: this.message,
             data: this.data
-        }
+        } as OperationResult
+    }
+    static fromSimpleObject(obj:OperationResult) : Operation {
+        const operation = new Operation(obj.id)
+        operation.status = obj.status
+        operation.message = obj.message
+        operation.data = obj.data
+        return operation
     }
 
     static get dbFailure() {

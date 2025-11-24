@@ -1,14 +1,16 @@
 'use server'
 
-import { success , error, ServerReply } from './lib/ServerMessages'
+import { success , error, ServerReply } from '@lib/ServerMessages'
 
 import * as credentials from './lib/Credentials'
 import * as credentialTypes from './lib/CredentialTypes'
-import type { credentialFieldSet, decryptedCredentialDetails } from './lib/Credentials'
+import type { credentialFieldSet } from './lib/Credentials'
 import { getCurrentUser } from '@server/lib/Auth'
 
+import { serverMessagePromise } from '@lib/ServerMessages'
+
 // Exported
-const addCredential = async (credential:credentialFieldSet, credentialTypeId:number = 1) : Promise<ServerReply> => {
+const addCredential = async (credential:credentialFieldSet, credentialTypeId:number = 1) : serverMessagePromise => {
     const login = await getCurrentUser()
     if (!login) return ServerReply.fromOperation(login)
     const userId = login.data.userId
@@ -17,7 +19,7 @@ const addCredential = async (credential:credentialFieldSet, credentialTypeId:num
     return ServerReply.fromOperation(addOp)
 }
 
-const updateCredential = async (userCredentialId:number, credential:credentialFieldSet) : Promise<ServerReply> => {
+const updateCredential = async (userCredentialId:number, credential:credentialFieldSet) : serverMessagePromise => {
     const login = await getCurrentUser()
     if (!login) return ServerReply.fromOperation(login)
     const userId = login.data.userId
@@ -29,7 +31,7 @@ const updateCredential = async (userCredentialId:number, credential:credentialFi
     return ServerReply.fromOperation(update)
 }
 
-const deleteCredential = async (userCredentialId:number) : Promise<ServerReply> => {
+const deleteCredential = async (userCredentialId:number) : serverMessagePromise => {
     const login = await getCurrentUser()
     if (!login) return ServerReply.fromOperation(login)
     const userId = login.data.userId
@@ -41,18 +43,18 @@ const deleteCredential = async (userCredentialId:number) : Promise<ServerReply> 
     return success('Credential deleted')
 }
 
-const getCredentials = async (remoteServiceDescription:string) : Promise<ServerReply> => {
+const getCredentials = async (userCredentialTypeId:number) : serverMessagePromise => {
     const login = await getCurrentUser()
     if (!login) return ServerReply.fromOperation(login)
     const userId = login.data.userId
 
-    const creds = await credentials.find(userId,remoteServiceDescription)
-    // console.debug('getCredentials', remoteService, op)
+    const creds = await credentials.find(userId,userCredentialTypeId)
+    
     if (!creds) return error('No credentials found for user and remote service')
     return success('Credentials found', creds)
 }
 
-const listUserCredentials = async () : Promise<ServerReply> => {
+const listUserCredentials = async () : serverMessagePromise => {
     const login = await getCurrentUser()
     if (!login) return ServerReply.fromOperation(login)
     const userId = login.data.userId
@@ -68,15 +70,15 @@ const listUserCredentials = async () : Promise<ServerReply> => {
     return reply
 }
 
-const getCredentialTypes = async () : Promise<ServerReply> => {
+const getCredentialTypes = async () : serverMessagePromise => {
     const list = await credentialTypes.getTypes()
     return success('Credential types retrieved', list)
 }
-const addNewType = async (description:string, fields:credentialFieldSet) : Promise<ServerReply> => {
+const addNewType = async (description:string, fields:credentialFieldSet) : serverMessagePromise => {
     const op = await credentialTypes.addType(description, fields)
     return ServerReply.fromOperation(op)
 }
-const deleteType = async (credentialTypeId:number) : Promise<ServerReply> => {
+const deleteType = async (credentialTypeId:number) : serverMessagePromise => {
     const op = await credentialTypes.deleteType(credentialTypeId)
     return ServerReply.fromOperation(op)
 }

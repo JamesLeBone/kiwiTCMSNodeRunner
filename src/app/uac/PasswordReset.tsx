@@ -8,19 +8,19 @@ import { FormField } from '@/components/FormField'
 import { InputField } from '@/components/InputField'
 import { useMessage } from '@/components/ServerResponse'
 
-export function SetPassword({username,userId,accessToken}) {
+export function SetPassword({username,userId,accessToken} : {username:string,userId:number,accessToken:string}) {
     const [password, setPassword] = useState('')
     const [confirm, setConfirm] = useState('')
     const serverMessage = useMessage()
 
-    const send = e => {
+    const send = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (password != confirm) return
         serverMessage.loading()
 
         Users.setPassword(userId,password,accessToken)
         .then(reply => {
-            if (reply === false) return serverMessage.error('Password reset failed.')
+            if (reply.status === false) return serverMessage.error('Password reset failed.')
             
             const {status,message} = reply
             if (!status) {
@@ -34,7 +34,7 @@ export function SetPassword({username,userId,accessToken}) {
         })
     }
 
-    const sv = (event, fn) => {
+    const sv = (event: React.ChangeEvent<HTMLInputElement>, fn: React.Dispatch<React.SetStateAction<string>>) => {
         event.preventDefault()
         const value = event.target.value
         fn(value)
@@ -75,7 +75,7 @@ export function PasswordReset({}) {
     const [usernameState, setusername] = useState('')
     const serverMessage = useMessage()
 
-    const send = e => {
+    const send = (e : React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         Users.resetPassword(usernameState)
         .then(serverReply => {

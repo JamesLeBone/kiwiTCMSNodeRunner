@@ -22,7 +22,7 @@ const formatUa = (ua: string) => {
     return parts.join(' / ')
 }
 
-function SessionRow({session, deactivateFn}: {session: any, deactivateFn: (id:Number) => void}) {
+function SessionRow({session, deactivateFn}: {session: any, deactivateFn: (id:number) => void}) {
     const {host,ua,userIp} = session.sessionTypeId || {}
     const expiry = session.expiresAt
 
@@ -40,7 +40,7 @@ function SessionRow({session, deactivateFn}: {session: any, deactivateFn: (id:Nu
     </tr>
 }
 
-function SessionList({sessionListState}) {
+function SessionList({sessionListState} : {sessionListState: [sessionDisplayItem[], React.Dispatch<React.SetStateAction<sessionDisplayItem[]>>]}) {
     const deactivate = (id:number) => {
         Sessions.deactivate(id).then(result => {
             if (!result) return
@@ -55,23 +55,37 @@ function SessionList({sessionListState}) {
     </tbody>
 }
 
+declare type sessionDisplayItem = {
+    id: number,
+    isCurrent: boolean,
+    sessionTypeId: {
+        host?: string,
+        ua?: string,
+        userIp?: string
+    } | null,
+    expiresAt: string
+
+}
 export default function SessionManagement() {
-    const sessionState = useState([])
+    const sessionState = useState([] as sessionDisplayItem[])
 
     useEffect(() => {
         Sessions.list().then(reply => {
             const {list, currentSessionId} = reply
-            const newList = []
+            const newList = [] as sessionDisplayItem[]
             
             for (let l of list) {
                 const {expiresAt} = l
-                if (expiresAt && expiresAt < new Date()) {
+                if (expiresAt == null || expiresAt < new Date()) {
                     continue
                 }
-
-                l.isCurrent = (l.id === currentSessionId)
-                l.expiresAt = expiresAt.toLocaleString()
-                newList.push(l)
+                const di = {
+                    id: l.id,
+                    isCurrent: (l.id+ '' === currentSessionId),
+                    sessionTypeId: l.sessionTypeId,
+                    expiresAt: expiresAt.toLocaleString()
+                } as sessionDisplayItem
+                newList.push(di)
             }
             // console.log('Sessions:', list, currentSessionId)
             sessionState[1](newList)

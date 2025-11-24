@@ -35,13 +35,13 @@ export const htmlEntityDecode = (str: string) => {
 export const checkDate = (value: any): any => {
     if (typeof value !== 'string') return value
     const m = value.match(dtRegx)
-    if (!m) return value
+    if (!m || !m.groups) return value
     const stringv = m.groups.date + 'T' + m.groups.time + ':00Z'
     return new Date(stringv)
 }
 
 class DjangoEntity {
-    values: BasicRecord
+    values: BasicRecord = {}
     
     constructor(values: BasicRecord = {}, type='django') {
         if (type == 'django') {
@@ -69,7 +69,7 @@ class DjangoEntity {
             this.values[fieldName] = JSON.parse(newValue)
         } catch (e) {
             console.warn('Django.convertJson - Failed to parse JSON')
-            console.debug('source',value, e.message)
+            console.debug('source',value, e)
             this.values[fieldName] = {}
         }
     }
@@ -86,8 +86,7 @@ class DjangoEntity {
             this.values[fieldName] = value + 'Z'
         } catch (e) {
             console.error('Failed to add Zulu')
-            console.error(e.message)
-            console.error(e.stack)
+            console.error(e)
         }
     }
     
@@ -131,8 +130,7 @@ class DjangoEntity {
         } catch (e) {
             console.info('Failed to parse values')
             console.debug(values)
-            console.error(e.message)
-            console.error(e.stack)
+            console.error(e)
         }
     }
     

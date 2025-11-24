@@ -29,7 +29,7 @@ const dbQueryAll = async (sql:string, params: SQLParams = [], fallbackValue:any)
             resultSet = statementSync.all()
         }
     } catch (error) {
-        console.error(errorHeader, {sql, params, error: error.message})
+        console.error(errorHeader, {sql, params}, error)
         return fallbackValue || []
     }
 
@@ -56,12 +56,12 @@ async function run(sql:string, params: SQLParams = null) {
         }
         return rows.map(row => transform.camelKeys(row))
     } catch (error) {
-        console.error(errorHeader, {sql, params, error: error.message})
+        console.error(errorHeader, {sql, params} , error)
         return false
     }
 }
 
-let isDatabaseReady = null
+let isDatabaseReady : null | boolean = null
 async function check() {
     if (isDatabaseReady != null) return isDatabaseReady
     const rows = await dbQueryAll(

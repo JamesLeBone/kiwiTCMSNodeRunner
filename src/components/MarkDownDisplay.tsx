@@ -11,10 +11,10 @@ export type MarkdownSectionProps = {
     open?: boolean
 }
 
-export function MarkdownSection({state,label,open=false}) {
+export function MarkdownSection({state,label,open=false} : MarkdownSectionProps) {
     const markdownEditState = useState( open )
-    const updateText = e => state[1](e.target.value)
-    const toggleMarkdownEdit = e => {
+    const updateText = (e: React.ChangeEvent<HTMLTextAreaElement>) => state[1](e.target.value)
+    const toggleMarkdownEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         const mds = markdownEditState[0]
         markdownEditState[1](!mds)

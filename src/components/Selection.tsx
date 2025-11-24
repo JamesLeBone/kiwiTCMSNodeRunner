@@ -22,7 +22,7 @@ export type SelectionProps = {
     onChange: (val: selectionValue) => void
 }
 export function Selection({name, value, options, onChange}: SelectionProps) {
-    const setValue = e => onChange(e.target.value)
+    const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)
     const opts = options?.map((opt, idx) => {
         const key = Object.keys(opt)[0]
         const val = opt[key]
@@ -46,7 +46,7 @@ export type SelectionDetailedProps = {
     onChange: (val: selectionValue) => void
 }
 export function SelectionDetailed({name, value, options, onChange}: SelectionDetailedProps) {
-    const setValue = e => onChange(e.target.value)
+    const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)
     const opts = options.map((opt, idx) => {
         return <ListOpt key={idx} value={opt.value} label={opt.label} disabled={opt.disabled ?? false} />
     })
@@ -57,7 +57,7 @@ export function SelectionDetailed({name, value, options, onChange}: SelectionDet
 }
 
 export function SelectBoolean({name, value, onChange}: {name: string, value?: boolean, onChange: (val: boolean) => void}) {
-    const setValue = e => {
+    const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value === 'true' ? true : false
         onChange(val)
     }
@@ -68,7 +68,7 @@ export function SelectBoolean({name, value, onChange}: {name: string, value?: bo
 }
 
 export const CheckboxBoolean = ({name, value, onChange}: {name: string, value?: boolean, onChange: (val: boolean) => void}) => {
-    const toggleValue = e => {
+    const toggleValue = (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(e.target.checked)
     }
     return <input type="checkbox" name={name} checked={value ?? false} onChange={toggleValue} />

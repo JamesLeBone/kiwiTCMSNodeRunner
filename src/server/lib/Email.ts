@@ -2,16 +2,54 @@
 import nodemailer from 'nodemailer'
 import { simpleParser } from 'mailparser'
 
-import * as Auth from '../Auth'
-import type { CurrentUser } from './Auth'
+import { currentUser, CurrentUser } from './Auth'
 
 export declare type emailRecipient = {
     firstName: string
     lastName: string
     email: string
 }
+
+declare interface transportConfig {
+    transporterId: string
+}
+
+declare interface sendMailTransportConfig extends transportConfig {
+    sendmail: boolean,
+    newline: string,
+    path: string
+}
+declare interface googleTransportConfig extends transportConfig {
+    transporterId: string,
+    service: string,
+    auth: {
+        user: string,
+        pass: string
+    }
+}
+declare interface etherealTransportConfig extends transportConfig {
+    host: string,
+    port: number,
+    secure: boolean,
+    auth: {
+        user: string,
+        pass: string
+    }
+}
+declare interface customSmtpTransportConfig extends transportConfig {
+    host: string,
+    port: number|string,
+    secure: boolean
+}
+
+declare interface messageInfo extends nodemailer.SentMessageInfo {
+    transporterId: string
+    inbox?: string
+    message?: string
+}
+
 const user2email = (firstName:string , lastName:string , email:string) => `${firstName} ${lastName} <${email}>`
-const getTransportConfig = (transporterId = 'sendmail') => {
+const getTransportConfig = (transporterId: string = 'sendmail') : transportConfig  => {
     if (transporterId === 'sendmail') {
         // Check if we are on linux and sendmail exists
         if (process.platform === 'win32') {
@@ -23,7 +61,7 @@ const getTransportConfig = (transporterId = 'sendmail') => {
             sendmail: true,
             newline: 'unix',
             path: `/usr/sbin/sendmail`
-        }
+        } as sendMailTransportConfig
     }
     if (transporterId === 'google') {
         // https://myaccount.google.com/apppasswords - only works per device.
@@ -43,35 +81,41 @@ const getTransportConfig = (transporterId = 'sendmail') => {
                 user: process.env.GOOGLE_APP_ADDRESS,
                 pass: process.env.GOOGLE_APP_PASSWORD
             }
-        }
+        } as googleTransportConfig
     }
 
     if (transporterId === 'ethereal') {
         if (!process.env.ETHEREAL_USER || !process.env.ETHEREAL_PASS) {
             console.error('Ethereal email credentials are not set in environment variables')
-            return null
-        }
-        // https://ethereal.email
-        // https://emailengine.app/
-        return {
-            transporterId: 'ethereal',
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.ETHEREAL_USER,
-                pass: process.env.ETHEREAL_PASS,
-            },
+        } else {
+            // https://ethereal.email
+            // https://emailengine.app/
+            return {
+                transporterId: 'ethereal',
+                host: "smtp.ethereal.email",
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.ETHEREAL_USER,
+                    pass: process.env.ETHEREAL_PASS,
+                },
+            } as etherealTransportConfig
         }
     }
     return {
+        transporterId: 'custom-smtp',
         host: process.env.EMAIL_HOST || 'localhost',
         port: process.env.EMAIL_PORT || 25,
         secure: false
-    }
+    } as customSmtpTransportConfig
 }
 
-const resolveGmailErrorMessage = (error) => {
+declare interface gmailError extends Error {
+    response?: string
+    responseCode: number
+}
+
+const resolveGmailErrorMessage = (error : gmailError) : string => {
     const responseMessage = error.response || ''
     const ref = responseMessage.match(/(https:\/\/.*?) /)
     const refMsg = ref ? `. See ${ref[1]}` : ''
@@ -93,7 +137,7 @@ const resolveGmailErrorMessage = (error) => {
         552: 'Message size exceeds storage allocation',
         553: 'Invalid email address',
         554: 'Transaction failed'
-    }
+    } as {[key:number]:string}
     
     if (error.responseCode && responseCodeMap[error.responseCode]) {
         return responseCodeMap[error.responseCode] + refMsg
@@ -103,7 +147,13 @@ const resolveGmailErrorMessage = (error) => {
     return 'Error sending email'
 }
 
-const resolveSendmailErrorMessage = (error) => {
+declare interface sendmailError extends Error {
+    errorno: number
+    code?: string
+    responseCode?: number
+}
+
+const resolveSendmailErrorMessage = (error : sendmailError) : string => {
     // System/Configuration errors
     if (error.errorno === -4085) return 'Email server not configured'
     
@@ -124,7 +174,7 @@ const resolveSendmailErrorMessage = (error) => {
         'CERT_HAS_EXPIRED': 'Email server SSL certificate has expired',
         'CERT_UNTRUSTED': 'Email server SSL certificate is untrusted',
         'UNABLE_TO_VERIFY_LEAF_SIGNATURE': 'Unable to verify email server SSL certificate'
-    }
+    } as {[key:string]:string}
     
     if (error.code && errorCodeMap[error.code]) {
         return errorCodeMap[error.code]
@@ -141,7 +191,7 @@ const resolveSendmailErrorMessage = (error) => {
         552: 'Message size exceeds limit',
         553: 'Invalid email address',
         554: 'Transaction failed'
-    }
+    } as {[key:number]:string}
     
     if (error.responseCode && responseCodeMap[error.responseCode]) {
         return responseCodeMap[error.responseCode]
@@ -151,19 +201,19 @@ const resolveSendmailErrorMessage = (error) => {
     return 'Error sending email'
 }
 
-const resolveErrorMessage = (error,transporterId) => {
+const resolveErrorMessage = (error : Error,transporterId: string) : string => {
     if (transporterId === 'google') {
-        return resolveGmailErrorMessage(error)
+        return resolveGmailErrorMessage(error as gmailError)
     }
     if (transporterId === 'sendmail') {
-        return resolveSendmailErrorMessage(error)
+        return resolveSendmailErrorMessage(error as sendmailError)
     }
     console.debug('Email error', error)
     return 'Failed to send email'
 }
 
 export const getTransporterId = async ():Promise<string> => {
-    const transporterId = process.env.NODEMAILER_TRANSPORTER_ID || null
+    const transporterId = process.env.NODEMAILER_TRANSPORTER_ID || 'sendmail'
     const config = getTransportConfig(transporterId)
     return Promise.resolve(config.transporterId)
 }
@@ -191,7 +241,6 @@ export const getEmailDetails = async ():Promise<string|false> => {
     return `Using custom SMTP server at ${host}:${port}`
 }
 
-declare type sendResult = [boolean, any]
 
 const determineSender = async (user: CurrentUser|false): Promise<string> => {
     const defaultFrom = 'Toolbox: ' + '<' + process.env.EMAIL_FROM + '>'
@@ -201,12 +250,20 @@ const determineSender = async (user: CurrentUser|false): Promise<string> => {
     return user2email(user.firstName, user.lastName, user.email)
 }
 
-export const send = async (toUser: emailRecipient, subject: string, message: string, html = null): Promise<sendResult> => {
-    const sender = await Auth.currentUser()
+declare type sendResult = {
+    success: boolean
+    message: string
+    details?: messageInfo
+}
+
+export const send = async (toUser: emailRecipient, subject: string, message: string, html:string|null = null): Promise<sendResult> => {
+    const sender = await currentUser()
+    if (!sender) return { success: false, message: 'Unauthorized: No current user' }
+    
     const fromAddress = await determineSender(sender)
     if (fromAddress.match(/<.*@.*>/) === null) {
         console.error('Invalid from email address', fromAddress)
-        return Promise.resolve([false, 'Invalid from email address, check your settings'])
+        return Promise.resolve({ success: false, message: 'Invalid from email address, check your settings' })
     }
     const toAddress = user2email(toUser.firstName, toUser.lastName, toUser.email)
 
@@ -215,7 +272,7 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
     // return Promise.resolve([false,'Test'])
     // process.env.OS == 'Windows_NT' - this is not set on Linux.
     const { transporterId, ...transportConfig } = getTransportConfig(
-        process.env.NODEMAILER_TRANSPORTER_ID || null
+        process.env.NODEMAILER_TRANSPORTER_ID || 'sendmail'
     )
     
     // verify path
@@ -225,9 +282,8 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
         from: fromAddress,
         to: toAddress,
         subject: subject,
-        text: message,
-        html: false
-    }
+        text: message
+    } as nodemailer.SendMailOptions
     
     if (html) {
         mailOptions.html = html
@@ -235,38 +291,37 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
 
     return new Promise((resolve) => {
         transporter.sendMail(mailOptions, (error, info) => {
+            const sentInfo = {transporterId, ...info} as messageInfo
+            const result = { transporterId, success: false, message: '', details: sentInfo } as sendResult
             // info = {accepted:[], rejected:[],response:'250 2.0.0 OK....', messageId:''}
             if (error) {
-                const errorMessage = resolveErrorMessage(error,transporterId)
-                resolve([false,errorMessage])
-                return
+                result.message = 'Failed to send email: ' + resolveErrorMessage(error, transporterId)
+                return result
             }
             // accepted -  a list of accepted recipient addresses
             // rejected - a list of rejected recipient addresses
             // response - the last SMTP response from the server
             // messageId - the message ID string
-            // console.debug('Email sent', info)
             
-            info.transporterId = transporterId
             // console.info('Email send info',info)
-            if (info.accepted && info.accepted.length > 0) {
+            if (sentInfo.accepted && sentInfo.accepted.length > 0) {
                 if (transporterId === 'ethereal') {
                     // info.loginUrl = 'https://ethereal.email/login'
                     // info.inbox = 'https://ethereal.email/messages'
                     const ethMsgId = info.response.match(/STATUS=new MSGID=(.*)\]^/)
                     if (ethMsgId && ethMsgId[1]) {
-                        info.publicUrl = `https://ethereal.email/message/${ethMsgId[1]}`
+                        sentInfo.inbox = `https://ethereal.email/message/${ethMsgId[1]}`
                     }
                 }
                 if (transporterId === 'google') {
-                    info.inbox = 'https://mail.google.com/'
+                    sentInfo.inbox = 'https://mail.google.com/'
                 }
-                info.message = 'Email sent'
+                sentInfo.message = 'Email sent'
             } else {
-                info.message = 'No email addresses were accepted'
+                sentInfo.message = 'No email addresses were accepted'
             }
 
-            resolve([true,info])
+            resolve(result)
         })
     })
 }

@@ -25,19 +25,21 @@ export class HTTPResponse {
     headers: {[key:string]: string}
     body: string
     
-    constructor(res) {
-        this.statusCode = res.statusCode
-        this.statusMessage = res.statusMessage
-        this.headers = res.headers
+    constructor(res : http.IncomingMessage) {
+        this.statusCode = res.statusCode || 0
+        this.statusMessage = res.statusMessage || ''
+        this.headers = res.headers as {[key:string]: string}
         this.cookies = {}
         this.body = ''
         
         if (typeof this.headers['set-cookie'] != 'undefined') {
             const responseCookies = res.headers['set-cookie']
-            for (let cookie of responseCookies) {
-                cookie = new HTTPCookie(cookie)
-                if (cookie.isValid) {
-                    this.cookies[cookie.name] = cookie
+            if (typeof responseCookies != 'undefined') {
+                for (let cookie of responseCookies) {
+                    const hcookie = new HTTPCookie(cookie)
+                    if (hcookie.isValid) {
+                        this.cookies[hcookie.name] = hcookie
+                    }
                 }
             }
         }
@@ -66,11 +68,14 @@ class HTTPCookie {
     
     rawString:string
     
+    /**
+     * @throws Error if cookie string cannot be parsed
+     */
     constructor(stringIn:string) {
         this.rawString = stringIn
         let match = stringIn.match(/^(?<name>\w*)=(?<value>.*?);(?<rest>.*)$/)
-        if (match == null) {
-            return
+        if (match == null || !match.groups) {
+            throw new Error('Could not parse cookie string: '+stringIn)
         }
         this.name = match.groups.name
         this.value = match.groups.value
@@ -83,7 +88,7 @@ class HTTPCookie {
                 continue
             }
             let m = v.match(/(?<prop>\w*)=(?<value>.*)/)
-            if (m == null) {
+            if (m == null || !m.groups) {
                 console.warn('could not parse cookie value', v)
                 continue
             }
@@ -112,15 +117,15 @@ export interface HTTPHostConfig {
 export declare type headerType = {key:string, value:string}
 export declare type headerSet = Map<string, string>|{[key:string]:string}
 export declare type postData = string|headerSet
+declare type cookieSet = {[key:string]: HTTPCookie}
 
 class CookieStore {
     #cookiePath: string|null = null
-    #cachedCookies: HTTPCookie[] = []
+    #cachedCookies: cookieSet
     
     constructor(cookiePath?:string) {
+        this.#cachedCookies = {}
         if (typeof cookiePath == 'undefined' || !fs.existsSync(cookiePath)) {
-            cookiePath = null
-            this.#cachedCookies = []
             return
         }
         
@@ -134,15 +139,15 @@ class CookieStore {
     
     clearSession() {
         if (this.#cookiePath == null) {
-            this.#cachedCookies = []
+            this.#cachedCookies = {}
             return
         }
         const filename = this.cookieFile
-        if (!fs.existsSync(filename)) return
+        if (!filename ||!fs.existsSync(filename)) return
         fs.rmSync(this.cookieFile)
     }
     getCookies() {
-        if (this.#cachedCookies.length > 0) return this.#cachedCookies
+        if (Object.keys(this.#cachedCookies).length > 0) return this.#cachedCookies
         const raw = this.#readCookies()
         return raw
     }
@@ -157,10 +162,10 @@ class CookieStore {
     }
 
     #readCookies() : {[key:string]: HTTPCookie} {
-        if (!fs.existsSync(this.cookieFile)) return {}
+        if (!this.cookieFile || !fs.existsSync(this.cookieFile)) return {} as {[key:string]: HTTPCookie}
         const arr = fs.readFileSync(this.cookieFile, 'utf-8')
         if (arr.length == 0) return {}
-        let set = {}
+        let set = {} as {[key:string]: HTTPCookie}
         for (let cookie of arr) {
             const cookieObj = new HTTPCookie(cookie)
             set[cookieObj.name] = cookieObj
@@ -168,7 +173,7 @@ class CookieStore {
         return set
     }
     storeCookies(cookies: responseCookies) {
-        if (this.#cookiePath == null) return
+        if (this.#cookiePath == null || !this.cookieFile) return
         const destination = this.#cookiePath
         if (!fs.existsSync(destination)) {
             return
@@ -192,10 +197,7 @@ class CookieStore {
  * HTTP handler class
  */
 export class SimpleHttp {
-    #defaultHeaders: headerSet = new Map([
-        ['User-Agent', 'simpleHTTP/2.0'],
-        ['Content-Type', 'application/json']
-    ])
+    #defaultHeaders: Map<string,string> = new Map<string,string>()
     #hostConfig : HTTPHostConfig = {
         hostname: 'localhost',
         protocol: 'http',
@@ -206,12 +208,14 @@ export class SimpleHttp {
 
     constructor(config: HTTPHostConfig) {
         this.#hostConfig = config
+        this.#defaultHeaders.set('User-Agent', 'simpleHTTP/2.0')
+        this.#defaultHeaders.set('Content-Type', 'application/json')
     }
     set cookiePath(cookiePath:string) { 
         this.#cookieStore = new CookieStore(cookiePath)
     }
     set header(header: headerType) {
-        this.#defaultHeaders[header.key] = header.value
+        this.#defaultHeaders.set(header.key, header.value)
     }
     set ignoreCertErrors(ignore: boolean) {
         this.#ignoreCertErrors = ignore
@@ -234,11 +238,11 @@ export class SimpleHttp {
         if (headers) {
             if (headers instanceof Map) {
                 for (let [key, value] of headers.entries()) {
-                    requestHeaders[key] = value
+                    requestHeaders.set(key, value)
                 }
             } else {
                 for (let key of Object.keys(headers)) {
-                    requestHeaders[key] = headers[key]
+                    requestHeaders.set(key, headers[key])
                 }
             }
         }
@@ -250,15 +254,15 @@ export class SimpleHttp {
             }
             if (typeof postData == 'object') {
                 sendBody = JSON.stringify(postData)
-                requestHeaders['Content-Length'] = Buffer.byteLength(sendBody)+''
+                requestHeaders.set('Content-Length', Buffer.byteLength(sendBody)+'')
             } else if (typeof postData == 'string') {
                 sendBody = postData
-                requestHeaders['Content-Length'] = Buffer.byteLength(postData)+''
+                requestHeaders.set('Content-Length', Buffer.byteLength(postData)+'')
             }
         }
 
         const cookies = this.#cookieStore.cookieString
-        if (cookies) requestHeaders['Cookie'] = cookies
+        if (cookies) requestHeaders.set('Cookie', cookies)
         
         return new Promise((resolve,reject) => {
             const options = {
@@ -266,7 +270,7 @@ export class SimpleHttp {
                 path: path,
                 protocol: protocol+':',
                 method: method,
-                headers: requestHeaders,
+                headers: Object.fromEntries(requestHeaders),
                 port
                 // rejectUnauthorized : false, // ignore https cert errors
             } as http.RequestOptions
@@ -279,7 +283,7 @@ export class SimpleHttp {
             let req;
             try {
                 req = libMethod.request(options, res => {
-                    const data = [];
+                    const data = [] as Buffer[]
                     const response = new HTTPResponse(res)
                     this.#cookieStore.storeCookies(response.cookies)
         
@@ -293,7 +297,7 @@ export class SimpleHttp {
 
                 // Critical: Handle request-level errors (connection failures, ENOTFOUND, etc.)
                 req.on('error', error => {
-                    console.error('HTTP Request Error:', error.message, error.code)
+                    console.error('HTTP Request Error:', error.message)
                     reject(error)
                 })
 

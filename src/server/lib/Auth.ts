@@ -1,7 +1,7 @@
 'use server'
 import { cookies } from 'next/headers.js'
 import * as Sessions from '@server/lib/Sessions'
-import { Operation } from './Operation'
+import { Operation } from '@lib/Operation'
 
 export declare type CurrentUser = {
     userId: number,
@@ -10,6 +10,38 @@ export declare type CurrentUser = {
     lastName: string,
     email?: string,
     sessionId: string
+}
+
+/**
+ * Get the current user
+ * for when you want the user but should have been warned if not logged in
+ * elsewhere.
+ */
+async function currentUser() : Promise<CurrentUser | null> {
+    const cookieStore = await cookies()
+    // const userCookie = cookieStore.get('username') ?? false
+    const sessionIdCookie = cookieStore.get('sessionId')
+    if (!sessionIdCookie) return null
+    
+    const sessionId = sessionIdCookie.value
+    if (typeof sessionId != 'string' || sessionId == '' || sessionId.length < 10) {
+        return null
+    }
+
+    const sessionVerification = await Sessions.verify(sessionId)
+    if (!sessionVerification.status) {
+        return null
+    }
+    const {user} = sessionVerification.data
+    const returnInfo = {
+        userId: user.userId,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        sessionId: sessionId
+    } as CurrentUser
+    return returnInfo
 }
 
 async function getCurrentUser(): Promise<Operation> {
@@ -44,5 +76,6 @@ async function getCurrentUser(): Promise<Operation> {
 }
 
 export {
+    currentUser,
     getCurrentUser
 }

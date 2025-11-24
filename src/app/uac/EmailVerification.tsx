@@ -5,9 +5,9 @@ import { ComponentSection } from '@/components/ComponentSection'
 import { FormField } from '@/components/FormField'
 import { useState, useEffect } from 'react'
 import { useMessage } from '@/components/ServerResponse'
-import { getCurrentUser } from '@server/lib/Auth'
+import { CurrentUser, currentUser } from '@server/lib/Auth'
 
-import { emailRecipient, getEmailDetails, send } from '@server/lib/Email'
+import { getEmailDetails, send, emailRecipient } from '@server/lib/Email'
 
 export default function EmailVerification() {
     const [tspid, setTspid] = useState('loading')
@@ -27,21 +27,25 @@ export default function EmailVerification() {
 
     const sendTest = async () => {
         msg.loading()
-        const currentUser = await getCurrentUser()
-        if (!currentUser || !currentUser.email) {
-            msg.error('Cannot determine your email address')
+        const user = await currentUser()
+        if (!user) {
+            msg.error('Not logged in')
             return
         }
-        const recipient = currentUser as emailRecipient
+        if (!user.email) {
+            msg.error('No email address associated with your account')
+            return
+        }
+        const recipient = user as emailRecipient
         const result = await send(recipient,
             'Test email from Toolbox',
             'This is a test email sent from Toolbox to verify your email configuration.'
         )
         console.debug('Email send result', result)
-        if (result[0]) {
-            msg.success('Test email sent successfully to ' + currentUser.email)
+        if (result.success) {
+            msg.success('Test email sent successfully to ' + user.email)
         } else {
-            msg.error('Failed to send test email: ' + result[1])
+            msg.error('Failed to send test email: ' + result.message)
         }
     }
 

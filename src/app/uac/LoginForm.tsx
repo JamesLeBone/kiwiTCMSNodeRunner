@@ -5,23 +5,26 @@ import { useState, useEffect } from 'react'
 import { useMessage } from '@/components/ServerResponse'
 import { ComponentSection } from '@/components/ComponentSection'
 import { ActionBar } from '@/components/Actions'
+import type { CurrentUser } from '@server/lib/Auth'
 
-function UserInfo({user}) {
+function UserInfo({user}: {user: CurrentUser}) {
     const {firstName, lastName} = user
     return <div>
         You are logged in as {firstName} {lastName}.
     </div>
 }
 
+declare type loginState = CurrentUser | false
+
 export function LoginWidget() {
-    const loggedIn = useState(null) // Placeholder for actual auth state
+    const loggedIn = useState(false as loginState) // Placeholder for actual auth state
     useEffect(() => {
-        Auth.currentUser().then(currentUser => {
-            if (!currentUser) {
+        Auth.currentUser().then(cuo => {
+            if (cuo.status === 'error') {
                 loggedIn[1](false)
                 return
             }
-            loggedIn[1](currentUser)
+            loggedIn[1](cuo.data as CurrentUser)
         })
     }, [])
     
@@ -47,20 +50,20 @@ function LoadingForm() {
     return <div>Loading...</div>
 }
 
-function LoginForm({loginState}) {
+function LoginForm({loginState} : {loginState: [loginState: loginState, setLoginState: (state: loginState) => void]}) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const serverMessage = useMessage()
 
-    const setUn = e => {
+    const setUn = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault()
         setUsername(e.target.value)
     }
-    const setPw = e => {
+    const setPw = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault()
         setPassword(e.target.value)
     }
-    const doLogin = e => {
+    const doLogin = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         Auth.login({username, password}).then(res => {
             if (!serverMessage.statusResponse(res)) return

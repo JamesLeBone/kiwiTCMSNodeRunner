@@ -1,11 +1,13 @@
 
-import { useState } from 'react';
+import { useState } from 'react'
+import type { ServerMessage } from '@lib/ServerMessages'
+declare type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading'
 
-function useMessage(defaultMessage?:ServerReply) {
-    const [messageType,setMessageType] = useState(defaultMessage?.statusType || '')
+function useMessage(defaultMessage?:ServerMessage) {
+    const [messageType,setMessageType] = useState<statusType>(defaultMessage?.statusType || 'info')
     const [message,setMessage] = useState(defaultMessage?.message || '')
     const clear = () => {
-        setMessageType('')
+        setMessageType('info')
         setMessage('')
     }
 
@@ -14,7 +16,7 @@ function useMessage(defaultMessage?:ServerReply) {
             setMessageType('error')
             setMessage(e.message || 'An error occurred')
         },
-        statusResponse: (response:ServerReply) => {
+        statusResponse: (response:ServerMessage) => {
             if (response.status) {
                 setMessageType('success')
             } else {
@@ -48,7 +50,11 @@ function useMessage(defaultMessage?:ServerReply) {
     }
 }
 
-function ServerResponseComponent({children,type='success'}) {
+declare type ServerResponseProps = {
+    children: React.ReactNode
+    type?: statusType
+}
+function ServerResponseComponent({children,type='success'}: ServerResponseProps) {
     let hasResponse = ' hasResponse'
 
     let icon = 'status-icon '
