@@ -1,21 +1,16 @@
 # Structure
 
-While refactoring is still in play there may be scripts that don't match this format.
+The files directly under /server reflect the entry barrier from the frontend.
+They must start with 'use server' and only export asychrnonous functions that return plain data.
 
-`./.js` -> These files are entry points for Ajax server calls
+Class instances cannot be returned, and it won't try to JSON-Encode them.
 
-### Needs refactor to lib
-* `Auth`
-* `ServerMessages` -> all messages used from internal state or ajax response.
-* `SimpleHttp`
+## lib
+
+These file don't require the 'use server' barrier directive.
+As such they're free to return as they like.
 
 ## Connectors to remote sources
 
 * db
 * kiwi
-* ofbiz
-
-
-
-
-

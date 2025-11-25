@@ -21,3 +21,22 @@ https://kiwitcms.org/
 
 James LeBone
 2025
+
+# Installation
+
+Follow the Kiwi TCMS installation instructions and install via Docker.
+This project will use the default settings, but has some extra options.
+
+Your Kiwi User is managed via users in an sqlite database with encyrpted credentials.
+
+If you get locked out of your own user account, you can delete the db.sqlite3 file and start again.
+
+I intend to write an install script, however for now after first-run the sqlite file should be created.
+You can then connect it to your SQL agent tool an run sql\sqlite\core.sql to build the required strucutre.
+
+## Platform
+
+This will require NodeJs version 24 or higher.
+When satisfied with the general state, I'll prepare a docker file.
+
+

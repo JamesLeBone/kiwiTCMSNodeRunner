@@ -1,3 +1,14 @@
+/**
+ * Bridge between server and client messages
+ * Used to send structured messages from server to client
+ * 
+ * As we cannot return complex class instances via JSON,
+ * we define a simple interface ServerMessage that can be serialized with toSimpleObject()
+ * 
+ * So you will have a single message success/fail/etc... for the primary operation,
+ * but can also list results for bulk operations in the operations array.
+ * @see Operation
+ */
 import { Operation, statusType } from './Operation'
 
 export interface ServerMessage {

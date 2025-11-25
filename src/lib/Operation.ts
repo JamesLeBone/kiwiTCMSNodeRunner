@@ -1,4 +1,12 @@
-
+/**
+ * This module defines the Operation class used to represent the result of an operation.
+ * Operations have details on the result of an action performed by the server.
+ * Operations can be serialized to simple objects for transmission over JSON.
+ * 
+ * Each operations should use a unique ID to identify it,
+ * especially if bulk operations return simmilar results
+ * and for testing purposes.
+ */
 export declare type statusType = 'error' | 'info' | 'success' | 'warning'
 
 export interface OperationResult {
