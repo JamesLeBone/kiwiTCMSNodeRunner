@@ -1,16 +1,8 @@
 'use server'
 import { cookies } from 'next/headers.js'
 import * as Sessions from '@server/lib/Sessions'
-import { Operation } from '@lib/Operation'
-
-export declare type CurrentUser = {
-    userId: number,
-    username: string,
-    firstName: string,
-    lastName: string,
-    email?: string,
-    sessionId: string
-}
+import { TypedOperationResult } from '@lib/Operation'
+import type { CurrentUser } from '@server/lib/Users'
 
 /**
  * Get the current user
@@ -44,21 +36,25 @@ async function currentUser() : Promise<CurrentUser | null> {
     return returnInfo
 }
 
-async function getCurrentUser(): Promise<Operation> {
-    const opGetUser = new Operation('getCurrentUser')
+async function getCurrentUser(): Promise<TypedOperationResult<CurrentUser>> {
+    const opGetUser = {
+        id: 'getCurrentUser',
+        status: false,
+        message: ''
+    } as TypedOperationResult<CurrentUser>
     const cookieStore = await cookies()
     // const userCookie = cookieStore.get('username') ?? false
     const sessionIdCookie = cookieStore.get('sessionId')
-    if (!sessionIdCookie) return opGetUser.setError('Unauthorized: No session')
+    if (!sessionIdCookie) return opGetUser.message = 'Unauthorized: No session cookie', opGetUser
     
     const sessionId = sessionIdCookie.value
     if (typeof sessionId != 'string' || sessionId == '' || sessionId.length < 10) {
-        return opGetUser.setError('Unauthorized: Invalid session ID')
+        return opGetUser.message = 'Unauthorized: Invalid session ID', opGetUser
     }
 
     const sessionVerification = await Sessions.verify(sessionId)
     if (!sessionVerification.status) {
-        return opGetUser.setError('Unauthorized: Session verification failed')
+        return opGetUser.message = 'Unauthorized: Session verification failed', opGetUser
     }
     const {user} = sessionVerification.data
 
@@ -70,8 +66,9 @@ async function getCurrentUser(): Promise<Operation> {
         email: user.email,
         sessionId: sessionId
     } as CurrentUser
-    
-    opGetUser.setSuccess('User verified', returnInfo)
+    opGetUser.status = true
+    opGetUser.message = 'User verified'
+    opGetUser.data = returnInfo
     return opGetUser
 }
 

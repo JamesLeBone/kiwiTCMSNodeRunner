@@ -1,6 +1,6 @@
 'use server'
 import { db } from '../db/Database'
-import { getUser, get as getUserByUsername } from './Users'
+import { getUser, getUserByUsername } from './Users'
 import { SessionFingerprint } from './SessionFingerprint'
 
 const genuuid = () => require('uuid').v4()

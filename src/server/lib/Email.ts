@@ -2,7 +2,8 @@
 import nodemailer from 'nodemailer'
 import { simpleParser } from 'mailparser'
 
-import { currentUser, CurrentUser } from './Auth'
+import { currentUser } from './Auth'
+import type { CurrentUser } from './Users'
 
 export declare type emailRecipient = {
     firstName: string
@@ -48,7 +49,13 @@ declare interface messageInfo extends nodemailer.SentMessageInfo {
     message?: string
 }
 
-const user2email = (firstName:string , lastName:string , email:string) => `${firstName} ${lastName} <${email}>`
+const user2email = (email:string, firstName?:string , lastName?:string) => {
+    const name = [firstName, lastName].filter(n => n && n.length > 0).join(' ')
+    if (name.length === 0) {
+        return email
+    }
+    return `${name} <${email}>`
+}
 const getTransportConfig = (transporterId: string = 'sendmail') : transportConfig  => {
     if (transporterId === 'sendmail') {
         // Check if we are on linux and sendmail exists
@@ -247,7 +254,7 @@ const determineSender = async (user: CurrentUser|false): Promise<string> => {
     if (!user) return defaultFrom
     if (!user.email) return defaultFrom
 
-    return user2email(user.firstName, user.lastName, user.email)
+    return user2email(user.email, user.firstName, user.lastName)
 }
 
 declare type sendResult = {
@@ -265,7 +272,7 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
         console.error('Invalid from email address', fromAddress)
         return Promise.resolve({ success: false, message: 'Invalid from email address, check your settings' })
     }
-    const toAddress = user2email(toUser.firstName, toUser.lastName, toUser.email)
+    const toAddress = user2email(toUser.email, toUser.firstName, toUser.lastName)
 
     // console.debug('Sending from', fromAddress)
     // return Promise.resolve([false, 'Rejected'])

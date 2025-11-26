@@ -1,0 +1,92 @@
+body {
+    margin: 0px;
+}
+
+html {
+    min-width: 320px;
+    overflow: auto;
+}
+
+body > header {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+
+    > * {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0px 8px;
+    }
+    > nav {
+        margin: 0px;
+        display: block;
+
+        .right {
+            float: right;
+        }
+        a {
+            padding: 4px;
+            display: inline-block;
+            color: #1a2a5c;
+            text-decoration: none;
+            line-height: 15px;
+            border-bottom: 1px solid transparent;
+            &:hover {
+                border-bottom-color: #1a2a5c;
+            }
+            > span {
+                margin-left: 4px;
+                display: inline-block;
+            }
+        }
+    }
+}
+
+.IconButton span {
+    margin-left: 4px;
+}
+
+h1 {
+    font-size: 20pt;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+h2 {
+    font-size: 17pt;
+}
+
+.ComponentSection {
+    margin-bottom: 24px;
+    header {
+        font-size: 14pt;
+        font-weight: bold;
+        padding: 4px;
+    }
+    .component-body {
+        border: 1px solid #ccc;
+    }
+    .ActionBar {
+        border-top: 1px solid #ccc;
+        padding: 4px;
+    }
+}
+
+.serverResponse {
+    display: flex;
+    height: 32px;
+
+    &.blank {
+        opacity: 0.25;
+    }
+    > span {
+        margin-right: 8px;
+        width: 16px;
+    }
+    > div {
+        flex-grow: 1;
+    }
+}
+
+fieldset {
+    border: 0px;
+}

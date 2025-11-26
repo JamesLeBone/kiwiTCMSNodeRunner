@@ -2,84 +2,93 @@
 import * as Auth from '@server/Auth'
 import * as Users from '@server/Users'
 
-import FrontendUsers from './FrontendUsers.js'
-import { ActionBar } from '@/components/Actions'
-import SessionManagement from './SessionManagement'
-
-import { PasswordReset, SetPassword } from './PasswordReset'
-import { LoginWidget   } from './LoginForm'
-import EmailVerification from './EmailVerification'
 import type { OperationResult } from '@lib/Operation.js'
+import UACControls from './UacControls'
+import UacAccessToken from './UacAccessToken'
+import UacUnauthorised from './UacUnauthorised'
+import type { verifiedUser, CurrentUser } from '@server/lib/Users'
 
 // This only works on server components, on the client side you need to use useEffect to set document.title
 export async function metadata() {
-    return { title: 'Toolbox - User accounts' }
+    const title = process.env.APP_TITLE || 'Kiwi TCMS Toolbox'
+    return { 
+        title: `${title} - User accounts`
+    }
 }
 
-declare type verfiedUser = {
-    verifiedUser: any,
-    accessToken: string,
-    userId: number
+declare interface userDeterminationResult {
+    userType : 'currentUser' | 'verifiedUser' | 'unauthorised'
 }
-const determineUser = async (searchParams : { accessToken?: string, userId?: string }) : Promise<verfiedUser | false | OperationResult> => {
+declare interface verifiedUserResult extends userDeterminationResult {
+    verifiedUser : verifiedUser
+    accessToken : string
+    userId : number
+}
+declare interface currentUserResult extends userDeterminationResult {
+    currentUser : CurrentUser
+}
+
+const checkUser = async () : Promise<userDeterminationResult> => {
+    const cuo = await Auth.currentUser()
+    if (!cuo.data) {
+        return {
+            userType: 'unauthorised'
+        } as userDeterminationResult
+    }
+    return {
+        userType: 'currentUser',
+        currentUser: cuo.data
+    } as currentUserResult
+}
+
+const determineUser = async (searchParams : { accessToken?: string, userId?: string }) : Promise<userDeterminationResult> => {
     if (typeof searchParams.accessToken == 'undefined' || typeof searchParams.userId == 'undefined') {
-        return Auth.currentUser()
+        return await checkUser()
     }
     if (isNaN(Number.parseInt(searchParams.userId))) {
-        return Auth.currentUser()
+        return await checkUser()
     }
     if (typeof searchParams.accessToken !== 'string' || searchParams.accessToken.length < 10) {
-        return Auth.currentUser()
+        return await checkUser()
     }
     const userIdNumber = Number.parseInt(searchParams.userId)
     if (isNaN(userIdNumber) || userIdNumber < 1) {
-        return Auth.currentUser()
+        return await checkUser()
     }
 
-    const vfUser = await Users.verifyToken(userIdNumber, searchParams.accessToken)
-    if (!vfUser.status) {
-        console.info('Access token rejected', vfUser)
-        return false
+    const vfUserPromise = await Users.verifyToken(userIdNumber, searchParams.accessToken)
+    if (!vfUserPromise.status || !vfUserPromise.data) {
+        return { userType: 'unauthorised' } as userDeterminationResult
     }
-    console.info('Access token accepted', vfUser.data)
+    
     return {
-        verifiedUser: vfUser.data,
+        userType: 'verifiedUser',
+        verifiedUser: vfUserPromise.data,
         accessToken: searchParams.accessToken,
         userId: userIdNumber
-    } as verfiedUser
-}
-
-function LoggedOut() {
-    return <main>
-        <LoginWidget />
-        <PasswordReset />
-    </main>
+    } as verifiedUserResult
 }
 
 export default async function UserPage({params,searchParams} : NextPageProps) {
     const sp = await searchParams
 
-    const cuserOperation = await determineUser(sp)
-    if (!cuserOperation) return <LoggedOut />
+    const userInfo = await determineUser(sp)
+    console.info('Determined user operation:', userInfo)
 
-    if ('verifiedUser' in cuserOperation) {
-        const verifiedUser = cuserOperation as verfiedUser
-        return <main>
-            <SetPassword username={verifiedUser.verifiedUser.username} userId={verifiedUser.userId} accessToken={verifiedUser.accessToken} />
-        </main>
+    if (userInfo.userType == 'unauthorised') {
+        console.info('User unauthorised')
+        return <UacUnauthorised />
     }
-    const currentUser = (cuserOperation as OperationResult).data
 
-    const userList = await Users.list()
-    .then(response => response.status ? response.data : [])
+    if (userInfo.userType == 'verifiedUser') {
+        const vio = userInfo as verifiedUserResult
+        console.info('User verified by code')
+        return <UacAccessToken verifiedUser={vio.verifiedUser} accessToken={vio.accessToken} userId={vio.userId} />
+    }
+    console.info('User authorised normally')
 
-    return <main>
-        <ActionBar>
-            <a href="/uac/credentials">Credential Store</a>
-        </ActionBar>
-        <FrontendUsers users={userList} currentUserId={currentUser.userId} />
-        <SessionManagement />
-        <EmailVerification />
-    </main>
+    const cuserOperation = userInfo as currentUserResult
+    return <UACControls currentUser={cuserOperation.currentUser} />
+
 }
 

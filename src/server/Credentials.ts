@@ -1,86 +1,114 @@
 'use server'
 
-import { success , error, ServerReply } from '@lib/ServerMessages'
-
 import * as credentials from './lib/Credentials'
 import * as credentialTypes from './lib/CredentialTypes'
 import type { credentialFieldSet } from './lib/Credentials'
 import { getCurrentUser } from '@server/lib/Auth'
 
-import { serverMessagePromise } from '@lib/ServerMessages'
+import { Operation, TypedOperationResult, unauthorised } from '@lib/Operation'
+import { credentialType } from './lib/CredentialTypes'
 
 // Exported
-const addCredential = async (credential:credentialFieldSet, credentialTypeId:number = 1) : serverMessagePromise => {
+const addCredential = async (credential:credentialFieldSet, credentialTypeId:number = 1) : Promise<Operation> => {
     const login = await getCurrentUser()
-    if (!login) return ServerReply.fromOperation(login)
+    if (!login.data) return unauthorised
     const userId = login.data.userId
 
-    const addOp = await credentials.addCredential(userId, credential, credentialTypeId)
-    return ServerReply.fromOperation(addOp)
+    return credentials.addCredential(userId, credential, credentialTypeId)
 }
 
-const updateCredential = async (userCredentialId:number, credential:credentialFieldSet) : serverMessagePromise => {
+const updateCredential = async (userCredentialId:number, credential:credentialFieldSet) : Promise<Operation> => {
     const login = await getCurrentUser()
-    if (!login) return ServerReply.fromOperation(login)
+    if (!login.data) return unauthorised
     const userId = login.data.userId
 
     const owner = await credentials.getOwner(userCredentialId)
-    if (owner !== userId) return error('You do not own this credential')
+    if (owner !== userId) return {
+        id: 'unauthorised',
+        status: false,
+        message: 'You do not own this credential'
+    }
     
-    const update = await credentials.update(userCredentialId,credential)
-    return ServerReply.fromOperation(update)
+    return credentials.update(userCredentialId,credential)
 }
 
-const deleteCredential = async (userCredentialId:number) : serverMessagePromise => {
+const deleteCredential = async (userCredentialId:number) : Promise<Operation> => {
     const login = await getCurrentUser()
-    if (!login) return ServerReply.fromOperation(login)
+    if (!login.data) return unauthorised
     const userId = login.data.userId
 
     const owner = await credentials.getOwner(userCredentialId)
-    if (owner !== userId) return error('You do not own this credential')
-
+    if (owner !== userId) return {
+        id: 'unauthorised',
+        status: false,
+        message: 'You do not own this credential'
+    }
     await credentials.deleteCredential(userCredentialId)
-    return success('Credential deleted')
+    return {
+        id: 'deleteCredential',
+        status: true,
+        message: 'Credential deleted'
+    }
 }
 
-const getCredentials = async (userCredentialTypeId:number) : serverMessagePromise => {
+const getCredentials = async (userCredentialTypeId:number) : Promise<TypedOperationResult<credentials.decryptedCredentialDetails>> => {
     const login = await getCurrentUser()
-    if (!login) return ServerReply.fromOperation(login)
+    if (!login.data) return unauthorised
     const userId = login.data.userId
 
     const creds = await credentials.find(userId,userCredentialTypeId)
+
+    const operation = {
+        id: 'getCredentials',
+        status: false,
+        message: ''
+    }
     
-    if (!creds) return error('No credentials found for user and remote service')
-    return success('Credentials found', creds)
+    if (!creds) return operation.message = 'No credentials found', operation
+    return {
+        ...operation,
+        status: true,
+        message: 'Credentials found',
+        data: creds
+    }
 }
 
-const listUserCredentials = async () : serverMessagePromise => {
+const listUserCredentials = async () : Promise<TypedOperationResult<credentials.userCredentialList>> => {
     const login = await getCurrentUser()
-    if (!login) return ServerReply.fromOperation(login)
+    if (!login.data) return unauthorised
     const userId = login.data.userId
 
     const list = await credentials.list(userId)
-    const reply = new ServerReply(true, list)
+    const op = {
+        id: 'listUserCredentials',
+        status: false,
+        message: ''
+    } as TypedOperationResult<credentials.userCredentialList>
 
     if (list.length == 0) {
-        reply.message = 'No credentials found'
-    } else {
-        reply.message = list.length + ' credentials found'
+        return op.message = 'No credentials found', op
     }
-    return reply
+    op.status = true
+    op.data = list
+    op.message = 'Credentials retrieved'
+    return op
 }
 
-const getCredentialTypes = async () : serverMessagePromise => {
-    const list = await credentialTypes.getTypes()
-    return success('Credential types retrieved', list)
+const getCredentialTypes = async () : Promise<credentialType[]> => {
+    const login = await getCurrentUser()
+    if (!login.data) return []
+    return credentialTypes.getTypes()
 }
-const addNewType = async (description:string, fields:credentialFieldSet) : serverMessagePromise => {
-    const op = await credentialTypes.addType(description, fields)
-    return ServerReply.fromOperation(op)
+
+const addNewType = async (description:string, fields:credentialFieldSet) : Promise<Operation> => {
+    const login = await getCurrentUser()
+    if (!login.data) return unauthorised
+    return credentialTypes.addType(description, fields)
 }
-const deleteType = async (credentialTypeId:number) : serverMessagePromise => {
-    const op = await credentialTypes.deleteType(credentialTypeId)
-    return ServerReply.fromOperation(op)
+const deleteType = async (credentialTypeId:number) : Promise<Operation> => {
+    const login = await getCurrentUser()
+    if (!login.data) return unauthorised
+    return credentialTypes.deleteType(credentialTypeId)
 }
 
 export {

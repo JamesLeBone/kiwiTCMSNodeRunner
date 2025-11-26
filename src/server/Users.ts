@@ -1,42 +1,28 @@
 'use server'
 import * as lib from './lib/Users'
-import { serverMessagePromise, ServerReply } from '@lib/ServerMessages'
 import * as Auth from './Auth'
+import { TypedOperationResult } from '@lib/Operation'
 
-const list = async () : serverMessagePromise => lib.list()
-    .then(operation => ServerReply.fromOperation(operation))
-const verifyToken = async (userId:number, accessToken:string): serverMessagePromise => {
-    const res = await lib.verifyToken(userId, accessToken)
-    return ServerReply.fromOperation(res)
-}
+const verifyToken = async (userId:number, accessToken:string) => lib.verifyToken(userId, accessToken)
 
-const resetPassword = async (username:string) : serverMessagePromise => {
-    const result = await lib.resetPassword(username)
-    .then(operation => ServerReply.fromOperation(operation))
-    
-    if (result.status) {
-        // No need to return eveything, just the messageId
-        result.data = result.data.messageId
-    }
-    console.debug('resetPassword result', result)
-    return result
-}
+const resetPassword = (username:string) => lib.resetPassword(username)
 
-const setPassword = async (userId:number, password:string, accessToken:string) : serverMessagePromise => {
+const setPassword = async (userId:number, password:string, accessToken:string) : Promise<TypedOperationResult<lib.verifiedUser>> => {
     const vfUser = await lib.verifyToken(userId, accessToken)
-    if (!vfUser.status) {
-        console.debug('setPassword: failed to verify user', vfUser)
-        return ServerReply.fromOperation(vfUser)
+    if (!vfUser.status || vfUser.data == null) {
+        return {
+            id: 'setPassword',
+            status: false,
+            message: 'Invalid access token'
+        }
     }
     const username = vfUser.data.username
 
-    const resultOp = await lib.setPassword(username, password)
-    .then(operation => ServerReply.fromOperation(operation))
+    const op = await lib.setPassword(username, password)
     
     const credential = {username, password}
     await Auth.login(credential)
-
-    return resultOp
+    return op
 }
 
 declare type CreateUserParams = {
@@ -46,17 +32,12 @@ declare type CreateUserParams = {
     username: string
 }
 
-const create = (user: CreateUserParams) : serverMessagePromise => {
-    return lib.create(user.username,user.firstName, user.lastName, user.email)
-    .then(operation => ServerReply.fromOperation(operation))
-}
-const update = (userId:number, lastName:string, firstName:string, email:string, username:string|null) : serverMessagePromise => lib.update(userId, lastName, firstName, email, username)
-    .then(operation => ServerReply.fromOperation(operation))
+const create = (user: CreateUserParams) => lib.create(user.username,user.firstName, user.lastName, user.email)
 
-const promptPasswordReset = (userId:number) : serverMessagePromise => lib.promptPasswordReset(userId)
-    .then(operation => ServerReply.fromOperation(operation))
+const update = (userId:number, lastName:string, firstName:string, email:string, username:string|null) => lib.update(userId, lastName, firstName, email, username)
+
+const promptPasswordReset = (userId:number) => lib.promptPasswordReset(userId)
 export {
-    list,
     verifyToken,
     setPassword,
     resetPassword,

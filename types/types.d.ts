@@ -15,3 +15,8 @@ declare interface NextPageProps {
     params: Promise<Record<string, string | string[]>>
     searchParams: Promise<Record<string, string | string[] | undefined>>
 }
+
+declare module '*.css' {
+  const content: { [className: string]: string };
+  export default content;
+}

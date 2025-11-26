@@ -1,10 +1,16 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS logins;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS credentials;
+DROP TABLE IF EXISTS credential_types;
+
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY
-    , username TEXT UNIQUE
+    , username TEXT UNIQUE NOT NULL
     , first_name TEXT
     , last_name TEXT
-    , email TEXT
-    , secret TEXT
+    , email TEXT UNIQUE NOT NULL
+    , secret TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS logins (
@@ -24,9 +30,6 @@ CREATE TABLE IF NOT EXISTS sessions (
     , created_at TEXT
     , expires_at TEXT
 );
-
-drop table credentials;
-drop table credential_types;
 
 CREATE TABLE IF NOT EXISTS credential_types (
     credential_type_id INTEGER PRIMARY KEY

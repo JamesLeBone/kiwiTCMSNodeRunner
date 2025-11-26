@@ -5,11 +5,9 @@ import * as Sessions from './lib/Sessions'
 import { getCurrentUser } from '@server/lib/Auth'
 
 // Use this
-import * as ServerMessages from '@lib/ServerMessages'
-import { serverMessagePromise } from '@lib/ServerMessages'
-import { OperationResultPromise } from '../lib/Operation'
+import { Operation, TypedOperationResult } from '../lib/Operation'
 
-async function logout() : serverMessagePromise {
+async function logout() : Promise<Operation> {
     const cookieStore = await cookies()
     // cookieStore.clear() // Clear all cookies
     cookieStore.delete('sessionId')
@@ -20,7 +18,11 @@ async function logout() : serverMessagePromise {
     //     Sessions.clear(username.value, sessionId.value)
     // }
 
-    return ServerMessages.success('Logged out')
+    return {
+        id: 'logout',
+        status: true,
+        message: 'Logged out'
+    }
 }
 
 export type loginCredentails = {
@@ -28,29 +30,27 @@ export type loginCredentails = {
     password: string
 }
 
-async function login({ username, password }: loginCredentails) : serverMessagePromise {
+async function login({ username, password }: loginCredentails) {
+    const op = {
+        id: 'login',
+        status: false,
+        message: ''
+    } as TypedOperationResult<Users.verifiedUser>
     if (typeof username == 'undefined' || typeof password == 'undefined') {
-        console.error('Missing username or password')
-        return ServerMessages.error('missing username and password')
+        return op.message = 'missing username and password', op
     }
 
     const cookieStore = await cookies()
 
     const loginEvent = await Users.login(username,password)
-    if (loginEvent.isError) {
-        return ServerMessages.error(loginEvent.message)
+    if (loginEvent.data == null) {
+        return loginEvent
     }
     const user = loginEvent.data
-
-    if (user === false) {
-        return ServerMessages.error('Invalid username or password')
-    }
-    // console.debug(user, 'logged in')
     
     const session = await Sessions.createSession(user.userId)
     if (!session) {
-        console.error('Failed to create session')
-        return ServerMessages.error('Failed to create session')
+        return op.message = 'Failed to create session', op
     }
 
     cookieStore.set('sessionId',session.secret, {expires: session.expiresAt})
@@ -58,22 +58,19 @@ async function login({ username, password }: loginCredentails) : serverMessagePr
 
     console.debug('User', username, 'logged in with session', session)
 
-    const returnValue = {
-        username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-    }
-    const resp = ServerMessages.success('User logged in', returnValue)
-    console.info('User logged in', returnValue)
-    return resp
+    op.status = true
+    op.message = 'Login successful'
+    op.data = user
+    return op
 }
 
-async function currentUser() : OperationResultPromise {
-    return await getCurrentUser().then(o => o.toSimpleObject())
+async function currentUser() {
+    return await getCurrentUser()
 }
 async function getUserId() { 
     const u = await getCurrentUser()
-    return u.isSuccess ? u.data.userId : null
+    if (!u.data) return null
+    return u.data.userId
 }
 
 export {

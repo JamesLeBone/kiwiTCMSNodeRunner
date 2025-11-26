@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useMessage } from '@/components/ServerResponse'
 
-import UserList from './UserList.js'
+import UserList from './UserList'
 
 export default function FrontendUsers({users,currentUserId}) {
     const userList = useState(users)

@@ -44,23 +44,28 @@ const encrypt = async (data:credentialFieldSet, userId:number) : Promise<string|
 }
 
 export async function addCredential(userId:number,credential:credentialFieldSet,credentialTypeId:number = 1) : Promise<Operation> {
-    const op = new Operation('addCredential')
+    const op = {
+        id: 'addCredential',
+        status: false,
+        message: ''
+    }
 
     try {
         const encrypted = await encrypt(credential, userId)
-        if (!encrypted) return op.setError('Error encrypting credentials')
+        if (!encrypted) return op.message = 'Error encrypting credentials', op
 
         const set = await db.insert('credentials',
             {userId, credentialTypeId, credential:encrypted}
         )
         if (set.length == 0) {
-            op.setError('Could not add credential')
+            op.message = 'Could not add credential'
         } else {
-            op.setSuccess('Added')
+            op.status = true
+            op.message = 'Added'
         }
     } catch (e) {
         console.error('Error setting credential', e)
-        op.setError('Error')
+        op.message = 'Error'
     }
     return op
 }
@@ -70,14 +75,17 @@ export async function getOwner(userCredentialId:number) : Promise<number|null> {
     return cred.userId
 }
 export async function update(userCredentialId:number, credential:credentialFieldSet) : Promise<Operation> {
-    const op = new Operation('updateCredentials')
+    const op = {
+        id: 'updateCredentials',
+        status: false,
+        message: ''
+    }
     const uc = await db.get('credentials', userCredentialId, 'user_credential_id')
-    if (!uc) return op.setError('User credential not found')
+    if (!uc) return op.message = 'User credential not found', op
     const userId = uc.userId
     try {
         const encrypted = await encrypt(credential, userId)
-        if (!encrypted) return op.setError('Error encrypting credentials')
-
+        if (!encrypted) return op.message = 'Error encrypting credentials', op
         const updated = await db.update(
             'credentials',
             userCredentialId,
@@ -85,12 +93,14 @@ export async function update(userCredentialId:number, credential:credentialField
             'user_credential_id'
         )
         if (!updated) 
-            op.setError('Could not update')
-        else 
-            op.setSuccess('updated')
+            op.message = 'Could not update'
+        else  {
+            op.status = true
+            op.message = 'updated'
+        }
     } catch (e) {
         console.error('Error updating credentials', e)
-        op.setError('Error updating')
+        op.message = 'Error updating'
     }
     return op
 }
@@ -138,7 +148,7 @@ export async function find(userId:number, userCredentialTypeId:number) : Promise
  */
 export async function getCredential(credentialTypeId:number) : Promise<decryptedCredentialDetails|null> {
     const login = await getCurrentUser()
-    if (!login) return null
+    if (!login.data) return null
     const userId = login.data.userId
 
     const cred = await find(userId,credentialTypeId)
@@ -146,7 +156,7 @@ export async function getCredential(credentialTypeId:number) : Promise<decrypted
     return cred
 }
 
-export async function list(userId:string) : Promise<userCredentialList> {
+export async function list(userId:number) : Promise<userCredentialList> {
     const params = [userId]
     const creds = await db.fetch(`SELECT user_credential_id, description
         FROM credentials c

@@ -1,10 +1,10 @@
 
 import { useState } from 'react'
-import type { ServerMessage } from '@lib/ServerMessages'
-declare type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading'
+import type { Operation, OperationResult } from '@lib/Operation'
+declare type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading' | 'blank'
 
-function useMessage(defaultMessage?:ServerMessage) {
-    const [messageType,setMessageType] = useState<statusType>(defaultMessage?.statusType || 'info')
+function useMessage(defaultMessage?:Operation) {
+    const [messageType,setMessageType] = useState<statusType>(defaultMessage?.statusType || 'blank')
     const [message,setMessage] = useState(defaultMessage?.message || '')
     const clear = () => {
         setMessageType('info')
@@ -16,14 +16,17 @@ function useMessage(defaultMessage?:ServerMessage) {
             setMessageType('error')
             setMessage(e.message || 'An error occurred')
         },
-        statusResponse: (response:ServerMessage) => {
-            if (response.status) {
+        statusResponse: (response:OperationResult, verifyData = true) => {
+            let status = response.status
+            if (verifyData && typeof response.data == 'undefined') status = false
+
+            if (status) {
                 setMessageType('success')
             } else {
                 setMessageType('error')
             }
             setMessage(response.message)
-            return response.status
+            return status
         },
         error: (message:string) => {
             setMessageType('error')
@@ -54,7 +57,7 @@ declare type ServerResponseProps = {
     children: React.ReactNode
     type?: statusType
 }
-function ServerResponseComponent({children,type='success'}: ServerResponseProps) {
+function ServerResponseComponent({children,type='blank'}: ServerResponseProps) {
     let hasResponse = ' hasResponse'
 
     let icon = 'status-icon '
@@ -75,7 +78,7 @@ function ServerResponseComponent({children,type='success'}: ServerResponseProps)
         case 'success':
             icon += 'fa-solid fa-check'
         break
-        default:
+        case 'blank':
             icon = ''
             hasResponse = ''
         break

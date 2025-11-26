@@ -4,38 +4,59 @@ import { db } from '../db/Database'
 import * as email from './Email'
 // import * as sessions from './Sessions.js'
 import { v4 as genuuid } from 'uuid' //= require('uuid')
-import { Operation } from '@lib/Operation'
+import { Operation, TypedOperationResult } from '@lib/Operation'
 
-const ops = {
-    notFound: Operation.error('userNotFound', 'User not found'),
-    dbFailure: Operation.error('userDbError', 'Database interface failed'),
-    inputValdiationError: {
-        username: Operation.error('userInputError', 'Username must be at least 4 characters'),
-        email: Operation.error('userInputError', 'Invalid email address'),
-        password: Operation.error('userInputError', 'Password must be at least 8 characters'),
-    },
+export declare interface dbUserRecord {
+    userId: number
+    username: string
+    firstName?: string
+    lastName?: string
+    email: string
+    secret: string
+}
+/**
+ * The current logged in user details
+ * Includes sessionId from cookie
+ */
+export declare interface CurrentUser extends dbUserRecord {
+    sessionId: string
+}
+/**
+ * A verified user record
+ * Does not contain session information
+ * and can refer to another user.
+ * Does not contain sensitive information.
+ */
+export declare interface verifiedUser {
+    userId: number
+    username: string
+    firstName?: string
+    lastName?: string
+    email: string
 }
 
-declare interface dbUserRecord {
-    userId: number,
-    username: string | null,
-    firstName: string | null,
-    lastName: string | null,
-    email: string | null,
-    secret: string | null
+function rawDbRow2User(row:any) : dbUserRecord {
+    return {
+        userId: row.userId,
+        username: row.username,
+        firstName: row.firstName == null ? undefined : row.firstName,
+        lastName: row.lastName == null ? undefined : row.lastName,
+        email: row.email,
+        secret: row.secret
+    } as dbUserRecord
 }
 
-const getUserByUsername = async (username:string) => {
+const getUserByUsername = async (username:string) : Promise<dbUserRecord | null> => {
     const sql = `SELECT * FROM users WHERE username = ?`;
     const userReply = await db.fetchOne(sql,[username])
     if (!userReply) return null
-    return userReply as any as dbUserRecord
+    return rawDbRow2User(userReply)
 }
 const getUser = async (userId:number) : Promise<dbUserRecord | null> => {
     const sql = `SELECT * FROM users WHERE user_id = ?`;
-    const reply = await db.fetchOne(sql,[userId])
-    if (!reply) return null
-    return reply as any as dbUserRecord
+    const userReply = await db.fetchOne(sql,[userId])
+    if (!userReply) return null
+    return rawDbRow2User(userReply)
 }
 
 class ResetToken {
@@ -62,104 +83,136 @@ const encrypt = (text:string) => sha256(text)
  * Server-to-Sever function, login
  * @returns ServerMessages.Operation
  */
-async function login(username:string,password:string) {
-    const op = new Operation('login')
+async function login(username:string,password:string) : Promise<TypedOperationResult<verifiedUser>> {
+    const op = {
+        id: 'login',
+        status: false,
+        message: 'Invalid login credentials'
+    } as TypedOperationResult<verifiedUser>
     const user = await getUserByUsername(username)
     if (!user) {
         console.log('No user found with username', username)
-        return op.setError('Invalid login credentials')
+        return op
     }
 
     const encPassword = encrypt(password)
     const verifyPassword = await db.get('logins', user.userId, 'user_id')
     if (!verifyPassword) {
-        await db.insert('logins', {userId:user.userId, username})
-        console.log('No login record found for user, created', user.userId)
-        return op.setError('Invalid login credentials')
+        return op
     }
 
     if (verifyPassword.password == null || encPassword != verifyPassword.password) {
         console.log('Password does not match for user', username)
-        return op.setError('Invalid login credentials')
+        return op
     }
-    
-    return op.setSuccess('User logged in', user)
+    op.status = true
+    op.message = 'User logged in successfully'
+    const { secret, ...vfUser } = user
+    op.data = vfUser as verifiedUser
+    return op
 }
 
-async function get(username:string) {
-    return getUserByUsername(username)
-}
-
-async function create(username:string,firstName:string,lastName:string,email:string) {
-    const op = new Operation('createUser')
+async function create(username:string,firstName:string,lastName:string,email:string) : Promise<TypedOperationResult<verifiedUser>> {
+    const op = {
+        id: 'createUser',
+        status: false,
+        message: 'User creation failed'
+    } as TypedOperationResult<verifiedUser>
 
     const existingUser = await getUserByUsername(username)
-    if (existingUser) return op.setError('Username already exists')
-    if (!validEmail(email)) return ops.inputValdiationError.email
-    if (username.length < 4) return ops.inputValdiationError.username
-    const secret  = genuuid()
+    if (existingUser) return op.message ='Username already exists',op
+    if (!validEmail(email)) return op.message = 'Invalid email address', op
+    if (username.length < 4) return op.message = 'Username must be at least 4 characters', op
     const insert = await db.insert('users', {
         username,
         firstName,
         lastName,
         email,
-        secret
+        secret: genuuid()
     })
-    if (!insert || insert.length === 0) return ops.dbFailure
-    const newUser = insert[0]
+    if (!insert || insert.length === 0) return op.message = 'Database interface failed', op
+    const newUser = rawDbRow2User(insert[0])
     await db.insert('logins', {userId:newUser.userId, username})
-    op.setSuccess('User created', newUser)
+
+    op.status = true
+    op.message = 'User created successfully'
+    const { secret , ...vfUser } = newUser
+    op.data = vfUser as verifiedUser
     return op
 }
 
-async function update(userId:number,lastName:string,firstName:string,email:string,username:string|null) {
-    const op = new Operation('updateUser')
+async function update(userId:number,lastName:string,firstName:string,email:string,username:string|null) : Promise<TypedOperationResult<verifiedUser>> {
+    const op = {
+        id: 'updateUser',
+        status: false,
+        message: 'User update failed'
+    } as TypedOperationResult<verifiedUser>
 
     const existingUser = getUser(userId)
-    if (!existingUser) return ops.notFound
+    if (!existingUser) return op.message = 'User not found', op
+    if (!validEmail(email)) return op.message = 'Invalid email address', op
 
     if (username != null) {
-        if (username.length < 4) return ops.inputValdiationError.username
+        if (username.length < 4) return op.message = 'Username must be at least 4 characters', op
         const setusername = await db.update('users', userId, {username}, 'user_id')
-        if (!setusername) return ops.dbFailure
+        if (!setusername) return op.message = 'Database interface failed', op
     }
 
     const updatedUser = await db.update('users', userId, {firstName,lastName,email}, 'user_id')
-    if (!updatedUser) return ops.dbFailure
-    return op.setSuccess('User updated')
+    if (!updatedUser) return op.message = 'Database interface failed', op
+    op.status = true
+    const { secret, ...vfUser } = updatedUser
+    op.data = vfUser as verifiedUser
+    op.message = 'User updated successfully'
+    return op
 }
 
-async function setPassword(username:string,password:string) {
+async function setPassword(username:string,password:string) : Promise<TypedOperationResult<verifiedUser>> {
+    const op = {
+        id: 'setPassword',
+        status: false,
+        message: 'Set password failed'
+    } as TypedOperationResult<verifiedUser>
     if (password.length < 8) {
-        return ops.inputValdiationError.password
+        return op.message = 'Password must be at least 8 characters', op
     }
     console.debug('Setting password for', username)
     const user = await getUserByUsername(username)
-    if (!user) return ops.notFound
+    if (!user) return op.message = 'User not found', op
     password = encrypt(password)
 
     const login = await db.update('logins', user.userId,
         {password,promptPasswordReset:0,passwordResetToken:null},
         'user_id'
     )
-    if (!login) return ops.dbFailure
-    const op = new Operation('setPassword')
-    const successMessage = `Password set for ${user.firstName} ${user.lastName}`
-    op.setSuccess(successMessage)
+    if (!login) return op.message = 'Database interface failed', op
+    op.status = true
+    op.message = `Password set for ${user.firstName} ${user.lastName}`
+    const { secret, ...vfUser } = user
+    op.data = vfUser as verifiedUser
     return op
 }
-async function resetPassword(username:string) {
+async function resetPassword(username:string) : Promise<Operation> {
     const user = await getUserByUsername(username)
-    if (!user) return ops.notFound
+    if (!user) return {
+        id: 'resetPassword',
+        status: false,
+        message: 'User not found'
+    } as Operation
     return sendPasswordResetEmail(user)
 }
 
-async function list() {
+async function list() : Promise<TypedOperationResult<verifiedUser[]>> {
     const users = await db.fetchProps('users', ['userId','firstName','lastName','email','username'])
-    return Operation.success('listUsers', 'List obtained', users)
+    return {
+        id: 'listUsers',
+        status: true,
+        message: 'User list retrieved',
+        data: users
+    } as TypedOperationResult<dbUserRecord[]>
 }
 
-const setPasswordResetToken = async (userId:number, token:Object) => {
+const setPasswordResetToken = async (userId:number, token:Object) : Promise<boolean> => {
     const props = {
         password: null,
         passwordResetToken: JSON.stringify(token),
@@ -170,24 +223,26 @@ const setPasswordResetToken = async (userId:number, token:Object) => {
 }
 
 async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
-    if (!user.email) return ops.inputValdiationError.email
+    const op = {
+        id: 'sendPasswordResetEmail',
+        status: false,
+        message: 'Send password reset email failed'
+    } as Operation
+    if (!user.email) return op.message = 'User has no email address', op
     const hasValidEmail = validEmail(user.email)
-    if (!hasValidEmail) return ops.inputValdiationError.email
-
-    const operation = new Operation('sendPasswordResetEmail')
+    if (!hasValidEmail) return op.message = 'Invalid email address', op
 
     const token = new ResetToken(genuuid())
     const reset = await setPasswordResetToken(user.userId, token)
     if (!reset) {
-        operation.setError('Unable to generate reset token')
-        return operation
+        return op.message = 'Unable to generate reset token', op
     }
     console.debug('Password reset token set for user', reset)
 
     const params = new URLSearchParams()
     params.set('accessToken',token.value)
     params.set('userId', user.userId+'')
-    const host = process.env.TOOLBOX_HOST || 'http://dragon.ftg.sil0.net:8084'
+    const host = process.env.TOOLBOX_HOST
     const url = host+`/uac?`+params.toString()
 
     const body = `To ${user.firstName} ${user.lastName},
@@ -220,63 +275,79 @@ async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
 
     const sendResult = await email.send(sendTo, 'Dragon Toolbox - Password reset', body, html)
     if (!sendResult.success) {
-        operation.setError(sendResult.message)
-        return operation
+        return op.message = sendResult.message, op
     }
     const transporterId = await email.getTransporterId()
     if (transporterId === 'ethereal') {
         console.debug('Email sent via ethereal.  Here is the url:', url)
     }
-    operation.setSuccess('Password reset email sent')
-    return operation
+    op.status = true
+    op.message = 'Password reset email sent'
+    return op
 }
 
-const getToken = async (userId:number) => {
+const getToken = async (userId:number) : Promise<string | false> => {
     const login = await db.get('logins', userId, 'user_id')
     if (!login) return false
     return login.passwordResetToken
 }
-
-async function verifyToken(userId:number,accessToken:string): Promise<Operation> {
-    const operation = new Operation('verifyToken')
-    operation.setError('Token not valid')
+/**
+ * Verify a password reset token for a user.
+ */
+async function verifyToken(userId:number,accessToken:string): Promise<TypedOperationResult<verifiedUser>> {
+    const operation = {
+        id: 'verifyToken',
+        status: false,
+        message: 'Token not verified'
+    } as TypedOperationResult<verifiedUser>
 
     const token = await getToken(userId)
-    if (!token) return operation.setError('No token found for user')
+    if (!token) {
+        operation.message = 'No token found for user'
+        return operation 
+    }
 
     let rt:ResetToken;
     try {
         const {value,expiry} = JSON.parse(token)
         rt = new ResetToken(value)
         rt.setExpiry(expiry)
-        console.debug('verifyToken: reconstructed token', rt)
+        // console.debug('verifyToken: reconstructed token', rt)
     } catch (e) {
         console.error('Error parsing token',token,e)
-        return operation.setError('Invalid Token stored')
+        return operation.message = 'Invalid token format', operation
     }
 
     if (rt.value != accessToken) {
         console.debug('setPassword: failed to verify token', rt.value, accessToken)
-        return operation.setError('Token mismatch')
+        return operation.message = 'Invalid token', operation   
     }
     if (rt.expiry < Date.now()) {
-        return operation.setError('Token expired')
+        return operation.message = 'Token expired', operation
     }
     const user = await getUser(userId)
-    if (!user) return operation.setError('User not found for token')
-    return operation.setSuccess('Token verified', user)
+    if (!user) return operation.message = 'User not found for token', operation
+    const { secret, ...vfUser } = user
+    operation.status = true
+    operation.data = vfUser as verifiedUser
+    operation.message = 'Token verified'
+    return operation
 }
 
 const promptPasswordReset = async (userId:number) => {
-    const op = new Operation('getPromptPasswordReset')
-    if (!userId) return op.setError('User ID is required')
+    const op = {
+        id: 'promptPasswordReset',
+        status: false,
+        message: 'Prompt password reset check failed'
+    } as Operation
+    if (!userId) return op.message = 'User ID is required', op
     const login = await db.get('logins', userId, 'user_id')
-    if (!login) return op.setError('User not found')
+    if (!login) return op.message = 'User not found', op
 
     if (login.promptPasswordReset) {
-        return op.setSuccess('Prompt password reset is enabled', true)
+        return op.message = 'Prompt password reset is enabled', op
     }
-    return op.setSuccess('Prompt password reset is disabled', false)
+    return op.message = 'Prompt password reset is disabled', op
 }
 
 export {
@@ -287,9 +358,9 @@ export {
     resetPassword,
     update,
     create,
-    get,
     login,
     getUser,
+    getUserByUsername,
     promptPasswordReset
 }
 
