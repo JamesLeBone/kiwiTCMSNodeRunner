@@ -59,6 +59,10 @@ const getUser = async (userId:number) : Promise<dbUserRecord | null> => {
     return rawDbRow2User(userReply)
 }
 
+// export async function getNumUsers() : Promise<number> {
+
+// }
+
 class ResetToken {
     value:string
     expiry:number
@@ -110,6 +114,12 @@ async function login(username:string,password:string) : Promise<TypedOperationRe
     const { secret, ...vfUser } = user
     op.data = vfUser as verifiedUser
     return op
+}
+
+async function hasLogin(userId:number) {
+    const login = await db.get('logins', userId, 'user_id')
+    if (!login) return false
+    return true
 }
 
 async function create(username:string,firstName:string,lastName:string,email:string) : Promise<TypedOperationResult<verifiedUser>> {
@@ -243,7 +253,7 @@ async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
     params.set('accessToken',token.value)
     params.set('userId', user.userId+'')
     const host = process.env.TOOLBOX_HOST
-    const url = host+`/uac?`+params.toString()
+    const url = host+`/uac/passwordReset?`+params.toString()
 
     const body = `To ${user.firstName} ${user.lastName},
 
@@ -360,6 +370,7 @@ export {
     create,
     login,
     getUser,
+    hasLogin,
     getUserByUsername,
     promptPasswordReset
 }

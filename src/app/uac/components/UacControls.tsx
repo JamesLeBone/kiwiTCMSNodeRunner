@@ -1,5 +1,4 @@
 
-import * as Users from '@server/Users'
 import FrontendUsers from './FrontendUsers'
 import { verifiedUser, list as listUsers } from '@server/lib/Users'
 

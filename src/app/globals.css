@@ -7,6 +7,38 @@ html {
   overflow: auto;
 }
 
+main > nav {
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+}
+main > nav > * {
+  display: inline-block;
+  vertical-align: top;
+  margin: 0px 8px;
+}
+main > nav > nav {
+  margin: 0px;
+  display: block;
+}
+main > nav > nav .right {
+  float: right;
+}
+main > nav > nav a {
+  padding: 4px;
+  display: inline-block;
+  color: #1a2a5c;
+  text-decoration: none;
+  line-height: 15px;
+  border-bottom: 1px solid transparent;
+}
+main > nav > nav a:hover {
+  border-bottom-color: #1a2a5c;
+}
+main > nav > nav a > span {
+  margin-left: 4px;
+  display: inline-block;
+}
+
 body > header {
   padding: 8px;
   border-bottom: 1px solid #ccc;
@@ -55,15 +87,15 @@ h2 {
 }
 
 .ComponentSection {
-  margin-bottom: 24px;
+  margin: 24px;
+  border: 1px solid #ccc;
 }
 .ComponentSection header {
   font-size: 14pt;
   font-weight: bold;
   padding: 4px;
-}
-.ComponentSection .component-body {
-  border: 1px solid #ccc;
+  background-color: #f1eaf7;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 .ComponentSection .ActionBar {
   border-top: 1px solid #ccc;
@@ -73,18 +105,59 @@ h2 {
 .serverResponse {
   display: flex;
   height: 32px;
+  line-height: 32px;
+  transition: height 0.3s ease;
 }
 .serverResponse.blank {
-  opacity: 0.25;
+  height: 0px;
 }
 .serverResponse > span {
   margin-right: 8px;
   width: 16px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: sans-serif;
 }
 .serverResponse > div {
   flex-grow: 1;
 }
+.serverResponse.error {
+  background-color: #ffe0e0;
+  border: 1px solid #ff8080;
+  color: #800000;
+}
+.serverResponse.success {
+  background-color: #e0ffe0;
+  border: 1px solid #80ff80;
+  color: #008000;
+}
+.serverResponse.info {
+  background-color: #e0e0ff;
+  border: 1px solid #8080ff;
+  color: #000080;
+}
+.serverResponse.warning {
+  background-color: #fff0e0;
+  border: 1px solid #ffb070;
+  color: #804000;
+}
 
 fieldset {
   border: 0px;
+}
+
+.processing {
+  text-align: center;
+  width: 26px;
+  height: 26px;
+}
+.processing i {
+  display: inline-block;
+  text-align: center;
+  animation: fa-spin 2s infinite linear;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }/*# sourceMappingURL=globals.css.map */

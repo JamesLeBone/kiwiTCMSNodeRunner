@@ -5,7 +5,7 @@ import { ActionBar, ActionButton } from '@/components/Actions'
 import { ComponentSection } from '@/components/ComponentSection'
 
 import { useState, useEffect } from 'react'
-import { logout } from '../uac/actions'
+import { logout } from '../actions'
 
 import UaParser from 'my-ua-parser'
 

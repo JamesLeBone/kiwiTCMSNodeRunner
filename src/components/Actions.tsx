@@ -21,7 +21,6 @@ export function ActionButton({onClick,children,...props} : ActionButtonProps) {
     </button>
 }
 
-
 export type ActionButtonTextProps = {
     onClick: (text: string) => Promise<void>,
     value?: string,

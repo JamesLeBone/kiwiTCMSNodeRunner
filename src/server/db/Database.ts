@@ -6,10 +6,9 @@ import type {convertableValue,inputValue,dataSetRow,dataSetRowConvertible,queryP
 // import * as dbc from './Database.sqlite3' // if running on older Node.js versions
 import {dbi} from './Database.nodeSqlite'
 
-dbi.check().then(ready => {
-    if (ready) return
-    throw new Error('Database is not properly initialized')
-})
+export async function check() : Promise<boolean> {
+    return dbi.check()
+}
 
 const getSqliteValue = (value:convertableValue) : inputValue => {
     if (value instanceof Date) {

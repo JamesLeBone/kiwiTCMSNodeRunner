@@ -7,6 +7,40 @@ html {
     overflow: auto;
 }
 
+main > nav {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+
+    > * {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0px 8px;
+    }
+    > nav {
+        margin: 0px;
+        display: block;
+
+        .right {
+            float: right;
+        }
+        a {
+            padding: 4px;
+            display: inline-block;
+            color: #1a2a5c;
+            text-decoration: none;
+            line-height: 15px;
+            border-bottom: 1px solid transparent;
+            &:hover {
+                border-bottom-color: #1a2a5c;
+            }
+            > span {
+                margin-left: 4px;
+                display: inline-block;
+            }
+        }
+    }
+}
+
 body > header {
     padding: 8px;
     border-bottom: 1px solid #ccc;
@@ -56,14 +90,15 @@ h2 {
 }
 
 .ComponentSection {
-    margin-bottom: 24px;
+    margin: 24px;
+    border: 1px solid #ccc;
+
     header {
         font-size: 14pt;
         font-weight: bold;
         padding: 4px;
-    }
-    .component-body {
-        border: 1px solid #ccc;
+        background-color: #f1eaf7;
+        font-family: system-ui, -apple-system, sans-serif;
     }
     .ActionBar {
         border-top: 1px solid #ccc;
@@ -74,19 +109,61 @@ h2 {
 .serverResponse {
     display: flex;
     height: 32px;
-
+    line-height: 32px;
+    transition: height 0.3s ease;
+    
     &.blank {
-        opacity: 0.25;
+        height: 0px;
     }
     > span {
         margin-right: 8px;
         width: 16px;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: sans-serif;
     }
     > div {
         flex-grow: 1;
+    }
+
+    &.error {
+        background-color: #ffe0e0;
+        border: 1px solid #ff8080;
+        color: #800000;
+    }
+    &.success {
+        background-color: #e0ffe0;
+        border: 1px solid #80ff80;
+        color: #008000;
+    }
+    &.info {
+        background-color: #e0e0ff;
+        border: 1px solid #8080ff;
+        color: #000080;
+    }
+    &.warning {
+        background-color: #fff0e0;
+        border: 1px solid #ffb070;
+        color: #804000;
     }
 }
 
 fieldset {
     border: 0px;
+}
+
+.processing {
+    text-align: center;
+    width: 26px;
+    height: 26px;
+    i {
+        display: inline-block;
+        text-align: center;
+        animation: fa-spin 2s infinite linear;
+        position: relative;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+    }
 }

@@ -64,17 +64,20 @@ async function run(sql:string, params: SQLParams = null) {
 let isDatabaseReady : null | boolean = null
 async function check() {
     if (isDatabaseReady != null) return isDatabaseReady
-    const rows = await dbQueryAll(
-        `SELECT count(*) as c FROM credential_types`,
-        null,
-        false
-    )
-    if (!rows || rows.length === 0) {
+    let rows:number = 0
+    try {
+        const st = db.prepare(`SELECT count(*) as c FROM credential_types`)
+        const row = st.get()
+        
+        if (row && row.c) {
+            rows = row.c as number
+        }
+    } catch (error) {
         isDatabaseReady = false
         return false
     }
-    const count = rows[0].c
-    isDatabaseReady = count > 0
+    
+    isDatabaseReady = rows > 0
     return isDatabaseReady
 }
 

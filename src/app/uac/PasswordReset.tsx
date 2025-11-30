@@ -1,100 +1,50 @@
-'use client'
+'use server'
 import * as Users from '@server/Users'
 
-import { useState, useEffect } from 'react'
-import { ComponentSection } from '@/components/ComponentSection'
-import { ActionBar } from '@/components/Actions'
-import { FormField } from '@/components/FormField'
-import { InputField } from '@/components/InputField'
-import { useMessage } from '@/components/ServerResponse'
+import UacAccessToken from './components/UacAccessToken'
+import type { verifiedUser } from '@server/lib/Users'
+import { redirect } from 'next/navigation'
 
-export function SetPassword({username,userId,accessToken} : {username:string,userId:number,accessToken:string}) {
-    const [password, setPassword] = useState('')
-    const [confirm, setConfirm] = useState('')
-    const serverMessage = useMessage()
-
-    const send = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (password != confirm) return
-        serverMessage.loading()
-
-        Users.setPassword(userId,password,accessToken)
-        .then(reply => {
-            if (reply.status === false) return serverMessage.error('Password reset failed.')
-            
-            const {status,message} = reply
-            if (!status) {
-                serverMessage.error(message)
-                return
-            }
-            setPassword('')
-            setConfirm('')
-            
-            serverMessage.success(message)
-        })
+// This only works on server components, on the client side you need to use useEffect to set document.title
+export async function metadata() {
+    const title = process.env.APP_TITLE
+    return { 
+        title: `${title} - User accounts`
     }
-
-    const sv = (event: React.ChangeEvent<HTMLInputElement>, fn: React.Dispatch<React.SetStateAction<string>>) => {
-        event.preventDefault()
-        const value = event.target.value
-        fn(value)
-    }
-    useEffect(() => {
-        const validationField = document.querySelector('#password-confirm') as HTMLInputElement
-        validationField.setCustomValidity('')
-        if (password.length == 0) return
-
-        if (password != confirm) {
-            // console.error('Passwords do not match')
-            validationField.setCustomValidity('Passwords do not match')
-            return
-        }
-        console.info('Passwords match')
-    }, [password, confirm])
-
-    return <ComponentSection header='Set Password'>
-        {serverMessage.message}
-        <form onSubmit={send}>
-            <fieldset>
-                {username}
-                <FormField label="New Password">
-                    <input type="password" value={password} onChange={event => sv(event,setPassword)} />
-                </FormField>
-                <FormField label="Confirm Password">
-                    <input type="password" id="password-confirm" value={confirm} onChange={event => sv(event,setConfirm)} />
-                </FormField>
-                <ActionBar>
-                    <input type="submit" value="Reset Password" />
-                </ActionBar>
-            </fieldset>
-        </form>
-    </ComponentSection>
 }
 
-export function PasswordReset({}) {
-    const [usernameState, setusername] = useState('')
-    const serverMessage = useMessage()
-
-    const send = (e : React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        Users.resetPassword(usernameState)
-        .then(serverReply => {
-            if (!serverMessage.statusResponse(serverReply)) return
-            setusername('')
-        })
+const determineUser = async (searchParams : { accessToken?: string, userId?: string })  => {
+    if (typeof searchParams.accessToken == 'undefined' || typeof searchParams.userId == 'undefined') {
+        return redirect('/uac')
+    }
+    if (isNaN(Number.parseInt(searchParams.userId))) {
+        return redirect('/uac')
+    }
+    if (typeof searchParams.accessToken !== 'string' || searchParams.accessToken.length < 10) {
+        return redirect('/uac')
+    }
+    const userIdNumber = Number.parseInt(searchParams.userId)
+    if (isNaN(userIdNumber) || userIdNumber < 1) {
+        return redirect('/uac')
     }
 
-    return <ComponentSection header='Password Reset'>
-        {serverMessage.message}
-        <form onSubmit={send} id="reset-password-form">
-            <fieldset>
-                <FormField label="Username">
-                    <InputField name="reset-username" type="text" value={usernameState} onChange={setusername} />
-                </FormField>
-                <ActionBar>
-                    <input type="submit" value="Reset Password" />
-                </ActionBar>
-            </fieldset>
-        </form>
-    </ComponentSection>
+    const vfUserPromise = await Users.verifyToken(userIdNumber, searchParams.accessToken)
+    if (!vfUserPromise.status || !vfUserPromise.data) {
+        return redirect('/uac')
+    }
+    
+    return {
+        verifiedUser : vfUserPromise.data,
+        accessToken: searchParams.accessToken
+    }
 }
+
+export default async function UserPage({params,searchParams} : NextPageProps) {
+    const sp = await searchParams
+
+    const vu = await determineUser(sp)
+
+    return <UacAccessToken verifiedUser={vu.verifiedUser} accessToken={vu.accessToken} />
+
+}
+
