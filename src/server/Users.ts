@@ -5,7 +5,7 @@ import { TypedOperationResult } from '@lib/Operation'
 
 const verifyToken = async (userId:number, accessToken:string) => lib.verifyToken(userId, accessToken)
 
-const resetPassword = (username:string) => lib.resetPassword(username)
+const resetPassword = (email:string) => lib.resetPassword(email)
 
 const setPassword = async (userId:number, password:string, accessToken:string) : Promise<TypedOperationResult<lib.verifiedUser>> => {
     const vfUser = await lib.verifyToken(userId, accessToken)

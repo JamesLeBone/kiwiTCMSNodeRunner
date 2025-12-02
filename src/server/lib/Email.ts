@@ -56,6 +56,8 @@ const user2email = (email:string, firstName?:string , lastName?:string) => {
     return `${name} <${email}>`
 }
 const getTransportConfig = (transporterId: string = 'sendmail') : transportConfig  => {
+    console.log('Using email transporter:', transporterId)
+
     if (transporterId === 'sendmail') {
         // Check if we are on linux and sendmail exists
         if (process.platform === 'win32') {
@@ -158,11 +160,27 @@ declare interface sendmailError extends Error {
     code?: string
     responseCode?: number
 }
+declare interface SMTPConnError extends Error {
+    code: string
+    errno: number
+    syscall: string
+    address: string
+    port: number
+    command: string
+}
+
+const resolveSMTPErrorMessage = (error : SMTPConnError) : string => {
+    const addressString = error.address ? ` at ${error.address}:${error.port}` : ''
+    if (error.code === 'EAUTH') {
+        return 'Email server authentication failed, check username and password'
+    }
+    return 'Unable to connect to email server at ' + addressString
+}
 
 const resolveSendmailErrorMessage = (error : sendmailError) : string => {
     // System/Configuration errors
-    if (error.errorno === -4085) return 'Email server not configured'
-    
+    if (error.errorno == -4085) return 'Email server not configured'
+
     // Common error codes with compact mapping
     const errorCodeMap = {
         'ECONNECTION': 'Email server not available',
@@ -179,7 +197,8 @@ const resolveSendmailErrorMessage = (error : sendmailError) : string => {
         'EHOSTUNREACH': 'Email server host unreachable',
         'CERT_HAS_EXPIRED': 'Email server SSL certificate has expired',
         'CERT_UNTRUSTED': 'Email server SSL certificate is untrusted',
-        'UNABLE_TO_VERIFY_LEAF_SIGNATURE': 'Unable to verify email server SSL certificate'
+        'UNABLE_TO_VERIFY_LEAF_SIGNATURE': 'Unable to verify email server SSL certificate',
+        'ESOCKET': 'Email server socket error'
     } as {[key:string]:string}
     
     if (error.code && errorCodeMap[error.code]) {
@@ -213,6 +232,10 @@ const resolveErrorMessage = (error : Error,transporterId: string) : string => {
     }
     if (transporterId === 'sendmail') {
         return resolveSendmailErrorMessage(error as sendmailError)
+    }
+    if (transporterId === 'custom-smtp') {
+        const err = error as SMTPConnError
+        return resolveSMTPErrorMessage(err)
     }
     console.debug('Email error', error)
     return 'Failed to send email'
@@ -262,15 +285,20 @@ declare type sendResult = {
     details?: messageInfo
 }
 
-export const send = async (toUser: emailRecipient, subject: string, message: string, html:string|null = null): Promise<sendResult> => {
-    const sender = await currentUser()
-    if (!sender) return { success: false, message: 'Unauthorized: No current user' }
-    
-    const fromAddress = await determineSender(sender)
-    if (fromAddress.match(/<.*@.*>/) === null) {
-        console.error('Invalid from email address', fromAddress)
-        return Promise.resolve({ success: false, message: 'Invalid from email address, check your settings' })
+export const send = async (toUser: emailRecipient, subject: string, message: string, html:string|null = null, from?:emailRecipient): Promise<sendResult> => {
+    let fromAddress = ''
+    if (!from) {
+        const sender = await currentUser()
+        if (!sender) return { success: false, message: 'Unauthorized: No current user' }
+        const fromAddress = await determineSender(sender)
+        if (fromAddress.match(/<.*@.*>/) === null) {
+            console.error('Invalid from email address', fromAddress)
+            return Promise.resolve({ success: false, message: 'Invalid from email address, check your settings' })
+        }
+    } else {
+        fromAddress = user2email(from.email, from.firstName, from.lastName)
     }
+    
     const toAddress = user2email(toUser.email, toUser.firstName, toUser.lastName)
 
     // console.debug('Sending from', fromAddress)
@@ -302,7 +330,8 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
             // info = {accepted:[], rejected:[],response:'250 2.0.0 OK....', messageId:''}
             if (error) {
                 result.message = 'Failed to send email: ' + resolveErrorMessage(error, transporterId)
-                return result
+                resolve(result)
+                return
             }
             // accepted -  a list of accepted recipient addresses
             // rejected - a list of rejected recipient addresses

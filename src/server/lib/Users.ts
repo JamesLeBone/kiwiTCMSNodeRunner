@@ -4,7 +4,7 @@ import { db } from '../db/Database'
 import * as email from './Email'
 // import * as sessions from './Sessions.js'
 import { v4 as genuuid } from 'uuid' //= require('uuid')
-import { Operation, TypedOperationResult } from '@lib/Operation'
+import { Operation, TypedOperationResult, StatusOperation } from '@lib/Operation'
 
 export declare interface dbUserRecord {
     userId: number
@@ -202,13 +202,19 @@ async function setPassword(username:string,password:string) : Promise<TypedOpera
     op.data = vfUser as verifiedUser
     return op
 }
-async function resetPassword(username:string) : Promise<Operation> {
-    const user = await getUserByUsername(username)
-    if (!user) return {
+async function resetPassword(email:string) : Promise<StatusOperation> {
+    const op = {
         id: 'resetPassword',
         status: false,
-        message: 'User not found'
-    } as Operation
+        message: 'Password reset failed',
+        statusType: 'error'
+    } as StatusOperation
+
+    const sql = `SELECT * FROM users WHERE email = ?`;
+    const userReply = await db.fetchOne(sql,[email])
+    if (!userReply) return op
+    const user = rawDbRow2User(userReply)
+
     return sendPasswordResetEmail(user)
 }
 
@@ -232,12 +238,13 @@ const setPasswordResetToken = async (userId:number, token:Object) : Promise<bool
     return res ? true : false
 }
 
-async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
+async function sendPasswordResetEmail(user: dbUserRecord) : Promise<StatusOperation> {
     const op = {
         id: 'sendPasswordResetEmail',
         status: false,
-        message: 'Send password reset email failed'
-    } as Operation
+        message: 'Send password reset email failed',
+        statusType: 'error'
+    } as StatusOperation
     if (!user.email) return op.message = 'User has no email address', op
     const hasValidEmail = validEmail(user.email)
     if (!hasValidEmail) return op.message = 'Invalid email address', op
@@ -283,7 +290,13 @@ async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
         email: user.email
     }
 
-    const sendResult = await email.send(sendTo, 'Dragon Toolbox - Password reset', body, html)
+    const sendResult = await email.send(
+        sendTo,
+        process.env.APP_TITLE + ' - Password reset',
+        body,
+        html,
+        sendTo
+    )
     if (!sendResult.success) {
         return op.message = sendResult.message, op
     }
@@ -293,6 +306,7 @@ async function sendPasswordResetEmail(user: dbUserRecord) : Promise<Operation> {
     }
     op.status = true
     op.message = 'Password reset email sent'
+    op.statusType = 'success'
     return op
 }
 

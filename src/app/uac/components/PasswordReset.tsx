@@ -1,12 +1,16 @@
 'use client'
 import * as Users from '@server/Users'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useActionState } from 'react'
 import { ComponentSection } from '@/components/ComponentSection'
 import { ActionBar } from '@/components/Actions'
+import { FormInputField, FormActionBar } from '@/components/FormActions'
+
 import { FormField } from '@/components/FormField'
 import { InputField } from '@/components/InputField'
 import { useMessage } from '@/components/ServerResponse'
+import Form from 'next/form'
+import { StatusOperation } from '@lib/Operation'
 
 export function SetPassword({username,userId,accessToken} : {username:string,userId:number,accessToken:string}) {
     const [password, setPassword] = useState('')
@@ -72,29 +76,23 @@ export function SetPassword({username,userId,accessToken} : {username:string,use
 }
 
 export function PasswordReset({}) {
-    const [usernameState, setusername] = useState('')
-    const serverMessage = useMessage()
+    const [state, formAction, isPending] = useActionState(
+        async (prevState: any, formData: FormData) => {
+            const email = (formData.get('email') ?? '') as string
 
-    const send = (e : React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        Users.resetPassword(usernameState)
-        .then(serverReply => {
-            if (!serverMessage.statusResponse(serverReply)) return
-            setusername('')
-        })
-    }
+            const msg = await Users.resetPassword(email)
+            console.debug('Password reset requested:', msg)
+            return msg
+        },
+        { id : 'resetPassword', status: false, message: '', statusType: 'blank' } as StatusOperation
+    )
 
     return <ComponentSection header='Password Reset'>
-        <form onSubmit={send} id="reset-password-form">
-            {serverMessage.message}
+        <Form action={formAction} id="reset-password-form">
             <fieldset>
-                <FormField label="Username">
-                    <InputField name="reset-username" type="text" value={usernameState} onChange={setusername} />
-                </FormField>
+                <FormInputField label="Email" name="email" type="email" required={true} />
             </fieldset>
-            <ActionBar>
-                <input type="submit" value="Reset Password" />
-            </ActionBar>
-        </form>
+            <FormActionBar pendingState={isPending} state={state} actions={[{ label: 'Reset Password' }]} />
+        </Form>
     </ComponentSection>
 }
