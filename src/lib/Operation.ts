@@ -7,13 +7,17 @@
  * especially if bulk operations return simmilar results
  * and for testing purposes.
  */
-export declare type statusType = 'error' | 'info' | 'success' | 'warning'
+export declare type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading' | 'blank'
 
 export interface Operation {
     id: string
     status: boolean
     message: string
     statusType?: statusType
+}
+
+export interface StatusOperation extends Operation {
+    statusType: statusType
 }
 
 export interface OperationResult extends Operation {

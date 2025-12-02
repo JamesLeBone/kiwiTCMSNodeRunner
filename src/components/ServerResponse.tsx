@@ -1,7 +1,6 @@
 
 import { useState } from 'react'
-import type { Operation, OperationResult } from '@lib/Operation'
-declare type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading' | 'blank'
+import type { Operation, OperationResult, statusType } from '@lib/Operation'
 
 function useMessage(defaultMessage?:Operation) {
     const [messageType,setMessageType] = useState<statusType>(defaultMessage?.statusType || 'blank')
@@ -78,6 +77,7 @@ function ServerResponseComponent({children,type='blank'}: ServerResponseProps) {
         case 'success':
             icon += 'fa-solid fa-check'
         break
+        default:
         case 'blank':
             icon = ''
             hasResponse = ''
@@ -92,5 +92,5 @@ function ServerResponseComponent({children,type='blank'}: ServerResponseProps) {
 
 
 
-export { useMessage }
+export { useMessage, ServerResponseComponent }
 

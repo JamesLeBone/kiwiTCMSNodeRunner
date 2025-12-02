@@ -1,4 +1,4 @@
-export declare type statuses = 'processing' | 'done' | 'error' | 'disabled'
+export declare type statuses = 'processing' | 'done' | 'error' | 'disabled' | 'idle'
 
 export default function Processing({status}: {status: statuses}) {
     if (status == 'processing') {
@@ -11,6 +11,9 @@ export default function Processing({status}: {status: statuses}) {
     }
     if (status == 'disabled') {
         return <i className='fa fa-minus'></i>
+    }
+    if (status == 'idle') {
+        return <i className='fa fa-circle'></i>
     }
     return <i className='fa fa-xmark'></i>
 }

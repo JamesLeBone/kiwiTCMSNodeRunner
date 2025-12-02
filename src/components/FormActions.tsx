@@ -1,6 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { FormField } from './FormField'
+import { ActionBar } from './Actions'
+import type { OperationResult } from '@lib/Operation'
+import { ServerResponseComponent } from './ServerResponse'
 
 declare type FormInputProps = {
     label: string
@@ -41,4 +44,19 @@ export function ActionInputField({name, onChange, value='', type='text', ...prop
     }
 
     return <input name={name} type={type} value={val} onChange={(e) => changeEvent(e)} {...props} />
+}
+
+declare type FormActionBarProps = {
+    pendingState: boolean
+    state: OperationResult
+    actions: { label: string, id?: string }[]
+}
+export function FormActionBar({pendingState, state, actions} : FormActionBarProps) {
+    return <ActionBar>
+        {actions.map((action) => {
+            const ident = action.id || action.label.toLowerCase().replace(/\s+/g, '_')
+            return <input key={ident} type="submit" value={action.label} name='action' disabled={pendingState} />
+        })}
+        <ServerResponseComponent type={state.statusType}>{state.message}</ServerResponseComponent>
+    </ActionBar>
 }

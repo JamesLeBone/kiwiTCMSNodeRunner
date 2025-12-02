@@ -1,6 +1,5 @@
 'use server'
 import nodemailer from 'nodemailer'
-import { simpleParser } from 'mailparser'
 
 import { currentUser } from './Auth'
 import type { CurrentUser } from './Users'
@@ -331,22 +330,4 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
             resolve(result)
         })
     })
-}
-
-export const inbox = async (un:string | null) => {
-    const username = un ?? process.env.USER;
-    const dir = `/var/spool/mail/${username}`;
-    const fs = require('fs');
-    const emails = fs.readFileSync(dir).toString().split(/\nFrom /)
-
-    const parsedList = []
-
-    for (let email of emails) {
-        const parsed = await simpleParser('From '+email)
-        parsedList.push(parsed)
-    }
-    // console.debug(parsedList
-    // [0])
-    
-    return parsedList
 }

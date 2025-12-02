@@ -1,36 +1,27 @@
 'use client'
-import { useState, useEffect } from 'react'
-import ChecklistItem, { clip } from '@app/setup/components/ChecklistItem'
+import { useActionState } from 'react'
 import * as hc from '@server/HealthCheck'
-import {statuses}  from '@/components/Processing'
+
 import UserStatus from './UserStatus'
+import { ComponentSection } from '@/components/ComponentSection'
+import { FormActionBar } from '@/components/FormActions'
+import Form from 'next/form'
+import { OperationResult } from '@lib/Operation'
 
 export default function DatabaseStatus() {
-    const [status, setStatus] = useState('processing' as statuses)
-    const [message, setMessage] = useState('Checking database status...')
-    const [buttonDisabled, setButtonDisabled] = useState(true)
-    const [buttonText, setButtonText] = useState('Loading...')
-
-    // On auto init DB or on button trigger result.
-    const initdb = async () => {
-        setButtonDisabled(true)
-        setButtonText('Initializing...')
-
-        const {status,message} = await hc.initializeDatabase()
-        setStatus(status ? 'done' : 'error')
-        setMessage(message)
-        setButtonDisabled(status)
-    }
-
-    useEffect(() => { initdb() }, [])
-    const actionProps = {
-        action: initdb,
-        isLoading: buttonDisabled,
-        actionText: buttonText
-    }
+    const [state, formAction, isPending] = useActionState(
+        async (prevState: any, formData: FormData) => {
+            return await hc.initializeDatabase()
+        },
+        { id: 'initializeDatabase', status: false, message: '' } as OperationResult
+    )
 
     return <>
-        <ChecklistItem status={status} message={message} actionProps={actionProps} />
-        <UserStatus dbStatus={status} />
+        <ComponentSection header="Database Status">
+            <Form action={formAction}>
+                <FormActionBar pendingState={isPending} state={state} actions={[{ label: "Check Database" }]} />
+            </Form>
+        </ComponentSection>
+        { state.status ? <UserStatus /> : <></> }
     </>
 }

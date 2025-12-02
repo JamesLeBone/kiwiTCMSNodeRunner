@@ -1,6 +1,6 @@
 'use server'
 import DatabaseStatus from './components/DatabaseStatus'
-import { ComponentSection } from '@/components/ComponentSection'
+import SMTPStatus from './components/SMTPStatus'
 
 export async function metadata() {
     const title = process.env.APP_TITLE
@@ -13,10 +13,9 @@ export default async function Setup() {
     return <main>
         <h1>{process.env.APP_TITLE} - Setup</h1>
 
-        <ComponentSection header="Status">
-            <div style={{display: 'grid', gap: '1em', gridTemplateColumns: '32px 3fr 1fr'}}>
-                <DatabaseStatus />
-            </div>
-        </ComponentSection>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+            <DatabaseStatus />
+            <SMTPStatus />
+        </div>
     </main>
 }

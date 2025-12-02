@@ -3,36 +3,38 @@
 import { readFileSync } from 'fs'
 import { db, check } from '@server/db/Database'
 import * as Users from '@server/lib/Users'
+import { emailRecipient, send } from '@server/lib/Email'
 
-import { redirect } from 'next/navigation'
-import { OperationResult } from '@lib/Operation'
+import { Operation, StatusOperation, TypedOperationResult } from '@lib/Operation'
 
-declare interface Result {
-    status: boolean
-    message: string
-}
-
-export async function dbReady() : Promise<Result> {
+export async function dbReady() : Promise<Operation> {
     const r = await check()
     if (r) {
         return {
+            id: 'dbReady',
             status: true,
             message: 'Database is ready.'
         }
     }
     return {
+        id: 'dbReady',
         status: false,
         message: 'Database is not initialized.'
     }
 }
-export async function initializeDatabase() : Promise<Result> {
+export async function initializeDatabase() : Promise<Operation> {
+    const op = {
+        id: 'initializeDatabase',
+        status: false,
+        message: 'Unknown error',
+        statusType:'error'
+    } as Operation
+
     try {
         const r = await check()
         if (r) {
-            return {
-                status: true,
-                message: 'Database is ready.'
-            }
+            op.statusType = 'success'
+            return op.status=true,op.message='Database is already initialized', op
         }
         const sqlInstall = readFileSync('./sql/core.sql', 'utf-8')
         const commands = sqlInstall.split(/;\s*$/m).map(cmd => cmd.trim()).filter(cmd => cmd.length > 0)
@@ -40,10 +42,8 @@ export async function initializeDatabase() : Promise<Result> {
         for (const sql of commands) {
             const r = await db.run(sql)
             if (!r) {
-                return {
-                    status: false,
-                    message: 'Database initialization failed while executing SQL command\n' + sql
-                }
+                op.message = 'Database initialization failed while executing SQL command\n' + sql
+                return op
             }
             console.log(sql, 'OK')
         }
@@ -51,41 +51,53 @@ export async function initializeDatabase() : Promise<Result> {
     } catch (err) {
         console.error('Error initializing database:', err)
         if (typeof err != 'object' || (!(err instanceof Error)) || !err.message) {
-            return {
-                status: false,
-                message: 'Unknown error during database initialization.'
-            }
+            op.message = 'Unknown error during database initialization.'
+            return op
         }
-        return {
-            status: false,
-            message: err.message
-        }
+        op.message = err.message
+        return op
     }
 }
 
-interface UserVerification extends Result {
-    nUsers: number
-}
-
-export async function verifyUsers() : Promise<UserVerification> {
+export async function verifyUsers() : Promise<TypedOperationResult<number>> {
+    const op = {
+        id: 'verifyUsers',
+        status: false,
+        message: 'Unknown error',
+        data: 0
+    }
     const userList = await Users.list()
     if (!userList.data) return {
-        status: false,
-        nUsers: 0,
+        ...op,
         message: userList.message
     }
     return {
+        ...op,
         status: true,
-        nUsers: userList.data.length,
+        data: userList.data.length,
         message: 'Users found'
     }
 }
 
-// Server action. must return Result, void or redirect.
-export async function createFirstUser(formData: FormData) : Promise<OperationResult> {
-    const op = { id: 'createFirstUser', status: false, message: 'Unknown error' }
+// Server actions
+export async function createFirstUser(formData: FormData) : Promise<StatusOperation> {
+    const op = { 
+        id: 'createFirstUser',
+        status: false,
+        message: 'Unknown error',
+        statusType: 'error'
+    } as StatusOperation
 
-    if (!formData || !(formData instanceof FormData)) {
+    // First, check if a user already exists
+    const verify = await verifyUsers()
+    if (verify.data && verify.data > 0) {
+        op.message = 'At least 1 user already exists in the system'
+        op.statusType = 'success'
+        return op
+    }
+
+    // Validation
+    if (!formData) {
         return op.message = 'Invalid form data', op
     }
     if (!formData.has('firstName') || !formData.has('lastName') || !formData.has('email') || !formData.has('username')) {
@@ -105,6 +117,7 @@ export async function createFirstUser(formData: FormData) : Promise<OperationRes
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return op.message = 'Invalid email address', op
     }
+    // Passed, create the user
 
     const res = await Users.create(
         username,
@@ -115,5 +128,23 @@ export async function createFirstUser(formData: FormData) : Promise<OperationRes
     if (!res.status) {
         return op.message = res.message, op
     }
-    return op.message = 'User created successfully', { ...op, status: true }
+    op.statusType = 'success'
+    op.message = 'User created successfully'
+    op.status = true
+    return op
+}
+
+export async function sendEmail(recipient: emailRecipient) : Promise<StatusOperation> {
+    const op = { id: 'sendEmail', status: false, message: 'Unknown error', statusType: 'error' } as StatusOperation
+
+    const res = await send(
+        recipient,
+        'Test Email from '+process.env.APP_TITLE,
+        `This is a test email sent from ${process.env.APP_TITLE} to verify SMTP configuration.`
+    )
+    op.status = res.success
+    op.message = res.message
+    op.statusType = res.success ? 'success' : 'error'
+
+    return op
 }
