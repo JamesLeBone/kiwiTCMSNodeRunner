@@ -7,7 +7,7 @@ const verifyToken = async (userId:number, accessToken:string) => lib.verifyToken
 
 const resetPassword = (email:string) => lib.resetPassword(email)
 
-const setPassword = async (userId:number, password:string, accessToken:string) : Promise<TypedOperationResult<lib.verifiedUser>> => {
+const setPassword = async (userId:number, password:string, verifyPassword:string, accessToken:string) : Promise<TypedOperationResult<lib.verifiedUser>> => {
     const vfUser = await lib.verifyToken(userId, accessToken)
     if (!vfUser.status || vfUser.data == null) {
         return {
@@ -16,6 +16,12 @@ const setPassword = async (userId:number, password:string, accessToken:string) :
             message: 'Invalid access token'
         }
     }
+    if (password !== verifyPassword) {
+        return {
+            id: 'setPassword',status: false,message: 'Passwords do not match'
+        }
+    }
+
     const username = vfUser.data.username
 
     const op = await lib.setPassword(username, password)

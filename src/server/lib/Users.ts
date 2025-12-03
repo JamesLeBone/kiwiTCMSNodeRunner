@@ -186,7 +186,7 @@ async function setPassword(username:string,password:string) : Promise<TypedOpera
     if (password.length < 8) {
         return op.message = 'Password must be at least 8 characters', op
     }
-    console.debug('Setting password for', username)
+    console.log('Setting new password for', username)
     const user = await getUserByUsername(username)
     if (!user) return op.message = 'User not found', op
     password = encrypt(password)
@@ -298,15 +298,14 @@ async function sendPasswordResetEmail(user: dbUserRecord) : Promise<StatusOperat
         sendTo
     )
     if (!sendResult.success) {
+        console.info(sendResult)
         return op.message = sendResult.message, op
-    }
-    const transporterId = await email.getTransporterId()
-    if (transporterId === 'ethereal') {
-        console.debug('Email sent via ethereal.  Here is the url:', url)
     }
     op.status = true
     op.message = 'Password reset email sent'
     op.statusType = 'success'
+
+    // console.info(op)
     return op
 }
 

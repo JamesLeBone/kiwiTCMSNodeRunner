@@ -333,6 +333,7 @@ export const send = async (toUser: emailRecipient, subject: string, message: str
                 resolve(result)
                 return
             }
+            result.success = true
             // accepted -  a list of accepted recipient addresses
             // rejected - a list of rejected recipient addresses
             // response - the last SMTP response from the server

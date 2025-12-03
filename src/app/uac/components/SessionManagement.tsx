@@ -3,6 +3,10 @@
 import * as Sessions from '@server/Sessions'
 import { ActionBar, ActionButton } from '@/components/Actions'
 import { ComponentSection } from '@/components/ComponentSection'
+import type {
+    SessionList as SessionDataList
+    , SessionDetail
+} from '@server/Sessions'
 
 import { useState, useEffect } from 'react'
 import { logout } from '../actions'
@@ -22,36 +26,34 @@ const formatUa = (ua: string) => {
     return parts.join(' / ')
 }
 
-function SessionRow({session, deactivateFn}: {session: any, deactivateFn: (id:number) => void}) {
-    const {host,ua,userIp} = session.sessionTypeId || {}
+function SessionRow({session, deactivateFn}: {session: SessionDetail, deactivateFn: (id:number) => void}) {
     const expiry = session.expiresAt
 
-    const hasExpired = (new Date(expiry) < new Date())
-    const button = session.isCurrent || hasExpired ?  '' : <ActionButton onClick={() => deactivateFn(session.id)}>Deactivate</ActionButton>
+    const hasExpired = expiry ? (new Date(expiry) < new Date()) : false
+    // const button = session.isCurrent || hasExpired ?  '' : <ActionButton onClick={() => deactivateFn(session.id)}>Deactivate</ActionButton>
 
-    const agentString = formatUa(ua)
+    const agentString = formatUa(session.ua || '')
 
     return <tr>
-        <td>{session.id}{session.isCurrent ? ' (current)' : ''}</td>
+        <td>{session.id}</td>
         <td>{agentString}</td>
-        <td>{userIp || 'N/A'}</td>
+        <td>{session.userIp || 'N/A'}</td>
         <td>{expiry}</td>
-        <td>{button}</td>
+        <td></td>
     </tr>
 }
 
-function SessionList({sessionListState} : {sessionListState: [sessionDisplayItem[], React.Dispatch<React.SetStateAction<sessionDisplayItem[]>>]}) {
+function SessionList({sessionList} : {sessionList: SessionDataList}) {
     const deactivate = (id:number) => {
-        Sessions.deactivate(id).then(result => {
-            if (!result) return
-            const newList = sessionListState[0].filter(s => s.id !== id)
-            sessionListState[1](newList)
-        })
+        // Sessions.deactivate(id).then(result => {
+        //     if (!result) return
+        //     const newList = sessionList.list.filter(s => s.id !== id)
+        //     // sessionListState[1](newList)
+        // })
     }
 
-    const sessionList = sessionListState[0]
     return <tbody>
-        {sessionList.map((s,i) => <SessionRow key={i} session={s} deactivateFn={deactivate} />)}
+        {sessionList?.list.map((s,i) => <SessionRow key={i} session={s} deactivateFn={deactivate} />)}
     </tbody>
 }
 
@@ -67,29 +69,13 @@ declare type sessionDisplayItem = {
 
 }
 export default function SessionManagement() {
-    const sessionState = useState([] as sessionDisplayItem[])
+    const [sessionState, setSessionState] = useState({
+        list: [],
+        currentSessionId: null
+    } as SessionDataList)
 
     useEffect(() => {
-        Sessions.list().then(reply => {
-            const {list, currentSessionId} = reply
-            const newList = [] as sessionDisplayItem[]
-            
-            for (let l of list) {
-                const {expiresAt} = l
-                if (expiresAt == null || expiresAt < new Date()) {
-                    continue
-                }
-                const di = {
-                    id: l.id,
-                    isCurrent: (l.id+ '' === currentSessionId),
-                    sessionTypeId: l.sessionTypeId,
-                    expiresAt: expiresAt.toLocaleString()
-                } as sessionDisplayItem
-                newList.push(di)
-            }
-            // console.log('Sessions:', list, currentSessionId)
-            sessionState[1](newList)
-        })
+        Sessions.list().then(reply => setSessionState(reply))
     }, [])
 
     return <ComponentSection header='Session Management' className={['session-management']}>
@@ -103,7 +89,7 @@ export default function SessionManagement() {
                     <th>Actions</th>
                 </tr>
             </thead>
-            <SessionList sessionListState={sessionState} />
+            <SessionList sessionList={sessionState} />
         </table>
         <form onSubmit={logout} >
             <ActionBar>

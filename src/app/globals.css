@@ -87,8 +87,10 @@ h2 {
 }
 
 .ComponentSection {
-  margin: 24px;
+  margin: 8px;
   border: 1px solid #ccc;
+  display: inline-block;
+  vertical-align: top;
 }
 .ComponentSection header {
   font-size: 14pt;
@@ -98,8 +100,38 @@ h2 {
   font-family: system-ui, -apple-system, sans-serif;
 }
 .ComponentSection .ActionBar {
-  border-top: 1px solid #ccc;
-  padding: 4px;
+  border-top: 1px outset #ccc;
+  background-color: #f0f0f0;
+}
+.ComponentSection .ActionBar > *:not(div) {
+  padding: 6px 6px;
+  border-radius: 0px;
+  border-style: none;
+  background-color: #6699d0;
+  color: white;
+  letter-spacing: 0.41px;
+  text-transform: uppercase;
+  display: inline-block;
+}
+.ComponentSection .ActionBar > *:not(div):hover {
+  background-color: #537daa;
+}
+.ComponentSection .ActionBar > a {
+  text-decoration: none;
+}
+.ComponentSection .ActionBar > a::after {
+  content: "...";
+  display: inline-block;
+}
+.ComponentSection .ActionBar .serverResponse {
+  border-bottom-style: none;
+  border-left-style: none;
+  border-right-style: none;
+}
+
+.component-body > table td, .component-body > table th {
+  padding: 4px 8px;
+  text-align: left;
 }
 
 .serverResponse {

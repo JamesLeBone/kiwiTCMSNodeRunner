@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { FormField } from './FormField'
 import { ActionBar } from './Actions'
-import type { OperationResult } from '@lib/Operation'
+import type { OperationResult, StatusOperation } from '@lib/Operation'
 import { ServerResponseComponent } from './ServerResponse'
 
 declare type FormInputProps = {
@@ -59,4 +59,13 @@ export function FormActionBar({pendingState, state, actions} : FormActionBarProp
         })}
         <ServerResponseComponent type={state.statusType}>{state.message}</ServerResponseComponent>
     </ActionBar>
+}
+
+export function validationError(id:string, message:string) : StatusOperation {
+    return {
+        id : id, status: false, message: message, statusType: 'error'
+    }
+}
+export function blankStatus(id:string) : StatusOperation {
+    return {id : id, status: false, message: '', statusType: 'blank'}
 }
