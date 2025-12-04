@@ -89,12 +89,27 @@ h2 {
     font-size: 17pt;
 }
 
+.align-right {
+    text-align: right;
+}
+
+.ComponentGrid {
+    display: grid;
+    gap: 16px;
+    margin: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    > .ComponentSection {
+        margin: 0px;
+        display: block;
+    }
+}
+
 .ComponentSection {
     margin: 8px;
     border: 1px solid #ccc;
     display: inline-block;
     vertical-align: top;
-
+    
     header {
         font-size: 14pt;
         font-weight: bold;
@@ -134,9 +149,15 @@ h2 {
     }
 }
 .component-body > table {
+    width: 100%;
+    th {
+        text-align: left;
+        &.align-right {
+            text-align: right;
+        }
+    }
     td,th {
         padding: 4px 8px;
-        text-align: left;
     }
 }
 

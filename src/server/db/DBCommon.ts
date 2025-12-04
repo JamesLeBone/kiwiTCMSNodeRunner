@@ -5,7 +5,10 @@ const dates = {
     toSql: (dt: Date) : number => dt.getTime(),
     fromSql: (dts: string|number) : Date | null => {
         if (dts == null || dts == '') return null
-        return new Date(dts)
+        if (typeof dts == 'number')
+            return new Date(dts)
+        // toSql will store it witha a .0 suffix?
+        return new Date(Number.parseInt(dts))
     }
 }
 /**

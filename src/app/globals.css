@@ -86,6 +86,21 @@ h2 {
   font-size: 17pt;
 }
 
+.align-right {
+  text-align: right;
+}
+
+.ComponentGrid {
+  display: grid;
+  gap: 16px;
+  margin: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+.ComponentGrid > .ComponentSection {
+  margin: 0px;
+  display: block;
+}
+
 .ComponentSection {
   margin: 8px;
   border: 1px solid #ccc;
@@ -129,9 +144,17 @@ h2 {
   border-right-style: none;
 }
 
+.component-body > table {
+  width: 100%;
+}
+.component-body > table th {
+  text-align: left;
+}
+.component-body > table th.align-right {
+  text-align: right;
+}
 .component-body > table td, .component-body > table th {
   padding: 4px 8px;
-  text-align: left;
 }
 
 .serverResponse {

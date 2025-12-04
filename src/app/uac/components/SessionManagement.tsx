@@ -26,11 +26,14 @@ const formatUa = (ua: string) => {
     return parts.join(' / ')
 }
 
-function SessionRow({session, deactivateFn}: {session: SessionDetail, deactivateFn: (id:number) => void}) {
-    const expiry = session.expiresAt
+declare type srp = {
+    isCurrent: boolean
+    session: SessionDetail
+    deactivateFn: (id:number) => void
+}
 
-    const hasExpired = expiry ? (new Date(expiry) < new Date()) : false
-    // const button = session.isCurrent || hasExpired ?  '' : <ActionButton onClick={() => deactivateFn(session.id)}>Deactivate</ActionButton>
+function SessionRow({session,isCurrent, deactivateFn}: srp) {
+    const expiry = session.expiresAt ? new Date(session.expiresAt).toLocaleString() : 'N/A'
 
     const agentString = formatUa(session.ua || '')
 
@@ -39,21 +42,21 @@ function SessionRow({session, deactivateFn}: {session: SessionDetail, deactivate
         <td>{agentString}</td>
         <td>{session.userIp || 'N/A'}</td>
         <td>{expiry}</td>
-        <td></td>
+        <td>
+            {isCurrent ? 'Current Session' : <ActionButton onClick={() => deactivateFn(session.id)}>Deactivate</ActionButton>}
+        </td>
     </tr>
 }
 
-function SessionList({sessionList} : {sessionList: SessionDataList}) {
-    const deactivate = (id:number) => {
-        // Sessions.deactivate(id).then(result => {
-        //     if (!result) return
-        //     const newList = sessionList.list.filter(s => s.id !== id)
-        //     // sessionListState[1](newList)
-        // })
-    }
+declare type slp = {
+    sessionList: SessionDataList
+    removeItem: (id:number) => void
+}
+function SessionList({sessionList, removeItem }: slp) {
+    const deactivate = (id:number) => removeItem(id)
 
     return <tbody>
-        {sessionList?.list.map((s,i) => <SessionRow key={i} session={s} deactivateFn={deactivate} />)}
+        {sessionList.list.map((s,i) => <SessionRow key={i} isCurrent={s.id === sessionList.currentSessionId} session={s} deactivateFn={deactivate} />)}
     </tbody>
 }
 
@@ -70,13 +73,22 @@ declare type sessionDisplayItem = {
 }
 export default function SessionManagement() {
     const [sessionState, setSessionState] = useState({
-        list: [],
-        currentSessionId: null
+        list: []
     } as SessionDataList)
 
     useEffect(() => {
-        Sessions.list().then(reply => setSessionState(reply))
+        Sessions.list().then(reply => {
+            setSessionState(reply)
+        })
     }, [])
+
+    const removeItem = (id:number) => {
+        Sessions.deactivate(id).then(result => {
+            if (!result) return
+            const newList = sessionState.list.filter(s => s.id !== id)
+            setSessionState({list: newList, currentSessionId: sessionState.currentSessionId})
+        })
+    }
 
     return <ComponentSection header='Session Management' className={['session-management']}>
         <table>
@@ -89,7 +101,7 @@ export default function SessionManagement() {
                     <th>Actions</th>
                 </tr>
             </thead>
-            <SessionList sessionList={sessionState} />
+            <SessionList sessionList={sessionState} removeItem={removeItem} />
         </table>
         <form onSubmit={logout} >
             <ActionBar>

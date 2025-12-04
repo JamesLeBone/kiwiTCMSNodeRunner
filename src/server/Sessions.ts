@@ -4,23 +4,20 @@ import { currentUser } from './lib/Auth'
 
 export declare type SessionList = {
     list: SessionDetail[]
-    currentSessionId: string | null
+    currentSessionId?: number
 }
 export declare type SessionDetail = {
     id: number
-    host?: string | null,
-    ua?: string | null,
-    userIp?: string | null,
-    expiresAt?: string | null,
-    createdAt?: string | null
+    host?: string
+    ua?: string
+    userIp?: string
+    expiresAt?: string
+    createdAt?: string
 }
 
 const list = async (): Promise<SessionList> => {
     const user = await currentUser()
-    if (!user) return {
-        list: [],
-        currentSessionId: null
-    }
+    if (!user) return {list: []}
 
     const {userId,sessionId} = user
     const list = await Sessions.list(userId)
@@ -29,11 +26,11 @@ const list = async (): Promise<SessionList> => {
         
         return {
             id: s.id,
-            host: rawFingerprint ? rawFingerprint.host : null,
-            ua: rawFingerprint ? rawFingerprint.ua : null,
-            userIp: rawFingerprint ? rawFingerprint.userIp : null,
-            expiresAt: s.expiresAt ? s.expiresAt.toString() : null,
-            createdAt: s.createdAt ? s.createdAt.toString() : null
+            host: rawFingerprint ? rawFingerprint.host : undefined,
+            ua: rawFingerprint ? rawFingerprint.ua : undefined,
+            userIp: rawFingerprint ? rawFingerprint.userIp : undefined,
+            expiresAt: s.expiresAt ? s.expiresAt.toISOString() : undefined,
+            createdAt: s.createdAt ? s.createdAt.toISOString() : undefined
         } as SessionDetail
     }))
 

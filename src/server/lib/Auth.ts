@@ -15,16 +15,16 @@ async function currentUser() : Promise<CurrentUser | null> {
     const sessionIdCookie = cookieStore.get('sessionId')
     if (!sessionIdCookie) return null
     
-    const sessionId = sessionIdCookie.value
-    if (typeof sessionId != 'string' || sessionId == '' || sessionId.length < 10) {
+    const sessionCookieId = sessionIdCookie.value
+    if (typeof sessionCookieId != 'string' || sessionCookieId == '' || sessionCookieId.length < 10) {
         return null
     }
 
-    const sessionVerification = await Sessions.verify(sessionId)
-    if (!sessionVerification.status) {
+    const sessionVerification = await Sessions.verify(sessionCookieId)
+    if (!sessionVerification.data) {
         return null
     }
-    const {user} = sessionVerification.data
+    const {user,  sessionId} = sessionVerification.data
     const returnInfo = {
         userId: user.userId,
         username: user.username,
@@ -47,16 +47,16 @@ async function getCurrentUser(): Promise<TypedOperationResult<CurrentUser>> {
     const sessionIdCookie = cookieStore.get('sessionId')
     if (!sessionIdCookie) return opGetUser.message = 'Unauthorized: No session cookie', opGetUser
     
-    const sessionId = sessionIdCookie.value
-    if (typeof sessionId != 'string' || sessionId == '' || sessionId.length < 10) {
+    const sessionCookieId = sessionIdCookie.value
+    if (typeof sessionCookieId != 'string' || sessionCookieId == '' || sessionCookieId.length < 10) {
         return opGetUser.message = 'Unauthorized: Invalid session ID', opGetUser
     }
 
-    const sessionVerification = await Sessions.verify(sessionId)
-    if (!sessionVerification.status) {
+    const sessionVerification = await Sessions.verify(sessionCookieId)
+    if (!sessionVerification.data) {
         return opGetUser.message = 'Unauthorized: Session verification failed', opGetUser
     }
-    const {user} = sessionVerification.data
+    const {user,sessionId} = sessionVerification.data
 
     const returnInfo = {
         userId: user.userId,

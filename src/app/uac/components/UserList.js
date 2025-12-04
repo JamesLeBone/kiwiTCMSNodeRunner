@@ -14,16 +14,14 @@ export function UserDisplay({userId,firstName,lastName,email,username,selected})
         <td>{lastName}</td>
         <td>{email}</td>
         <td>{username}</td>
-        <td className='link'>
+        <td className='link align-right'>
             <IconButton href={href} title="Edit" className="fa fa-pencil" />
         </td>
     </tr>
 }
 
 export default function UserList({users,currentUserId}) {
-    if ((users ?? null) == null) return <p>No users</p>
-
-    return <ComponentSection header='Users' className='user-list'>
+    return <ComponentSection header='Users'>
         <table>
             <thead>
                 <tr>
@@ -31,7 +29,7 @@ export default function UserList({users,currentUserId}) {
                     <th>Last name</th>
                     <th>Email</th>
                     <th>Username</th>
-                    <th>Edit</th>
+                    <th className='align-right'>Edit</th>
                 </tr>
             </thead>
             <tbody>

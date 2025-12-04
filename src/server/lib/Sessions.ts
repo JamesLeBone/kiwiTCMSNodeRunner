@@ -38,7 +38,7 @@ class DbSession {
                 continue;
             }
             if (k == 'expiresAt' || k == 'createdAt') {
-                dbSession[k] = new Date(v)
+                dbSession[k] = new Date(Number.parseInt(v))
                 continue;
             }
             if (k == 'id' || k == 'userId') {
@@ -148,7 +148,7 @@ const createSession = (userId:Number) => {
 declare type SessionVerification = {
     status: boolean,
     message: string,
-    data?: any
+    data?: VerifiedSessionData
 }
 declare type VerifiedSessionData = {
     user: any,

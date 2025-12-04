@@ -1,5 +1,5 @@
 
-import FrontendUsers from './FrontendUsers'
+import UserList from './UserList'
 import { verifiedUser, list as listUsers } from '@server/lib/Users'
 
 import SessionManagement from './SessionManagement'
@@ -11,14 +11,16 @@ declare type pageProps = {
 export default async function UACControls({currentUser} : pageProps) {
     
     const userList = await listUsers()
-    .then(response => response.status ? response.data : [])
+    .then(response => response.data ? response.data : [])
 
     return <main>
         <nav>
             <a href="/uac/credentials">Credential Store</a>
         </nav>
-        <FrontendUsers users={userList} currentUserId={currentUser.userId} />
-        <SessionManagement />
-        <EmailVerification />
+        <div className='ComponentGrid' style={{gridTemplateColumns: '1fr 1fr'}}>
+            <UserList users={userList} currentUserId={currentUser.userId} />
+            <SessionManagement />
+            <EmailVerification />
+        </div>
     </main>
 }

@@ -19,7 +19,7 @@ export declare interface dbUserRecord {
  * Includes sessionId from cookie
  */
 export declare interface CurrentUser extends dbUserRecord {
-    sessionId: string
+    sessionId: number
 }
 /**
  * A verified user record
