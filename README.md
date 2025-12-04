@@ -7,6 +7,27 @@ as well as an executor for a testing platform to execute tests.
 This project is based off a private project I also authored and is essentially a version 2
 with generalised concepts and all sensitive features removed.
 
+## Development Roadmap
+
+1. Migrate functionality to this project (done)
+2. Refactor server-side libraries to Typescript (done)
+3. Build out Install scripts (done) - app.setup
+4. Verify UAC (User account control) functionality (in progress)
+5. Verify Kiwi Pages (see below)
+6. Integrate Jast
+7. Utilize Jast and to execute tests on this project (self-testing)
+8. Self-test plans
+9. Hook the Jast tests with the execution runner
+10. Success
+
+### Kiwi pages:
+
+1. Test case
+2. Test plan
+3. Execution
+4. Execution Runner (non-running)
+5. Components
+
 ## Purpose
 
 This is to be a folio peice to demonstrate my ability to work with APIs, NodeJs and React
