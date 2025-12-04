@@ -32,6 +32,13 @@ with generalised concepts and all sensitive features removed.
 
 This is to be a folio peice to demonstrate my ability to work with APIs, NodeJs and React
 
+### Features
+
+* Bulk test case management for KIWI TCMS
+* Execute tests from a web interface
+* Multi user access
+* Encrypted user credentials
+
 ## Kiwi TCMS
 
 https://kiwitcms.org/
