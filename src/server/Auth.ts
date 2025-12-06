@@ -3,6 +3,7 @@ import { cookies } from 'next/headers.js'
 import * as Users from './lib/Users'
 import * as Sessions from './lib/Sessions'
 import { getCurrentUser } from '@server/lib/Auth'
+import { cache } from 'react'
 
 // Use this
 import { Operation, TypedOperationResult } from '../lib/Operation'
@@ -64,14 +65,14 @@ async function login({ username, password }: loginCredentails) {
     return op
 }
 
-async function currentUser() {
-    return await getCurrentUser()
-}
-async function getUserId() { 
+// Cache the current user for the duration of the request
+const currentUser = cache(async () => getCurrentUser())
+// Get the current user ID for the duration of the request
+const getUserId = cache(async () => {
     const u = await getCurrentUser()
     if (!u.data) return null
     return u.data.userId
-}
+})
 
 export {
     login,

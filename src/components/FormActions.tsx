@@ -4,23 +4,50 @@ import { FormField } from './FormField'
 import { ActionBar } from './Actions'
 import type { OperationResult, StatusOperation } from '@lib/Operation'
 import { ServerResponseComponent } from './ServerResponse'
+import { selectionOption, Selection } from './Selection'
 
 declare type FormInputProps = {
     label: string
-    name: string
+    name?: string
     type?: string
     value?: string
     required?: boolean
+    onChange?: (value: string) => void
 }
-export function FormInputField({label,name,value='', type='text', required=false} : FormInputProps) {
+export function FormInputField({label,name,value='', type='text', required=false, onChange} : FormInputProps) {
     const [val,setVal] = useState(value)
+
+    const setValAction = (v:string) => {
+        setVal(v)
+        if (onChange) {
+            onChange(v)
+        }
+    }
+
     return <FormField label={label}>
-        <ActionInputField name={name} type={type} value={val} required={required} onChange={(e) => setVal(e)} />
+        <ActionInputField name={name} type={type} value={val} required={required} onChange={setValAction} />
+    </FormField>
+}
+
+declare type FormSelectionProps = {
+    label: string
+    name: string
+    value?: string
+    options: Record<string, string>
+}
+export function FormSelection({label,name,value='',options} : FormSelectionProps) {
+    const [val,setVal] = useState(value)
+    const onChangeAction = (v:string) => {
+        setVal(v)
+    }
+
+    return <FormField label={label}>
+        <Selection name={name} value={val} options={options} onChange={v => onChangeAction(v+'')} />
     </FormField>
 }
 
 declare type apropset = {
-    name: string
+    name?: string
     value?: string
     type?: string
     onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void
@@ -49,12 +76,15 @@ export function ActionInputField({name, onChange, value='', type='text', ...prop
 declare type FormActionBarProps = {
     pendingState: boolean
     state: OperationResult
-    actions: { label: string, id?: string }[]
+    actions: { label: string, id?: string, onClick?: () => void }[]
 }
 export function FormActionBar({pendingState, state, actions} : FormActionBarProps) {
     return <ActionBar>
         {actions.map((action) => {
             const ident = action.id || action.label.toLowerCase().replace(/\s+/g, '_')
+            if (action.onClick) {
+                return <span key={ident} onClick={action.onClick}>{action.label}</span>
+            }
             return <input key={ident} type="submit" value={action.label} name='action' disabled={pendingState} />
         })}
         <ServerResponseComponent type={state.statusType}>{state.message}</ServerResponseComponent>

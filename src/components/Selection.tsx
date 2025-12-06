@@ -18,21 +18,19 @@ export interface selectionOption {
 export type SelectionProps = {
     name: string,
     value?: selectionValue,
-    options?: Record<string, selectionValue|selectionValue[]>[],
+    options?: Record<string, selectionValue|selectionValue[]>,
     onChange: (val: selectionValue) => void
 }
 export function Selection({name, value, options, onChange}: SelectionProps) {
     const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)
-    const opts = options?.map((opt, idx) => {
-        const key = Object.keys(opt)[0]
-        const val = opt[key]
+    const opts = options ? Object.entries(options).map(([key, val], idx) => {
         if (Array.isArray(val)) {
             return <OptionGroup key={idx} label={key}>
                 {val.map((v, i) => <ListOpt key={i} value={v} label={v} />)}
             </OptionGroup>
         }
-        return <ListOpt key={idx} value={val} label={key} />
-    })
+        return <ListOpt key={idx} value={key} label={val} />
+    }) : []
     
     return <select name={name} value={value} onChange={setValue}>
         {opts}

@@ -1,15 +1,19 @@
-import * as Auth from '@server/Auth'
 
-export const metadata = {
-    title: 'Toolbox - Credential Store'
+import CredentialTypeList from './CredentialTypeList'
+import { getCredentialTypes } from '@server/Credentials'
+
+export async function metadata() {
+    const title = process.env.APP_TITLE
+    return { 
+        title: `${title} - Credentials`
+    }
 }
 
+
 export default async function Page() {
-    const currentUser = await Auth.currentUser()
-    if (!currentUser) {
-        return <p>You are not logged in</p>
-    }
+    const types = await getCredentialTypes()
 
     return <main>
+        <CredentialTypeList types={types} />
     </main>
 }

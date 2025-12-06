@@ -1,8 +1,9 @@
+'use server'
 import * as Auth from '@server/Auth'
 import * as Users from '@server/lib/Users'
 
 import { redirect } from 'next/navigation'
-import { EditUser } from './UserEdit'
+import { UserEdit } from './UserEdit'
 
 export async function metadata() {
     const title = process.env.APP_TITLE
@@ -23,9 +24,12 @@ export default async function UserPage({params,searchParams} : NextPageProps) {
         if (!dbUser) {
             return <p>User not found</p>
         }
+        return <main>
+            <UserEdit user={dbUser} />
+        </main>
     }
     
     return <main>
-        <EditUser user={user} />
+        <UserEdit user={user} />
     </main>
 }

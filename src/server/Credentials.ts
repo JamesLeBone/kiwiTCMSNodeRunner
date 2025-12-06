@@ -5,7 +5,7 @@ import * as credentialTypes from './lib/CredentialTypes'
 import type { credentialFieldSet } from './lib/Credentials'
 import { getCurrentUser } from '@server/lib/Auth'
 
-import { Operation, TypedOperationResult, unauthorised } from '@lib/Operation'
+import { Operation, StatusOperation, TypedOperationResult, unauthorised } from '@lib/Operation'
 import { credentialType } from './lib/CredentialTypes'
 
 // Exported
@@ -100,9 +100,9 @@ const getCredentialTypes = async () : Promise<credentialType[]> => {
     return credentialTypes.getTypes()
 }
 
-const addNewType = async (description:string, fields:credentialFieldSet) : Promise<Operation> => {
+const addNewType = async (description:string, fields:credentialFieldSet) : Promise<StatusOperation> => {
     const login = await getCurrentUser()
-    if (!login.data) return unauthorised
+    if (!login.data) return { ...unauthorised, statusType: 'error' }
     return credentialTypes.addType(description, fields)
 }
 const deleteType = async (credentialTypeId:number) : Promise<Operation> => {

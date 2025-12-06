@@ -1,12 +1,16 @@
+'use server'
 import * as Auth from '@server/Auth'
-import { CreateUser } from '../UserEdit.js'
+import CreateUser from './CreateUser'
 import { ActionBar } from '@/components/Actions'
 
-export const metadata = {
-    title: 'Toolbox - Create User Account'
+export async function metadata() {
+    const title = process.env.APP_TITLE
+    return { 
+        title: `${title} - Create User`
+    }
 }
 
-export default async function UserPage({params,searchParams}) {
+export default async function UserPage() {
     const currentUser = await Auth.currentUser()
     if (!currentUser) {
         return <p>You are not logged in</p>

@@ -1,5 +1,5 @@
 import { db } from '../db/Database'
-import { Operation, TypedOperationResult } from '@lib/Operation'
+import { Operation, StatusOperation, TypedOperationResult } from '@lib/Operation'
 import type { credentialFieldSet } from './Credentials'
 
 export declare type credentialType = {
@@ -15,12 +15,13 @@ const rowToCredentialType = (row:any) : credentialType => {
     } as credentialType
 }
 
-export async function addType(description:string,fields:credentialFieldSet) : Promise<Operation> {
+export async function addType(description:string,fields:credentialFieldSet) : Promise<StatusOperation> {
     const op = {
         id: 'addCredentialType',
         status: false,
+        statusType: 'error',
         message: ''
-    } as TypedOperationResult<credentialType>
+    } as StatusOperation
     try {
         const fieldsString = JSON.stringify(fields)
         const set = await db.insert('credential_types',
@@ -29,7 +30,8 @@ export async function addType(description:string,fields:credentialFieldSet) : Pr
         if (set.length == 0) {
             return op.message = 'Failed to add credential type', op
         }
-        op.data = rowToCredentialType(set[0])
+        // op.data = rowToCredentialType(set[0])
+        op.statusType = 'success'
         op.status = true
         op.message = 'Added credential type'
         return op

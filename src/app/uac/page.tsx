@@ -2,7 +2,6 @@
 import * as Auth from '@server/Auth'
 
 import UACControls from './components/UacControls'
-import UacUnauthorised from './components/UacUnauthorised'
 
 // This only works on server components, on the client side you need to use useEffect to set document.title
 export async function metadata() {
@@ -13,12 +12,12 @@ export async function metadata() {
 }
 
 export default async function UserPage({params,searchParams} : NextPageProps) {
+    // Cached
     const userInfo = await Auth.currentUser()
     if (!userInfo.status || !userInfo.data) {
         console.info('User unauthorised')
-        return <UacUnauthorised />
+        return <p>You are not logged in</p>
     }
-
     return <UACControls currentUser={userInfo.data} />
 
 }

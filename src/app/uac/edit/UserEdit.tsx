@@ -1,91 +1,53 @@
 'use client'
-import { useState } from 'react'
-import { useMessage } from '@/components/ServerResponse'
 
 import { ComponentSection } from '@/components/ComponentSection'
-import { FormField } from '@/components/FormField'
-import { ActionBar } from '@/components/Actions'
-import { InputField } from '@/components/InputField'
+
+import type { StatusOperation } from '@lib/Operation'
+import Form from 'next/form'
+import { useActionState } from 'react'
+import { FormInputField, FormActionBar } from '@/components/FormActions'
 
 import * as Users from '@server/Users'
 
-const ns = (ob, invar) => {
-    const v = ob[invar]
-    const r = (v ?? null) ? v : ''
-    return r
+export declare interface EditableUser {
+    userId: number
+    firstName?: string
+    lastName?: string
+    email?: string
+    username?: string
 }
 
-export function UserEdit({onSubmit,userState}) {
-    const hasUserId = typeof userState[0].userId != 'undefined'
-    const header = hasUserId ? 'Edit User' : 'Create User'
+export function UserEdit({user} : {user: EditableUser}) {
+    const [state, setUserEvent, isPending] = useActionState(
+        async (prevState: any, formData: FormData) => {
+            return await Users.update(
+                user.userId,
+                formData.get('lastName') as string,
+                formData.get('firstName') as string,
+                formData.get('email') as string,
+                formData.get('username') as string
+            ).then(opResult => {
+                const so = {
+                    id: 'updateUser',
+                    status: opResult.status,
+                    message: opResult.message,
+                    statusType: opResult.status ? 'success' : 'error'
+                } as StatusOperation
+                return so
+            })
+        },
+        { id: 'updateUser', status: false, message: '', statusType: 'blank' } as StatusOperation
+    )
 
-    const ust = useMessage()
-
-    const setUserEvent = e => {
-        e.preventDefault()
-        onSubmit()
-        .then(operation => ust.info(operation[1]))
-    }
-
-    const pedit = (userState,prop) => {
-        return {
-            value: ns(userState[0],prop),
-            onChange: v => {
-                const st = {...userState[0]}
-                st[prop] = v
-                userState[1](st)
-            }
-        }
-    }
-
-    return <ComponentSection header={header} style={{display:'inline-grid'}}>
-        { ust.message }
-        <form onSubmit={setUserEvent}>
-            <fieldset style={{gridTemplateColumns:'350px'}}>
-                <FormField label="Username">
-                    <InputField name="username" {...pedit(userState,'username')} />
-                </FormField>
-                <FormField label="First Name">
-                    <InputField name="firstName" {...pedit(userState,'firstName')} />
-                </FormField>
-                <FormField label="Last Name">
-                    <InputField name="lastName" {...pedit(userState,'lastName')} />
-                </FormField>
-                <FormField label="Email">
-                    <InputField name="email" {...pedit(userState,'email')} />
-                </FormField>
+    return <ComponentSection header={'Edit user'}>
+        <Form action={setUserEvent}>
+            <fieldset>
+                <FormInputField label="Username" value={user.username} name="username" required={true} />
+                <FormInputField label="First Name" value={user.firstName} name="firstName" required={true} />
+                <FormInputField label="Last Name" value={user.lastName} name="lastName" required={true} />
+                <FormInputField label="Email" value={user.email} name="email" type="email" required={true} />
             </fieldset>
-            <ActionBar>
-                <input type="submit" value="Save" />
-            </ActionBar>
-        </form>
+            <FormActionBar pendingState={isPending} state={state} actions={[{ label: "Update" }]} />
+        </Form>
     </ComponentSection>
-}
-
-export function EditUser({user}) {
-    const userState = useState(user)
-    const userId = user.userId
-
-    const updateUser = async () => {
-        const {firstName, lastName, email, username } = userState[0]
-        return Users.update(userId, lastName, firstName, email, username)
-    }
-
-    return <UserEdit userState={userState} onSubmit={updateUser} />
-}
-
-export function CreateUser({}) {
-    const userState = useState({})
-
-    const createUser = async () => {
-        await Users.create(userState[0])
-        .then(operation => {
-            if (operation.status == 'success') {
-                userState[1]({})
-            }
-            return operation
-        })
-    }
-
-    return <UserEdit userState={userState} onSubmit={() => createUser()} />
 }

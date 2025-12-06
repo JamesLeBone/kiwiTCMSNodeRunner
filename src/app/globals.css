@@ -75,6 +75,25 @@ body > header > nav a > span {
   margin-left: 4px;
 }
 
+.button, .ComponentSection .ActionBar > *:not(div) {
+  padding: 6px 6px;
+  border-radius: 0px;
+  border-style: none;
+  background-color: #6699d0;
+  font-size: 14px;
+  color: white;
+  vertical-align: middle;
+  font-family: "Courier New", Courier, monospace;
+  letter-spacing: 0.41px;
+  text-transform: uppercase;
+  display: inline-block;
+  cursor: pointer;
+  margin: 4px;
+}
+.button:hover, .ComponentSection .ActionBar > :hover:not(div) {
+  background-color: #537daa;
+}
+
 h1 {
   font-size: 20pt;
   margin-top: 12px;
@@ -84,6 +103,10 @@ h1 {
 
 h2 {
   font-size: 17pt;
+}
+
+table.rowHover tbody tr:hover {
+  background-color: #f0f0f0;
 }
 
 .align-right {
@@ -104,7 +127,9 @@ h2 {
 .ComponentSection {
   margin: 8px;
   border: 1px solid #ccc;
-  display: inline-block;
+  display: inline-grid;
+  grid-template-rows: min-content min-content;
+  align-content: space-between;
   vertical-align: top;
 }
 .ComponentSection header {
@@ -117,19 +142,6 @@ h2 {
 .ComponentSection .ActionBar {
   border-top: 1px outset #ccc;
   background-color: #f0f0f0;
-}
-.ComponentSection .ActionBar > *:not(div) {
-  padding: 6px 6px;
-  border-radius: 0px;
-  border-style: none;
-  background-color: #6699d0;
-  color: white;
-  letter-spacing: 0.41px;
-  text-transform: uppercase;
-  display: inline-block;
-}
-.ComponentSection .ActionBar > *:not(div):hover {
-  background-color: #537daa;
 }
 .ComponentSection .ActionBar > a {
   text-decoration: none;
