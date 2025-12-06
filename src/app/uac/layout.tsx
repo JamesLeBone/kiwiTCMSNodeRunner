@@ -2,6 +2,7 @@
 
 import * as Auth from '@server/Auth'
 import UacUnauthorised from './UacUnauthorised'
+import UACNavigation from './UacNavigation'
 
 export default async function UACLayout({children} : {children: React.ReactNode}) {
     // Call is cached per request
@@ -11,5 +12,8 @@ export default async function UACLayout({children} : {children: React.ReactNode}
         return <UacUnauthorised />
     }
 
-    return <>{children}</>
+    return <>
+        <UACNavigation />
+        {children}
+    </>
 }

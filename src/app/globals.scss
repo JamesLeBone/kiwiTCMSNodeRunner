@@ -1,3 +1,33 @@
+:root {
+    --sectionBorder: #ccc;
+    --linkColor: #1f54bb;
+    --linkHover: #537daa;
+
+    --background: #ffffff;
+    --panelBackground: #f9f9f9;
+    --text: #000000;
+
+    --buttonColor: #6699d0;
+    --buttonBackground: #ffffff;
+    --buttonBackgroundHover: #e0e0e0;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+    :root {
+        --sectionBorder: #686868;
+        --linkColor: #79a7ff;
+        --linkHover: #a3c8ff;
+
+        --background: #121212;
+        --text: #ffffff;
+        --panelBackground: rgba(255, 255, 255, 0.05);
+
+        --buttonColor: #a3c8ff;
+        --buttonBackground: #41446f;
+        --buttonBackgroundHover: #53557f;
+    }
+}
+
 body {
     margin: 0px;
 }
@@ -5,12 +35,41 @@ body {
 html {
     min-width: 320px;
     overflow: auto;
+    background-color: var(--background);
+    color: var(--text);
+}
+
+nav {
+    background-color: var(--panelBackground);
+    color: var(--linkColor);
+    margin: 0px;
+    display: block;
+
+    > * {
+        padding: 8px;
+    }
+    > a {
+        color: inherit;
+        display: inline-block;
+        &:hover {
+            color: var(--linkHover);
+        }
+        > i {
+            margin-right: 4px;
+        }
+    }
+
+    .right {
+        float: right;
+    }
+    &::after {
+        content: '';
+        display: table;
+        clear: both;
+    }
 }
 
 main > nav {
-    padding: 8px;
-    border-bottom: 1px solid #ccc;
-
     > * {
         display: inline-block;
         vertical-align: top;
@@ -19,20 +78,13 @@ main > nav {
     > nav {
         margin: 0px;
         display: block;
-
-        .right {
-            float: right;
-        }
+        border-bottom: 1px solid var(--sectionBorder);
         a {
             padding: 4px;
             display: inline-block;
-            color: #1a2a5c;
             text-decoration: none;
             line-height: 15px;
             border-bottom: 1px solid transparent;
-            &:hover {
-                border-bottom-color: #1a2a5c;
-            }
             > span {
                 margin-left: 4px;
                 display: inline-block;
@@ -42,37 +94,8 @@ main > nav {
 }
 
 body > header {
-    padding: 8px;
-    border-bottom: 1px solid #ccc;
-
-    > * {
-        display: inline-block;
-        vertical-align: top;
-        margin: 0px 8px;
-    }
-    > nav {
-        margin: 0px;
-        display: block;
-
-        .right {
-            float: right;
-        }
-        a {
-            padding: 4px;
-            display: inline-block;
-            color: #1a2a5c;
-            text-decoration: none;
-            line-height: 15px;
-            border-bottom: 1px solid transparent;
-            &:hover {
-                border-bottom-color: #1a2a5c;
-            }
-            > span {
-                margin-left: 4px;
-                display: inline-block;
-            }
-        }
-    }
+    border-bottom: 1px solid var(--sectionBorder);
+    background-color: var(--panelBackground);
 }
 
 .IconButton span {
@@ -82,9 +105,9 @@ body > header {
     padding: 6px 6px;
     border-radius: 0px;
     border-style: none;
-    background-color: #6699d0;
+    background-color: var(--buttonBackground);
     font-size: 14px;
-    color: white;
+    color: var(--buttonColor);
     vertical-align: middle;
     font-family: 'Courier New', Courier, monospace;
     letter-spacing: 0.41px;
@@ -93,7 +116,7 @@ body > header {
     cursor: pointer;
     margin: 4px;
     &:hover {
-        background-color: #537daa;
+        background-color: var(--buttonBackgroundHover);
     }
 }
 
@@ -109,7 +132,7 @@ h2 {
 
 table.rowHover {
     tbody tr:hover {
-        background-color: #f0f0f0;
+        background-color: var(--panelBackground);
     }
 }
 
@@ -130,22 +153,23 @@ table.rowHover {
 
 .ComponentSection {
     margin: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--sectionBorder);
     display: inline-grid;
     grid-template-rows: min-content min-content;
     align-content: space-between;
     vertical-align: top;
+    background-color: var(--panelBackground);
     
     header {
         font-size: 14pt;
         font-weight: bold;
         padding: 4px;
-        background-color: #f1eaf7;
+        background-color: var(--panelBackground);
         font-family: system-ui, -apple-system, sans-serif;
     }
     .ActionBar {
         border-top: 1px outset #ccc;
-        background-color: #f0f0f0;
+        background-color: var(--panelBackground);
 
         > *:not(div) {
             @extend .button;
@@ -190,6 +214,7 @@ table.rowHover {
     > span {
         margin-right: 8px;
         width: 16px;
+        padding: 0px 8px;
         text-align: center;
         overflow: hidden;
         text-overflow: ellipsis;

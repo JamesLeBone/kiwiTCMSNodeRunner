@@ -8,7 +8,7 @@ const KiwiLinks = [
     {url:'/kiwi/execution', title:'Execution', icon: 'fa fa-bolt'},
 ]
 
-export default function PageHeader() {
+export default function PageHeader({userName} : {userName:string}) {
     const items = KiwiLinks.map(link => {
         return <Link key={link.title} href={link.url} title={link.title}>
             <i className={link.icon}></i>
@@ -19,6 +19,7 @@ export default function PageHeader() {
     return <header>
         <nav>
             { items }
+            <span className='right nav-separator'>{userName}</span>
             <Link href='/uac' className='right' title='Settings'>
                 <i className='fa fa-cog'></i>
             </Link>
