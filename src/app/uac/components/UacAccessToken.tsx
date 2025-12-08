@@ -1,5 +1,5 @@
 
-import { SetPassword } from '../PasswordReset'
+import SetPassword from '../passwordReset/SetPassword'
 import type { verifiedUser } from '@server/lib/Users'
 
 declare type props = {

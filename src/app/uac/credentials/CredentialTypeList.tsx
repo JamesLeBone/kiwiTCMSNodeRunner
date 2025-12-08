@@ -1,8 +1,6 @@
 'use client'
 
-import { ActionBar } from '@/components/Actions'
 import { ComponentSection } from '@/components/ComponentSection'
-import Link from 'next/link'
 import type { credentialType } from '@server/lib/CredentialTypes'
 import { IconButton } from '@/components/IconButton'
 import { useState } from 'react'
@@ -16,8 +14,13 @@ export default function CredentialTypeList({types} : {types:credentialType[]}) {
         await deleteType(id)
         setTypeList(typeList.filter(ct => ct.credentialTypeId !== id))
     }
+    const header = <IconButton href="/uac/credentials/newType" className="button fa fa-plus" title="Add New Credential Type" />
+    const deleteButton = (id:number) => {
+        if (id === 1) return null // Cannot delete default type
+        return <IconButton title="Delete" className='fa fa-trash' action={() => removeCred(id)}></IconButton>
+    }
 
-    return <ComponentSection header="Credential Types">
+    return <ComponentSection header="Credential Types" headerActions={header}>
         <table className='rowHover'>
             <thead>
                 <tr>
@@ -30,16 +33,12 @@ export default function CredentialTypeList({types} : {types:credentialType[]}) {
                     <tr key={ct.credentialTypeId}>
                         <td>{ct.description}</td>
                         <td className='align-right'>
-                            { ct.credentialTypeId === 1 ? null : <IconButton title="Delete" className='fa fa-trash' action={() => removeCred(ct.credentialTypeId)} /> }
+                            { deleteButton(ct.credentialTypeId) }
+                            <IconButton href={`/uac/credentials/new?typeId=${ct.credentialTypeId}`} className='fa fa-plus' title="Add Credential"></IconButton>
                         </td>
                     </tr>
                 )}
             </tbody>
         </table>
-        <ActionBar>
-            <Link href="/uac/credentials/newType" className="btn btn-primary">
-                Add New Credential Type
-            </Link>
-        </ActionBar>
     </ComponentSection>
 }

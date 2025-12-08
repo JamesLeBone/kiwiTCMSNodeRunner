@@ -1,6 +1,7 @@
-
+'use server'
 import CredentialTypeList from './CredentialTypeList'
-import { getCredentialTypes } from '@server/Credentials'
+import CredentialList from './CredentialList'
+import { getCredentialTypes, listUserCredentials } from '@server/Credentials'
 
 export async function metadata() {
     const title = process.env.APP_TITLE
@@ -12,8 +13,12 @@ export async function metadata() {
 
 export default async function Page() {
     const types = await getCredentialTypes()
+    const credentialList = await listUserCredentials().then(res => res.data ?? [])
 
     return <main>
-        <CredentialTypeList types={types} />
+        <div>
+            <CredentialTypeList types={types} />
+        </div>
+        <CredentialList list={credentialList} />
     </main>
 }

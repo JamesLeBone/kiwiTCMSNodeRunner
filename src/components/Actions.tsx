@@ -1,3 +1,4 @@
+'use client'
 import { useState } from 'react'
 
 export function ActionBar({children,...props} : {children: React.ReactNode, [key: string]: any}) {

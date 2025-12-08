@@ -1,7 +1,7 @@
 declare type inputProps = {
     className?: string,
     title: string,
-    action: Function,
+    action?: Function,
     children?: React.ReactNode,
     active?: boolean,
     href?: string | false
@@ -10,7 +10,7 @@ declare type inputProps = {
 export function IconButton({className,title,action,children,active=false,href=false}: inputProps) {
     const doAction = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
-        action()
+        if (action) action()
     }
 
     const activeString = active ? 'active' : 'inactive'

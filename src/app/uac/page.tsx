@@ -1,4 +1,3 @@
-'use server'
 import * as Auth from '@server/Auth'
 
 import UACControls from './components/UacControls'

@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS credential_types (
 );
 
 INSERT INTO credential_types (credential_type_id, description, fields)
-VALUES (1, 'Kiwi Login', '{"username":"string", "password":"password"}');
+VALUES (1, 'Kiwi Login', '{"username":{"type":"text"}, "password":{"type":"password"}}');
 
 CREATE TABLE IF NOT EXISTS credentials (
     user_credential_id INTEGER PRIMARY KEY

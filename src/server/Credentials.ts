@@ -51,12 +51,12 @@ const deleteCredential = async (userCredentialId:number) : Promise<Operation> =>
     }
 }
 
-const getCredentials = async (userCredentialTypeId:number) : Promise<TypedOperationResult<credentials.decryptedCredentialDetails>> => {
+const getCredentials = async (userCredentialId:number) : Promise<TypedOperationResult<credentials.decryptedCredentialDetails>> => {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
 
-    const creds = await credentials.find(userId,userCredentialTypeId)
+    const creds = await credentials.find(userId,userCredentialId)
 
     const operation = {
         id: 'getCredentials',
@@ -71,6 +71,12 @@ const getCredentials = async (userCredentialTypeId:number) : Promise<TypedOperat
         message: 'Credentials found',
         data: creds
     }
+}
+const getFirstCredentialOfType = async (credentialTypeId:number) : Promise<credentials.decryptedCredentialDetails | null> => {
+    const login = await getCurrentUser()
+    if (!login.data) return null
+    const userId = login.data.userId
+    return await credentials.getFirstCredentialOfType(userId, credentialTypeId)
 }
 
 const listUserCredentials = async () : Promise<TypedOperationResult<credentials.userCredentialList>> => {
@@ -117,6 +123,7 @@ export {
     updateCredential,
     deleteCredential,
     getCredentials,
+    getFirstCredentialOfType,
     listUserCredentials,
     // Type management
     getCredentialTypes,

@@ -4,7 +4,7 @@ import { request } from 'http'
 import { SimpleHttp } from '../lib/SimpleHttp'
 import { DjangoEntity, BasicRecord, checkDate, htmlEntityDecode } from './Django'
 
-import { getCredential } from '@server/lib/Credentials'
+import { getFirstCredentialOfType } from '@server/Credentials'
 const kiwiCredentialTypeId = 1
 declare type methodParameters = Object | Array<any> | null
 
@@ -80,7 +80,7 @@ class KiwiCall {
     }
     
     async login() : Promise<boolean> {
-        const creds = await getCredential(kiwiCredentialTypeId)
+        const creds = await getFirstCredentialOfType(kiwiCredentialTypeId)
         if (!creds) {
             console.debug('No Kiwi credentials found')
             return false

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { ComponentSection } from '@/components/ComponentSection'
-import Link from 'next/link'
 import { addNewType } from '@server/Credentials'
 import type { credentialFieldSet } from '@server/lib/Credentials'
 
@@ -11,7 +10,6 @@ import { FormInputField, FormActionBar, validationError, blankStatus, FormSelect
 
 import Form from 'next/form'
 import { StatusOperation } from '@lib/Operation'
-import { Padding } from '@mui/icons-material'
 
 const formInputOptions = {
     text: 'Text',
@@ -58,14 +56,14 @@ export default function CreateCredentialType() {
         const newFieldName = `field${Object.keys(fieldList).length + 1}`
         const newField = { type: 'string', value: '' }
         const newState = { ...fieldList, [newFieldName]: newField }
-        console.info('Adding new field:', newFieldName)
+        // console.info('Adding new field:', newFieldName)
         setFieldList(newState)
     }
 
     const [state, send, isPending] = useActionState(
         async (prevState: StatusOperation, formData: FormData) => {
             const action = formData.get('action')
-            console.debug('Form action:', action)
+            // console.debug('Form action:', action)
             if (action != 'Create Credential Type') return prevState
 
             const formDataObj = {

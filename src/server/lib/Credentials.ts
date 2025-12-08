@@ -10,15 +10,18 @@ type credentialField = {
 }
 export type credentialFieldSet = { [ key:string ]: credentialField }
 
-export declare type userCredentialList = { userCredentialId: number, description: string }[]
+export declare type userCredentialList = {
+    userCredentialId: number
+    description: string
+}[]
 export declare type decryptedCredentialDetails = {
-    userCredentialId: number,
-    description: string,
+    userCredentialId: number
+    description: string
     credential: credentialFieldSet
 }
 
 const decryptCredential = (encrypted:string, secret:string) : credentialFieldSet|false => {
-    let creds: credentialFieldSet;
+    let creds: credentialFieldSet
     try {
         const encrptor = new ncrypt(secret)
         const credentialString = encrptor.decrypt(encrypted) as string
@@ -96,7 +99,7 @@ export async function update(userCredentialId:number, credential:credentialField
             op.message = 'Could not update'
         else  {
             op.status = true
-            op.message = 'updated'
+            op.message = 'Updated'
         }
     } catch (e) {
         console.error('Error updating credentials', e)
@@ -107,7 +110,8 @@ export async function update(userCredentialId:number, credential:credentialField
 export async function deleteCredential(userCredentialId:number) : Promise<void> {
     await db.run(`DELETE FROM credentials WHERE user_credential_id = ?`, [userCredentialId])
 }
-export async function find(userId:number, userCredentialTypeId:number) : Promise<decryptedCredentialDetails|null> {
+
+async function getCredential(userId:number, fieldName:string, value:number) {
     const sql = `SELECT 
         c.user_credential_id
         , ct.description
@@ -118,9 +122,9 @@ export async function find(userId:number, userCredentialTypeId:number) : Promise
         JOIN credential_types ct ON ct.credential_type_id = c.credential_type_id
         JOIN users on users.user_id = c.user_id
     WHERE c.user_id = ?
-    AND ct.credential_type_id = ?`
+    AND c.${fieldName} = ?`
     const creds = await db.fetch(sql,
-        [userId, userCredentialTypeId]
+        [userId, value]
     )
     if (!creds) return null
     const dbRow = creds[0]
@@ -140,20 +144,17 @@ export async function find(userId:number, userCredentialTypeId:number) : Promise
     }
 }
 
+export async function find(userId:number, credentialId:number) : Promise<decryptedCredentialDetails|null> {
+    return getCredential(userId, 'user_credential_id', credentialId)
+}
+
 /**
  * This is the server-internal function to get credentials for the current user
  * and services
- * @param credentialTypeId This his hard-coded into the SQL for install
  * @returns Decrypted credential details or null
  */
-export async function getCredential(credentialTypeId:number) : Promise<decryptedCredentialDetails|null> {
-    const login = await getCurrentUser()
-    if (!login.data) return null
-    const userId = login.data.userId
-
-    const cred = await find(userId,credentialTypeId)
-    if (!cred) return null
-    return cred
+export async function getFirstCredentialOfType(userId:number, credentialTypeId:number) : Promise<decryptedCredentialDetails|null> {
+    return getCredential(userId, 'credential_type_id', credentialTypeId)
 }
 
 export async function list(userId:number) : Promise<userCredentialList> {

@@ -14,9 +14,6 @@ export default async function UACControls({currentUser} : pageProps) {
     .then(response => response.data ? response.data : [])
 
     return <main>
-        <nav>
-            <a href="/uac/credentials">Credential Store</a>
-        </nav>
         <div className='ComponentGrid' style={{gridTemplateColumns: '1fr 1fr'}}>
             <UserList users={userList} currentUserId={currentUser.userId} />
             <SessionManagement />

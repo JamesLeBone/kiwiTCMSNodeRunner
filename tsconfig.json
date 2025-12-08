@@ -43,7 +43,7 @@
     "**/*.ts",
     "**/*.tsx",
     "src/__tests__/jest-dom.d.ts",
-    "src/server/db/Database.sqlite3.js"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

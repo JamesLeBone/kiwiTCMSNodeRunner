@@ -19,12 +19,32 @@
     --text: #ffffff;
     --panelBackground: rgba(255, 255, 255, 0.05);
     --buttonColor: #a3c8ff;
-    --buttonBackground: #41446f;
+    --buttonBackground: #223;
+    --buttonBorder: black;
     --buttonBackgroundHover: #53557f;
+  }
+  input {
+    background-color: #222233;
+    color: var(--buttonColor);
+    padding: 4px;
+    border: 1px solid black;
+  }
+  input:hover {
+    border-color: var(--linkHover);
+  }
+  input:focus {
+    outline: 2px solid var(--linkColor);
   }
 }
 body {
   margin: 0px;
+}
+
+a {
+  color: var(--linkColor);
+}
+a:hover {
+  color: var(--linkHover);
 }
 
 html {
@@ -52,6 +72,11 @@ nav > a:hover {
 }
 nav > a > i {
   margin-right: 4px;
+}
+nav > a.active {
+  font-weight: bold;
+  text-decoration: none;
+  opacity: 0.8;
 }
 nav .right {
   float: right;
@@ -93,13 +118,14 @@ body > header {
   margin-left: 4px;
 }
 
-.button, .ComponentSection .ActionBar > *:not(div) {
+.button, .ComponentSection .ActionBar > *:not(div), button {
   padding: 6px 6px;
   border-radius: 0px;
   border-style: none;
   background-color: var(--buttonBackground);
   font-size: 14px;
   color: var(--buttonColor);
+  border: 1px solid var(--buttonBorder, transparent);
   vertical-align: middle;
   font-family: "Courier New", Courier, monospace;
   letter-spacing: 0.41px;
@@ -108,7 +134,7 @@ body > header {
   cursor: pointer;
   margin: 4px;
 }
-.button:hover, .ComponentSection .ActionBar > :hover:not(div) {
+.button:hover, .ComponentSection .ActionBar > :hover:not(div), button:hover {
   background-color: var(--buttonBackgroundHover);
 }
 
@@ -146,17 +172,27 @@ table.rowHover tbody tr:hover {
   margin: 8px;
   border: 1px solid var(--sectionBorder);
   display: inline-grid;
+  min-width: 300px;
   grid-template-rows: min-content min-content;
   align-content: space-between;
   vertical-align: top;
   background-color: var(--panelBackground);
 }
-.ComponentSection header {
+.ComponentSection header.component-header {
   font-size: 14pt;
   font-weight: bold;
   padding: 4px;
   background-color: var(--panelBackground);
   font-family: system-ui, -apple-system, sans-serif;
+}
+.ComponentSection header.component-header.with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.ComponentSection header.component-header.with-actions > div > * {
+  vertical-align: top;
 }
 .ComponentSection .ActionBar {
   border-top: 1px outset #ccc;
@@ -190,12 +226,11 @@ table.rowHover tbody tr:hover {
 
 .serverResponse {
   display: flex;
-  height: 32px;
-  line-height: 32px;
-  transition: height 0.3s ease;
+  min-height: 32px;
+  transition: min-height 0.3s ease;
 }
 .serverResponse.blank {
-  height: 0px;
+  min-height: 0px;
 }
 .serverResponse > span {
   margin-right: 8px;
@@ -205,9 +240,13 @@ table.rowHover tbody tr:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: sans-serif;
+  padding-top: 4px;
 }
 .serverResponse > div {
   flex-grow: 1;
+  line-height: normal;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 .serverResponse.error {
   background-color: #ffe0e0;

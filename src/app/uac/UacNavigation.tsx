@@ -1,10 +1,19 @@
-'use client'
+'use server'
 import Link from 'next/link'
 
-export default function UACNavigation() {
+const links = [
+    { name: 'Settings', url: '/uac' },
+    { name: 'Credentials', url: '/uac/credentials' },
+    { name: 'Setup', url: '/setup' }
+]
+
+export default async function UACNavigation() {
+    const currentUrl = typeof window !== 'undefined' ? window.location.pathname : ''
+
     return <nav>
-        <Link href="/uac">Settings</Link>
-        <Link href="/uac/credentials">Credential Store</Link>
-        <Link href="/setup" className='right'>Setup Wizard</Link>
+        {links.map(({name, url}) => {
+            const isActive = currentUrl === url
+            return <Link key={url} href={url} className={isActive ? 'active' : ''}>{name}</Link>
+        })}
     </nav>
 }
