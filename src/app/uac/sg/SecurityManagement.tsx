@@ -65,43 +65,37 @@ function EditItem({securityItem} : eip) {
     </ComponentSection>
 }
 
-function SecurityListItem({sg, editItem}: {sg: sg.SecurityGroup, editItem: Function}) {
+function SecurityListItem({sg, editItem, deleteItem}: {sg: sg.SecurityGroup, editItem: Function, deleteItem: Function}) {
     return <tr key={sg.securityGroupId}>
         <td>{sg.name}</td>
         <td>{sg.description}</td>
         <td>{sg.isDefault ? "Default" : ""}</td>
         <td>
             <IconButton className="fa fa-pencil" title="Edit Security Group" action={editItem} />
+            <IconButton className="fa fa-trash" title="Delete Security Group" action={deleteItem} />
         </td>
     </tr>
 }
 
 declare type slp = {
     securityGroupOptions: sg.SecurityGroup[],
-    editItem: Function
+    setSecurityGroupOptions: (sg: sg.SecurityGroup[]) => void,
+    editItem: Function,
+    deleteItem: (securityGroupId: number) => void
 }
-function SecurityList({securityGroupOptions, editItem}: slp) {
-    const [optionList, setOptionList] = useState(securityGroupOptions)
+function SecurityList({securityGroupOptions, setSecurityGroupOptions, editItem, deleteItem}: slp) {
 
     const [state, createNew, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
             const name = formData.get('name') as string
             const description = formData.get('description') as string
-            const nsg = await sg.create(name,description)
-
-            const isSuccess = nsg.securityGroupId !== undefined
-            if (isSuccess) {
-                setOptionList([...optionList, nsg as sg.SecurityGroup])
-                console.debug('New group', nsg)
+            const op = await sg.create(name,description)
+            if (!op.status || !op.data) {
+                return op
             }
-            
-            return {
-                ...prevState,
-                message: isSuccess ? "Security Group created successfully." : "Failed to create Security Group.",
-                status: isSuccess,
-                statusType : isSuccess ? 'success' : 'error',
-            }
-            
+            const nsg = op.data
+            setSecurityGroupOptions([...securityGroupOptions, nsg])
+            return op
         },
         blankStatus('resetPassword')
     )
@@ -117,7 +111,7 @@ function SecurityList({securityGroupOptions, editItem}: slp) {
                 </tr>
             </thead>
             <tbody>
-                {optionList.map(sg => <SecurityListItem key={sg.securityGroupId} sg={sg} editItem={() => editItem(sg)} />)}
+                {securityGroupOptions.map(sg => <SecurityListItem key={sg.securityGroupId} sg={sg} editItem={() => editItem(sg)} deleteItem={() => deleteItem(sg.securityGroupId)} />)}
             </tbody>
         </table>
         <Form action={createNew}>
@@ -142,12 +136,22 @@ export default function SecurityManagement({list}: smp) {
         setSecurityItem(sg)
     }
 
+    const deleteItem = async (sgn: number) => {
+        console.debug('Deleting security group', sgn)
+        const res = await sg.remove(sgn)
+        if (!res) return false
+        const newOptions = securityGroupOptions.filter(sg => sg.securityGroupId !== sgn)
+        setSecurityGroupOptions(newOptions)
+        setSecurityItem(null)
+        return true
+    }
+
     return <div>
         <Well title="Security Group Management">
             <p>Security Groups are a component of the test case arguments sent when running a test or plan.</p>
             <p>They are common across all tests to implement the same test can be tested against different roles.</p>
         </Well>
-        <SecurityList securityGroupOptions={securityGroupOptions} editItem={editItem} />
+        <SecurityList securityGroupOptions={securityGroupOptions} setSecurityGroupOptions={setSecurityGroupOptions} editItem={editItem} deleteItem={deleteItem} />
         <EditItem securityItem={securityItem} />
     </div>
 }

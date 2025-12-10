@@ -12,7 +12,6 @@ export async function metadata() {
 
 export default async function UserPage({params,searchParams} : NextPageProps) {
     const list = await getList()
-    console.debug(list)
 
     return <div>
         <SecurityManagement list={list} />
