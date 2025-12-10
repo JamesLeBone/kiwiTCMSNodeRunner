@@ -12,16 +12,14 @@ function CreateUserForm() {
     const [state, formAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
             const doVerify = formData.get('action') === 'Verify Users'
+            console.log('Action:', doVerify, formData.get('action'))
 
             if (doVerify) {
-                const result = await hc.createFirstUser(formData)
-                return result
+                const result = await hc.verifyUsers()
+                return result as StatusOperation
             }
-            const result = await hc.verifyUsers()
-            return {
-                ...result,
-                statusType: result.status ? 'success' : 'error'
-            } as StatusOperation
+            const result = await hc.createFirstUser(formData)
+            return result
         },
         { id : 'createFirstUser', status: false, message: '', statusType: 'blank' } as StatusOperation
     )

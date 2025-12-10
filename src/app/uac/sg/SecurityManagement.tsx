@@ -9,9 +9,10 @@ import Well from "@/components/Well"
 import { IconButton } from "@/components/IconButton"
 
 declare type eip = {
-    securityItem: sg.SecurityGroup|null
+    securityItem: sg.SecurityGroup|null,
+    updatedItem: (group: sg.SecurityGroup) => void
 }
-function EditItem({securityItem} : eip) {
+function EditItem({securityItem, updatedItem} : eip) {
     const [state, editItem, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
             const name = formData.get('name') as string
@@ -28,6 +29,7 @@ function EditItem({securityItem} : eip) {
 
             const nsg = await sg.update(csg)
             if (nsg) {
+                updatedItem(csg)
                 return {
                     ...prevState,
                     message: "Security Group updated successfully.",
@@ -135,6 +137,12 @@ export default function SecurityManagement({list}: smp) {
     const editItem = (sg: sg.SecurityGroup) => {
         setSecurityItem(sg)
     }
+    const updateListItem = (nsg: sg.SecurityGroup) => {
+        const newOptions = securityGroupOptions.map(csg => 
+            csg.securityGroupId === nsg.securityGroupId ? nsg : csg
+        )
+        setSecurityGroupOptions(newOptions)
+    }
 
     const deleteItem = async (sgn: number) => {
         console.debug('Deleting security group', sgn)
@@ -152,6 +160,6 @@ export default function SecurityManagement({list}: smp) {
             <p>They are common across all tests to implement the same test can be tested against different roles.</p>
         </Well>
         <SecurityList securityGroupOptions={securityGroupOptions} setSecurityGroupOptions={setSecurityGroupOptions} editItem={editItem} deleteItem={deleteItem} />
-        <EditItem securityItem={securityItem} />
+        <EditItem securityItem={securityItem} updatedItem={nsg => updateListItem(nsg)} />
     </div>
 }

@@ -1,10 +1,4 @@
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS logins;
-DROP TABLE IF EXISTS sessions;
-DROP TABLE IF EXISTS credentials;
-DROP TABLE IF EXISTS credential_types;
-DROP TABLE IF EXISTS security_groups;
-
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY
     , username TEXT UNIQUE NOT NULL
@@ -14,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     , secret TEXT UNIQUE NOT NULL
 );
 
+DROP TABLE IF EXISTS logins;
 CREATE TABLE IF NOT EXISTS logins (
     user_id INTEGER PRIMARY KEY REFERENCES users(user_id)
     , username TEXT UNIQUE
@@ -23,6 +18,7 @@ CREATE TABLE IF NOT EXISTS logins (
 );
 -- I would use datetime, but it stores it as text,
 -- so I use TEXT instead and store the timestamp.
+DROP TABLE IF EXISTS sessions;
 CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY
     , user_id INTEGER REFERENCES users(user_id) NOT NULL
@@ -32,6 +28,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     , expires_at TEXT
 );
 
+DROP TABLE IF EXISTS credential_types;
 CREATE TABLE IF NOT EXISTS credential_types (
     credential_type_id INTEGER PRIMARY KEY
     , description TEXT UNIQUE NOT NULL
@@ -41,14 +38,16 @@ CREATE TABLE IF NOT EXISTS credential_types (
 INSERT INTO credential_types (credential_type_id, description, fields)
 VALUES (1, 'Kiwi Login', '{"username":{"type":"text"}, "password":{"type":"password"}}');
 
-CREATE TABLE IF NOT EXISTS credentials (
+DROP TABLE IF EXISTS credentials;
+CREATE TABLE credentials (
     user_credential_id INTEGER PRIMARY KEY
     , user_id INTEGER REFERENCES users(user_id)
     , credential_type_id INTEGER REFERENCES credential_types(credential_type_id)
     , credential TEXT
 );
 
-CREATE TABLE IF NOT EXISTS security_groups (
+DROP TABLE IF EXISTS security_groups;
+CREATE TABLE security_groups (
     security_group_id INTEGER PRIMARY KEY
     , name TEXT UNIQUE NOT NULL
     , description TEXT

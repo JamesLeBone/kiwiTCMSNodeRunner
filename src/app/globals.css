@@ -237,14 +237,14 @@ table.rowHover tbody tr:hover {
   min-height: 0px;
 }
 .serverResponse > span {
-  margin-right: 8px;
-  width: 16px;
+  margin-right: 0px;
+  width: 32px;
   padding: 0px 8px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: sans-serif;
-  padding-top: 4px;
+  padding-top: 1px;
 }
 .serverResponse > div {
   flex-grow: 1;

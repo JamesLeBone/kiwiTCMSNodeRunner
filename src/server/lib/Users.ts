@@ -260,7 +260,7 @@ async function sendPasswordResetEmail(user: dbUserRecord) : Promise<StatusOperat
     params.set('accessToken',token.value)
     params.set('userId', user.userId+'')
     const host = process.env.TOOLBOX_HOST
-    const url = host+`/uac/passwordReset?`+params.toString()
+    const url = host+`/passwordReset?`+params.toString()
 
     const body = `To ${user.firstName} ${user.lastName},
 

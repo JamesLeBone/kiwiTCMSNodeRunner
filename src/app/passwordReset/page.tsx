@@ -1,7 +1,7 @@
 'use server'
 import * as Users from '@server/Users'
 
-import UacAccessToken from '../components/UacAccessToken'
+import UacAccessToken from './UacAccessToken'
 import { redirect } from 'next/navigation'
 
 // This only works on server components, on the client side you need to use useEffect to set document.title
