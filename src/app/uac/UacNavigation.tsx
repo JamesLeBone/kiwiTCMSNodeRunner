@@ -4,6 +4,7 @@ import Link from 'next/link'
 const links = [
     { name: 'Settings', url: '/uac' },
     { name: 'Credentials', url: '/uac/credentials' },
+    { name: 'Security Groups', url: '/uac/sg' },
     { name: 'Setup', url: '/setup' }
 ]
 

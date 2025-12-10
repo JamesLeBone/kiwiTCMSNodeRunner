@@ -10,7 +10,7 @@ declare type FormInputProps = {
     label: string
     name?: string
     type?: string
-    value?: string
+    value?: string|boolean
     required?: boolean
     onChange?: (value: string) => void
 }
@@ -22,6 +22,13 @@ export function FormInputField({label,name,value='', type='text', required=false
         if (onChange) {
             onChange(v)
         }
+    }
+
+    if (!name || name.length === 0) {
+        return <FormField label={label}>{value}</FormField>
+    }
+    if (typeof value === 'boolean') {
+        type = 'checkbox'
     }
 
     return <FormField label={label}>
@@ -48,7 +55,7 @@ export function FormSelection({label,name,value='',options} : FormSelectionProps
 
 declare type apropset = {
     name?: string
-    value?: string
+    value?: string|boolean
     type?: string
     onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void
     [key: string]: any
@@ -70,7 +77,11 @@ export function ActionInputField({name, onChange, value='', type='text', ...prop
         }
     }
 
-    return <input name={name} type={type} value={val} onChange={(e) => changeEvent(e)} {...props} />
+    if (typeof value === 'boolean') {
+        return <input name={name} type="checkbox" checked={val as boolean} onChange={(e) => changeEvent(e)} {...props} />
+    }
+
+    return <input name={name} type={type} value={val as string} onChange={(e) => changeEvent(e)} {...props} />
 }
 
 declare type FormActionBarProps = {

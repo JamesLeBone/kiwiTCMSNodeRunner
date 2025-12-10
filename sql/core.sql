@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS logins;
 DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS credentials;
 DROP TABLE IF EXISTS credential_types;
+DROP TABLE IF EXISTS security_groups;
 
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY
@@ -46,3 +47,11 @@ CREATE TABLE IF NOT EXISTS credentials (
     , credential_type_id INTEGER REFERENCES credential_types(credential_type_id)
     , credential TEXT
 );
+
+CREATE TABLE IF NOT EXISTS security_groups (
+    security_group_id INTEGER PRIMARY KEY
+    , name TEXT UNIQUE NOT NULL
+    , description TEXT
+    , is_default NUMERIC DEFAULT 0
+);
+INSERT INTO security_groups (1, 'Administrators', 'System Administrators', 1);

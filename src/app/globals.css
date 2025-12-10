@@ -54,6 +54,10 @@ html {
   color: var(--text);
 }
 
+.Well {
+  margin: 8px;
+}
+
 nav {
   background-color: var(--panelBackground);
   color: var(--linkColor);

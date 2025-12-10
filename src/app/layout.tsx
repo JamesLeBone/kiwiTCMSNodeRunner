@@ -1,6 +1,7 @@
 import './globals.css'
 import PageHeader from './PageHeader'
 import { currentUser } from '@server/Auth'
+import ThemeRegistry from './ThemeRegistry'
 
 export const metadata = {
     title: 'React Toolbox',
@@ -17,10 +18,13 @@ export default async function RootLayout({ children } : { children: React.ReactN
             <link href="/fontAwesome6/css/fontawesome.css" rel="stylesheet" />
             <link href="/fontAwesome6/css/brands.css" rel="stylesheet" />
             <link href="/fontAwesome6/css/solid.css" rel="stylesheet" />
+            <link href="/favicon.png" rel="icon" type='png' />
         </head>
         <body>
-            <PageHeader userName={userName} />
-            {children}
+            <ThemeRegistry>
+                <PageHeader userName={userName} />
+                {children}
+            </ThemeRegistry>
         </body>
     </html>
 }
