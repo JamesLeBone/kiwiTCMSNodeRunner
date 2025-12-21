@@ -1,0 +1,14 @@
+
+.comment-list {
+    padding: 1em;
+    text-align: right;
+    > div {
+        text-align: left;
+    }
+    span {
+        display: inline-block;
+        margin: 4px;
+        opacity: 0.75;
+        font-style: italic;
+    }
+}

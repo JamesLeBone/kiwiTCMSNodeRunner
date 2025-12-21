@@ -1,0 +1,479 @@
+:root {
+    --sectionBorder: #ccc;
+    --linkColor: #1f54bb;
+    --linkHover: #537daa;
+
+    --background: #ffffff;
+    --panelBackground: #f9f9f9;
+    --text: #000000;
+
+    --buttonColor: #6699d0;
+    --buttonBackground: #ffffff;
+    --buttonBackgroundHover: #e0e0e0;
+    --componentPadding : 12px;
+    --inputBackground: #ffffff;
+
+}
+
+@media screen and (prefers-color-scheme: dark) {
+    :root {
+        --sectionBorder: #686868;
+        --linkColor: #79a7ff;
+        --linkHover: #a3c8ff;
+
+        --background: #121212;
+        --inputBackground: #222233;
+        --text: #ffffff;
+        --panelBackground: rgba(255, 255, 255, 0.05);
+
+        --buttonColor: #a3c8ff;
+        --buttonBackground: #223;
+        --buttonBorder: black;
+        --buttonBackgroundHover: #53557f;
+    }
+    input, select, textarea {
+        background-color: var(--inputBackground);
+        color: var(--buttonColor);
+        padding: 4px;
+        // border: 1px solid black;
+        border-style:none;
+        &:hover {
+            border-color: var(--linkHover);
+        }
+        &:focus {
+            outline: 2px solid var(--linkColor);
+        }
+    }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]), textarea, select {
+        display: block;
+        width: 100%;
+    }
+    
+    input[type=number] { // Hide the spinners in dark mode
+        appearance: textfield;
+    }
+}
+
+body {
+    margin: 0px;
+}
+* {
+    box-sizing: border-box;
+}
+.DynamicTable {
+    > table {
+        width: 100%;
+    }
+    
+    .no-results td {
+        text-align: center;
+        padding: 16px;
+        font-style: italic;
+        color: var(--text);
+    }
+}
+
+table {
+    th {
+        background-color: var(--panelBackground);
+        border-bottom: 2px solid var(--sectionBorder);
+        padding: 8px;
+    }
+    td {
+        padding: 8px;
+    }
+}
+
+.Boolean-Wrap {
+    cursor: pointer;
+    display: inline-block;
+    border: 2px inset #352727;
+    background-color: var(--panelBackground);
+    
+    // line-height: 0px;
+    min-width: 80px;
+    height: 1.8em;
+    padding: 4px;
+    overflow: hidden;
+    position: relative;
+    color: var(--buttonColor);
+
+    > div {
+        display: flex;
+        justify-content: space-between;
+    }
+    .slider {
+        position: absolute;
+        top: 0px;
+        height: 100%;
+        width: 24px;
+        box-shadow: 0px 0px 6px black;
+        width: 50%;
+        
+        // background: #0d0d15;
+        background-color: var(--inputBackground);
+        z-index: 1;
+        left: -2%;
+        transition: left 0.3s ease;
+
+    }
+    input[value="true"] + .slider { left: 52%; }
+    input { display: none; }
+}
+
+@mixin clickable {
+    cursor: pointer;
+    padding: 6px;
+    color: var(--linkColor);
+    margin: 4px;
+    font-family: 'Roboto', 'Courier New', Courier, monospace;
+    border-radius: 0px;
+    border-style: none;
+    font-size: 14px;
+    letter-spacing: 0.41px;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+
+    &:hover {
+        background-color: var(--panelBackground);
+    }
+}
+
+a {
+    @include clickable;
+    // border-bottom: 1px solid var(--linkColor);
+    text-decoration: underline;//1px solid var(--linkColor);
+}
+
+html {
+    min-width: 320px;
+    overflow: auto;
+    background-color: var(--background);
+    color: var(--text);
+}
+
+.Well {
+    margin: 8px;
+}
+
+nav {
+    background-color: var(--panelBackground);
+    color: var(--linkColor);
+    margin: 0px;
+    display: block;
+
+    > * {
+        padding: 8px;
+    }
+    > a {
+        color: inherit;
+        display: inline-block;
+        &:hover {
+            color: var(--linkHover);
+        }
+        > i {
+            margin-right: 4px;
+        }
+        &.active {
+            font-weight: bold;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+    }
+
+    .right {
+        float: right;
+    }
+    &::after {
+        content: '';
+        display: table;
+        clear: both;
+    }
+}
+
+main > nav {
+    > * {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0px 8px;
+    }
+    > nav {
+        margin: 0px;
+        display: block;
+        border-bottom: 1px solid var(--sectionBorder);
+        a {
+            line-height: 15px;
+            > span {
+                margin-left: 4px;
+                display: inline-block;
+            }
+        }
+    }
+}
+
+fieldset {
+    margin: 0px;
+    padding: 0px;
+}
+
+body > header {
+    border-bottom: 1px solid var(--sectionBorder);
+    background-color: var(--panelBackground);
+}
+
+.IconButton span {
+    margin-left: 4px;
+}
+.button {
+    @include clickable;
+    background-color: var(--buttonBackground);
+    border: 1px solid var(--buttonBorder, transparent);
+    &:hover {
+        background-color: var(--buttonBackgroundHover);
+    }
+}
+button {
+    @extend .button;
+}
+
+h1 {
+    font-size: 20pt;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+h2 {
+    font-size: 17pt;
+}
+
+table.rowHover {
+    tbody tr:hover {
+        background-color: var(--panelBackground);
+    }
+}
+
+.align-right {
+    text-align: right;
+}
+
+.ComponentGrid {
+    display: grid;
+    gap: 16px;
+    margin: var(--componentPadding);
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    > .ComponentSection {
+        margin: 0px;
+        display: block;
+    }
+}
+
+.Card {
+    border: 1px solid var(--sectionBorder);
+    background-color: var(--panelBackground);
+    margin: var(--componentPadding);
+    display: inline-block;
+    h3 {
+        margin-top: 0px;
+        margin-bottom: 0.5em;
+    }
+
+    > .card-content {
+        padding: var(--componentPadding);
+    }
+    &.active h3 {
+        color: var(--linkColor);
+    }
+}
+
+
+
+.ComponentSection {
+    min-width: 300px;
+    margin: var(--componentPadding);
+    border: 1px solid var(--sectionBorder);
+    display: inline-grid;
+    grid-template-rows: min-content min-content;
+    align-content: space-between;
+    vertical-align: top;
+    background-color: var(--panelBackground);
+
+    &.fill {
+        display: grid;
+    }
+
+    fieldset {
+        gap: 8px 16px;
+    }
+
+    .component-body fieldset {
+        padding: var(--componentPadding);
+    }
+    
+    header.component-header {
+        font-size: 14pt;
+        font-weight: bold;
+        padding: var(--componentPadding);
+        background-color: var(--panelBackground);
+        font-family: system-ui, -apple-system, sans-serif;
+        &.with-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            > div > * {
+                vertical-align: top;
+            }
+        }
+    }
+    .ActionBar {
+        border-top: 1px outset #ccc;
+        background-color: var(--panelBackground);
+        padding: 4px;
+
+        > *:not(div) {
+            @extend .button;
+        }
+        > a {
+            text-decoration: none;
+            &::after {
+                content: '...';
+                display: inline-block;
+            }
+        }
+        .serverResponse {
+            border-bottom-style:none;
+            border-left-style: none;
+            border-right-style: none;
+        }
+    }
+}
+.component-body > table {
+    width: 100%;
+    th {
+        text-align: left;
+        &.align-right {
+            text-align: right;
+        }
+    }
+    td,th {
+        padding: 4px 8px;
+    }
+}
+
+
+.serverResponse {
+    display: flex;
+    min-height: 32px;
+    transition: min-height 0.3s ease;
+    
+    &.blank {
+        min-height: 0px;
+        > div {
+            padding: 0px
+        }
+    }
+    > span {
+        margin-right: 0px;
+        width: 32px;
+        padding: 0px 8px;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: sans-serif;
+        padding-top: 1px;
+    }
+    > div {
+        flex-grow: 1;
+        line-height: normal;
+        padding-top:4px;
+        padding-bottom: 4px;
+    }
+
+    &.error {
+        background-color: #ffe0e0;
+        border: 1px solid #ff8080;
+        color: #800000;
+    }
+    &.success {
+        background-color: #e0ffe0;
+        border: 1px solid #80ff80;
+        color: #008000;
+    }
+    &.info {
+        background-color: #e0e0ff;
+        border: 1px solid #8080ff;
+        color: #000080;
+    }
+    &.warning {
+        background-color: #fff0e0;
+        border: 1px solid #ffb070;
+        color: #804000;
+    }
+}
+
+fieldset {
+    border: 0px;
+}
+
+.processing {
+    text-align: center;
+    width: 26px;
+    height: 26px;
+    i {
+        display: inline-block;
+        text-align: center;
+        animation: fa-spin 2s infinite linear;
+        position: relative;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+    }
+}
+
+label[title] {
+    cursor: help;
+    text-decoration: underline dotted;
+}
+
+.FormField {
+    label {
+        display: block;
+        margin-top: 0.5em;
+    }
+    > div {
+        border: 2px inset #352727;
+    }
+    &.FormField-number > div {
+        display: grid;
+        grid-template-rows: auto auto;
+        grid-template-columns: auto auto;
+        input {
+            flex-grow: 1;
+        }
+        button {
+            padding: 0px;
+            margin: 0px;
+            font-size: 10px;
+            border-style: none;
+            grid-column: 2;
+        }
+        > input {
+            grid-row: 1/-1;
+        }
+    }
+    &.FormField-checkbox > div {
+        border-style: none;
+        text-align: center;
+    }
+}
+
+
+.FormFieldAlternating {
+    > div {
+        display: flex;
+        > button {
+            margin: 0px;
+        }
+    }
+}

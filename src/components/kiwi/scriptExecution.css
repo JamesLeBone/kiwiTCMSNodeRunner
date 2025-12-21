@@ -1,0 +1,34 @@
+.messageText {
+  font-family: monospace;
+  white-space: pre;
+}
+
+.executionRun {
+  text-align: left;
+}
+.executionRun img {
+  max-width: 88vw;
+  display: block;
+  margin: 0px auto;
+}
+.executionRun .message {
+  display: flex;
+}
+.executionRun .message > i {
+  padding: 4px;
+  display: inline-block;
+  min-width: 32px;
+  text-align: center;
+}
+.executionRun .message > div {
+  padding-top: 4px;
+}
+.executionRun .message-error {
+  color: #ff4343;
+}
+.executionRun .message-warning {
+  color: rgb(151, 151, 255);
+}
+.executionRun .message-success {
+  color: rgb(200, 255, 0);
+}/*# sourceMappingURL=scriptExecution.css.map */
