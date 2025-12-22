@@ -42,3 +42,7 @@ export const listByProduct = async (productId?: number) : Promise<CateogryByProd
     // console.debug('Fetched Categories', categorylist)
     return categorylist
 }
+export const fetchCategories = async (dtls : Partial<Category>) : Promise<Category[]> => {
+    const categories = await http.searchEntity<Category>('Category', dtls, false)
+    return categories
+}

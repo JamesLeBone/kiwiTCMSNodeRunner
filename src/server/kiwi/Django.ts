@@ -53,7 +53,7 @@ class DjangoEntity {
     
     constructor(values: BasicRecord = {}, type='django') {
         if (type == 'django') {
-            this.loadDjango(values)
+            this.loadDjango(values, {autoDates:true})
         } else {
             this.values = values
         }
@@ -111,18 +111,24 @@ class DjangoEntity {
                     value = checkDate(value)
                 }
 
-                const isSubProp = key.includes('__')
+                const isSubProp = key.match(/\w__\w/)
                 if (isSubProp) {
+                    // prioirty__value -> priority: { value: ... }
+                    // [priority,value]
                     const path = key.split('__')
+
                     let previous = this.values
                     for (let i = 0; i < path.length; i++) {
                         const parent = path[i]
                         const pkey = this.#dehumpKey(parent)
+                        // pkey = priority
                         if (typeof previous[pkey] === 'undefined') {
                             previous[pkey] = {}
                         } else if (typeof previous[pkey] !== 'object') {
                             const rawValue = previous[pkey]
-                            previous[pkey] = { value: rawValue }
+                            // Update: the number is the id, 'value' was conflicting with
+                            // entities with 'value' as a string property
+                            previous[pkey] = { 'id': rawValue }
                         }
                         if (previous[pkey] == null) continue
                         if (i < path.length -1) {

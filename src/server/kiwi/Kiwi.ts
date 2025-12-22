@@ -300,11 +300,13 @@ class KiwiCall {
         return entities
     }
     
-    async get(entity:string,id:number,idName='id'): Promise<DjangoEntity> {
-        console.info('Depreciated: KiwiCall.get(), use getEntity() instead')
-        const query = {} as Record<string, number>
-        query[idName] = id
-        return this.call(entity+'.filter',{query:query}).then(list => new DjangoEntity(list[0]))
+    /**
+     * Use get when you need to run a specific parser over the result
+     */
+    async get<T>(entity:string,id:number,parserMethod:(dje: DjangoEntity) => T): Promise<T> {
+        const query = {id}
+        const dje = await this.call(entity+'.filter',{query:query}).then(list => new DjangoEntity(list[0]))
+        return parserMethod(dje)
     }
 
     async getEntity<T>(entity:string,id:number,idName='id'): Promise<T | undefined> {

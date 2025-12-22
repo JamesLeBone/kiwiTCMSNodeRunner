@@ -14,6 +14,23 @@ export declare type Priority = {
     isActive: boolean
 }
 
+export const fetchPriorities = async (dtls : Partial<Priority>) : Promise<Priority[]> => {
+    const query : Record<string, any> = {}
+    if (dtls.isActive) query.is_active = dtls.isActive
+    if (dtls.id) query.id = dtls.id
+    if (dtls.value) query.value = dtls.value
+
+    const pl = await http.searchEntity<Priority>('Priority', query, false)
+    .catch( e => [] )
+    
+    console.debug('Fetched Priorities',query, pl)
+    return pl.sort( (a,b) => {
+        const aValue = parseInt(a.value.replace('P',''))
+        const bValue = parseInt(b.value.replace('P',''))
+        return aValue - bValue
+    })
+}
+
 export const listPriorities = async (onlyActive?: boolean) : Promise<Priority[]> => {
     const query : Record<string, any> = {}
     if (onlyActive) query.is_active = true 

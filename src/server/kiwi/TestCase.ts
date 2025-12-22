@@ -14,6 +14,7 @@ import { BasicRecord, DjangoEntity, htmlEntityDecode } from './Django'
 import { fetch as fetchComments, Comment } from './Comments'
 import { componentCases, AmalgomatedComponent } from './Component'
 import * as Tag from './Tag'
+import { fetchCategories } from './Category'
 
 export const django2Case = async (dj : DjangoEntity) : Promise<TestCase> => {
     dj.convertJson('arguments')
@@ -22,13 +23,23 @@ export const django2Case = async (dj : DjangoEntity) : Promise<TestCase> => {
     tc.summary = htmlEntityDecode(tc.summary)
     tc.text = htmlEntityDecode(tc.text)
     tc.arguments = tc.arguments ?? {}
+    tc.createDate = new Date(tc.createDate)
+    let script = parseInt(tc.script) || null
+    if (script == null || tc.script == '' || Number.isNaN(script)) {
+        tc.script = null
+    } else {
+        tc.script = script
+    }
     if (tc.arguments.securityGroupId) {
         tc.securityGroupId = tc.arguments.securityGroupId
     }
     delete tc.arguments.securityGroupId
+    // For some reason, Kiwi will return prioirty as { value: 'P1' } rather than the id nubmer,
+    // or the set.
 
     return tc as TestCase
 }
+
 // This is what we use internally
 export declare type TestCase = {
     id: number,
@@ -38,53 +49,28 @@ export declare type TestCase = {
     arguments: Record<string, any>
     securityGroupId?: string
     caseStatus: {
+        id: number,
         name: string,
-        value: number,
         description: string
     }
     category: {
-        name: string,
-        value: number
+        id: number
+        name: string
     }
     product: {
-        name: string,
-        value: number
+        id: number
+        name: string
     }
-    author: { value: number, username: string }
-    priority: number
+    author: {
+        id: number
+        username: string
+    }
+    priority: {
+        id: number
+        value: string
+    }
     script?: number
     createDate: string
-}
-// This is what Kiwi returns
-// Serach: confirmed
-declare type KiwiTestCase = {
-    id: number
-    createDate: Date
-    isAutomated: boolean
-    script: string
-    arguments: string
-    extraLink?: any // tbc
-    summary: string
-    requirement: any // tbc
-    notes:string
-    text: string
-    defaultTester: any // tbc
-    username: any // tbc
-    reviewr: any // tbc
-    setupDuration: any // tbc
-    testingDuration: any // tbc
-    expectedDuration: number
-
-    caseStatus: {
-        name: string,
-        value: number
-    }
-    category: {
-        name: string,
-        value: number
-    }
-    author: { value: number, username: string }
-    priority: { value: string }
 }
 
 export const getTestCase = async (testCaseId:number) : Promise<TypedOperationResult<TestCase>> => {
@@ -94,11 +80,8 @@ export const getTestCase = async (testCaseId:number) : Promise<TypedOperationRes
     op.data = testCase
     return updateOpSuccess(op, 'Test Case fetched successfully')
 }
-export const fetchTestCase = async (testCaseId:number) : Promise<TestCase | null> => {
-    const tc = await http.get('TestCase', testCaseId)
-    if (tc) return django2Case(tc)
-    return null
-}
+export const fetchTestCase = async (testCaseId:number) : Promise<TestCase | null> => 
+    http.get('TestCase', testCaseId, django2Case)
 
 declare type SearchParams = {
     summary: string
@@ -147,6 +130,28 @@ declare type KiwiCreateTestCaseParams = {
     case_status?: number
     arguments?: string
 }
+// Send to Kiwi Params.
+declare type KiwiUpdateParams = {
+    summary: string
+    text: string
+    is_automated: boolean
+    case_status: number
+    category: number
+    priority: number
+    arguments: string
+}
+// Internal type
+declare type KiwiUpdateTestCaseParams = {
+    summary: string
+    description: string
+    isAutomated: boolean
+    caseStatusId: number
+    arguments: Record<string, string>
+    category: number
+    priority: number
+    script: number
+    securityGroupId: number
+}
 
 declare type CreateTestCaseParams = {
     summary: string
@@ -161,15 +166,6 @@ declare type CreateTestCaseParams = {
     securityGroupId?: string
 }
 
-declare type KiwiUpdateParams = {
-    summary: string
-    text: string
-    is_automated: boolean
-    case_status: number
-    category: number
-    priority: number
-    arguments: string
-}
 const frontend2UpdateParams = (params: Partial<KiwiUpdateTestCaseParams>) : Partial<KiwiUpdateParams> => {
     const updateParams = {} as Partial<KiwiUpdateParams>
     if (params.summary) updateParams.summary = params.summary
@@ -187,17 +183,6 @@ const frontend2UpdateParams = (params: Partial<KiwiUpdateTestCaseParams>) : Part
         updateParams.arguments = JSON.stringify(args,null,4)
     }
     return updateParams
-}
-
-declare type KiwiUpdateTestCaseParams = {
-    summary: string
-    description: string
-    isAutomated: boolean
-    caseStatusId: number
-    arguments: Record<string, string>
-    category: number
-    priority: number
-    securityGroupId: number
 }
 
 export const update = async (id: number, params: Partial<KiwiUpdateTestCaseParams>) : Promise<TypedOperationResult<TestCase>> => {
@@ -320,43 +305,45 @@ export const fetchPlans = async (testCaseId:number) : Promise<BasicRecord[]> => 
     return slist
 }
 
-export const clone = async (id:number, newCaseKvp:Partial<TestCase>) => {
+export const clone = async (id:number, newCaseKvp:Partial<KiwiUpdateTestCaseParams>) : Promise<TypedOperationResult<TestCase>> => {
     const login = await http.login()
     if (!login) return unAuthenticated
 
-    const op = { id : 'cloneTestCase', status: false, message: '', statusType: 'blank' } as TypedOperationResult<any>
-    const reference = await http.get('TestCase', id)
+    const op = { id : 'cloneTestCase', status: false, message: '', statusType: 'blank' } as TypedOperationResult<TestCase>
+    const reference = await http.get('TestCase', id, django2Case)
         .catch( e => {
             updateOpError(op, 'Failed to fetch reference test case: ' + (e.message || 'Unknown error'))
             return null
         })
     if (reference == null) return op
-    const ref = reference.values as KiwiTestCase
 
-    console.info('Cloning test case',id)
+    console.info('Cloning test case',reference)
+    const categoryId = newCaseKvp.category ?? reference.category.id
+    const categories = await fetchCategories({ id: categoryId })
+    if (categories.length == 0) return op.message = 'Category for new test case not found', op
     
-    const newTestCase = {
-        summary: newCaseKvp.summary ?? ref.summary,
-        priority: newCaseKvp.priority ?? ref.priority,
-        // Todo: the new product will need to match the old one, but the old one only gives us the name?
-        // product: newCaseKvp.product ?? ref.product.value,
-        category: newCaseKvp.category ?? ref.category.value,
-
-        text: newCaseKvp.text ?? ref.text,
-        is_automated: newCaseKvp.isAutomated ?? ref.isAutomated,
-        script: newCaseKvp.script ?? ref.script ?? id,
-        case_status: newCaseKvp.caseStatus?.value ?? ref.caseStatus.value,
-    } as KiwiCreateTestCaseParams
+    const newTestCase : KiwiCreateTestCaseParams = {
+        summary: newCaseKvp.summary ?? reference.summary,
+        priority: newCaseKvp.priority ?? reference.priority.id,
+        
+        category: categoryId,
+        product: categories[0].product,
+        
+        text: newCaseKvp.description ?? reference.text,
+        is_automated: newCaseKvp.isAutomated ?? reference.isAutomated,
+        script: newCaseKvp.script ?? reference.script ?? id,
+        case_status: newCaseKvp.caseStatusId ?? reference.caseStatus.id,
+    }
     if (newCaseKvp.arguments) {
-        newTestCase.arguments = JSON.stringify(newCaseKvp.arguments,null,4)
+        newTestCase.arguments = JSON.stringify(newCaseKvp.arguments)
     } else {
-        newTestCase.arguments = ref.arguments
+        newTestCase.arguments = JSON.stringify(reference.arguments)
     }
 
     // create
     const creationResult = await createCase(newTestCase)
-    if (!creationResult.case) return op.message = creationResult.message, op
     const createdCase = creationResult.case
+    if (typeof createdCase === 'undefined') return op.message = creationResult.message, op
     
     const testCaseId = createdCase.id
     console.info('Test case created : ',testCaseId)
