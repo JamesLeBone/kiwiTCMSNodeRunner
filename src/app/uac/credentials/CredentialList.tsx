@@ -26,7 +26,7 @@ function CList({list} : {list:userCredentialList}) {
                 <td>{cred.description}</td>
                 <td className='align-right'>
                     <IconButton href={url} className='button fa fa-edit' title="Edit Credential Details"/>
-                    <IconButton action={() => dca(cred.userCredentialId)} className='fa fa-trash' title="Delete Credential" />
+                    <IconButton onClick={() => dca(cred.userCredentialId)} className='fa fa-trash' title="Delete Credential" />
                 </td>
             </tr>
         })}

@@ -99,7 +99,7 @@ function Execution(execution,executionResult) {
             <td className='numeric'>{scriptValue(execution)}</td>
             <td>{execution.case.securityGroupId}</td>
             <td rowSpan='2'>
-                <IconButton title="Reload" action={reloadExecution} className="fa fa-refresh" active={iconState[0]} />
+                <IconButton title="Reload" onClick={reloadExecution} className="fa fa-refresh" active={iconState[0]} />
                 <ExecuteButton src={remotePaths.execution(execution.case.id,execution.id)} events={caseEvents} />
             </td>
         </tr>

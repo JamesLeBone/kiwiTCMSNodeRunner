@@ -10,8 +10,8 @@ import {
     unAuthenticated
 } from './Kiwi'
 import { updateOpError, updateOpSuccess, TypedOperationResult, StatusOperation, prepareStatus } from '@lib/Operation'
-import { BasicRecord, DjangoEntity } from './Django'
-import { fetch as fetchComments } from './Comments'
+import { BasicRecord, DjangoEntity, htmlEntityDecode } from './Django'
+import { fetch as fetchComments, Comment } from './Comments'
 import { componentCases, AmalgomatedComponent } from './Component'
 import * as Tag from './Tag'
 
@@ -19,6 +19,8 @@ export const django2Case = async (dj : DjangoEntity) : Promise<TestCase> => {
     dj.convertJson('arguments')
     dj.addZulu('createDate')
     const tc = dj.values
+    tc.summary = htmlEntityDecode(tc.summary)
+    tc.text = htmlEntityDecode(tc.text)
     tc.arguments = tc.arguments ?? {}
     if (tc.arguments.securityGroupId) {
         tc.securityGroupId = tc.arguments.securityGroupId
@@ -48,6 +50,7 @@ export declare type TestCase = {
         name: string,
         value: number
     }
+    author: { value: number, username: string }
     priority: number
     script?: number
     createDate: string
@@ -369,12 +372,12 @@ export const clone = async (id:number, newCaseKvp:Partial<TestCase>) => {
     op.data = createdCase
     return updateOpSuccess(op, 'Test Case cloned successfully')
 }
-declare type TestCaseDetail = {
+export declare type TestCaseDetail = {
     testCase: TestCase
     components: AmalgomatedComponent[]
     children: TestCase[]
     tags: Tag.AmlgomatedTag[]
-    comments: BasicRecord[]
+    comments: Comment[]
     attachments: BasicRecord[]
     executions: BasicRecord[]
     plans: BasicRecord[]
@@ -384,7 +387,6 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
     const testCase = await fetchTestCase(testCaseId)
     if (!testCase) return updateOpError(op, 'Test Case not found')
     // Children cases
-    // console.debug('Getting children')
     const children = await search({ script: testCaseId })
     .then(op => {
         if (!op.status || !op.data) return []
@@ -398,7 +400,7 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
     const executions = await fetchExecutions(testCaseId)
     const plans = await fetchPlans(testCaseId)
 
-    const detailObject = {
+    const detailObject: TestCaseDetail = {
         testCase,
         components,
         children,
@@ -407,7 +409,7 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
         attachments,
         executions,
         plans
-    } as TestCaseDetail
+    }
     updateOpSuccess(op, 'Test Case detail fetched successfully')
     op.data = detailObject
     return op

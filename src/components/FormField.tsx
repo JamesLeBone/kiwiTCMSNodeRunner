@@ -38,7 +38,7 @@ export function FormFieldAlternating({label, name, title, required=false, option
                 <Selection name={name} value={value} required={required} options={options} onChange={v => onChange && onChange(v+'')} /> :
                 <ActionInputField name={name} value={value} required={required} onChange={v => onChange && onChange(v)} />
             }
-            <IconButton className='fa fa-rotate' title='Toggle Input Type' action={() => setClsSelect(!clsSelect)} />
+            <IconButton className='fa fa-rotate' title='Toggle Input Type' onClick={() => setClsSelect(!clsSelect)} />
         </div>
     </div>
 }

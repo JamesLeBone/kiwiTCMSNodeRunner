@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { act, useState } from 'react'
 import { FormField } from './FormField'
 import { ActionBar } from './Actions'
 import type { OperationResult, StatusOperation } from '@lib/Operation'
@@ -15,10 +15,11 @@ declare type FormInputProps = {
     value?: string|boolean
     required?: boolean
     children?: React.ReactNode
+    className?:string
     onChange?: (value: string) => void
     step?: number
 }
-export function FormInputField({label,name,value='', type='text', children, required=false, step, onChange} : FormInputProps) {
+export function FormInputField({className,label,name,value='', type='text', children, required=false, step, onChange} : FormInputProps) {
     const [val,setVal] = useState(value)
 
     const setValAction = (v:string) => {
@@ -35,9 +36,9 @@ export function FormInputField({label,name,value='', type='text', children, requ
         type = 'checkbox'
     }
 
-    const className = `FormField-${type}`
+    const fieldClassName = (className ? className + ' ' : '') + `FormField-${type}`
 
-    return <FormField label={label} className={className}>
+    return <FormField label={label} className={fieldClassName}>
         <ActionInputField name={name} type={type} value={val} step={step} required={required} onChange={setValAction} />
         {children}
     </FormField>
@@ -105,9 +106,15 @@ export function ActionInputField({name, onChange, value='', type='text', ...prop
 declare type FormActionBarProps = {
     pendingState: boolean
     state: OperationResult
-    actions: { label: string, id?: string, onClick?: () => void }[]
+    actions: { label: string, id?: string, onClick?: () => void }[] | string
 }
 export function FormActionBar({pendingState, state, actions} : FormActionBarProps) {
+    if (typeof actions === 'string' && actions.length) {
+        actions = [{ label: 'Submit' }]
+    } else if (typeof actions === 'string') {
+        actions = [{ label: actions }]
+    }
+
     return <ActionBar>
         {actions.map((action) => {
             const ident = action.id || action.label.toLowerCase().replace(/\s+/g, '_')

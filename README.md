@@ -7,18 +7,33 @@ as well as an executor for a testing platform to execute tests.
 This project is based off a private project I also authored and is essentially a version 2
 with generalised concepts and all sensitive features removed.
 
+# Data model differences with base Kiwi
+
+* `TestCase.arguments` are stored as a json-encoded string.
+* `SecurityGroupId` added to arguments to specify a user-level access for the same script.
+* `TestCase.script` is treated as a numeric reference to a "parent" test case.
+
 ## Development Roadmap
 
 1. Migrate functionality to this project (done)
 2. Refactor server-side libraries to Typescript (done)
 3. Build out Install scripts (done) - app.setup
-4. Verify UAC (User account control) functionality (in progress)
+4. Verify UAC (User account control) functionality (done)
 5. Verify Kiwi Pages (see below)
+
+Checkpoint: <b>minimal functionality</b>
+
 6. Integrate Jast
 7. Utilize Jast and to execute tests on this project (self-testing)
+
+Checkpoint <b>verified-minimal</b>
+
 8. Self-test plans
 9. Hook the Jast tests with the execution runner
-10. Success
+
+Checkpoint <b>Stable</b>
+
+10. Implement 404 pages
 
 ### Kiwi pages:
 

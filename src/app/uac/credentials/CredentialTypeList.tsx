@@ -17,7 +17,7 @@ export default function CredentialTypeList({types} : {types:credentialType[]}) {
     const header = <IconButton href="/uac/credentials/newType" className="button fa fa-plus" title="Add New Credential Type" />
     const deleteButton = (id:number) => {
         if (id === 1) return null // Cannot delete default type
-        return <IconButton title="Delete" className='fa fa-trash' action={() => removeCred(id)}></IconButton>
+        return <IconButton title="Delete" className='fa fa-trash' onClick={() => removeCred(id)}></IconButton>
     }
 
     return <ComponentSection header="Credential Types" headerActions={header}>

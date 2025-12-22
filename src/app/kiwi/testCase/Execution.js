@@ -36,7 +36,7 @@ export default function Execution({testCaseId,executions}) {
             {streamRunner.results}
         </div>
         <ActionBar>
-            <IconButton title="Execute" action={streamRunner.execute} className={streamRunner.buttonIcon}>Execute</IconButton>
+            <IconButton title="Execute" onClick={streamRunner.execute} className={streamRunner.buttonIcon}>Execute</IconButton>
         </ActionBar>
     </ComponentSection>
 }

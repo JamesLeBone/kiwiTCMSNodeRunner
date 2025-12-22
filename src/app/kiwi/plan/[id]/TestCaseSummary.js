@@ -7,13 +7,13 @@ import { ExecuteButton, remotePaths } from '@/components/kiwi/ScriptExecution.js
 
 import { IconButton } from '@/components/Actions'
 import { kiwiBaseUrl } from '@lib/Functions'
+const kiwiUrl = (id:number) => kiwiBaseUrl()+'/case/'+id
 
 const sp = str => {
     const val = str ?? ''
     if (val.length < 1) return ''
     return val[0].toUpperCase() + val.slice(1).toLowerCase()
 }
-const kiwiUrl = (id:number) => kiwiBaseUrl()+'/case/'+id
 
 export function TestCaseSummary({testCase,updateChecked}) {
     testCase.status = sp(testCase.status)
@@ -93,7 +93,7 @@ export function TestCaseSummary({testCase,updateChecked}) {
         </td>
         <td className="no-navigate centered actions">
             <ExecuteButton src={remotePaths.test(testCase.id)} events={eventListener} />
-            <IconButton className={reloadIcon[0]} action={reload} title="Reload" />
+            <IconButton className={reloadIcon[0]} onClick={reload} title="Reload" />
         </td>
     </tr>
 }

@@ -68,7 +68,7 @@ export default function TestCaseSearch() {
 
 
 function TestCaseSummary({testCase} : {testCase: TestCase}) {
-    const path = "/kiwi/testCase/"+testCase.id
+    const path = "/kiwi/testCase?id="+testCase.id
         
     const status = testCase.caseStatus.description
 

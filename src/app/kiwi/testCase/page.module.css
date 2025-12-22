@@ -1,0 +1,37 @@
+#identifiers {
+  display: flex;
+  gap: 2em;
+}
+#identifiers > * {
+  margin: 0px;
+  padding: 0px;
+}
+
+#fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.MarkdownEditor {
+  grid-column: 1/-1;
+}
+
+.summary > div {
+  display: flex;
+  gap: 0px;
+}
+.summary > div input {
+  flex-grow: 1;
+}
+.summary > div button {
+  margin: 0px;
+  margin-left: 2px;
+  border-color: transparent;
+}
+
+#audit {
+  display: grid;
+  grid-template-columns: min-content min-content;
+  justify-content: left;
+  white-space: nowrap;
+}/*# sourceMappingURL=page.module.css.map */

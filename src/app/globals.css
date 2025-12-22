@@ -9,7 +9,8 @@
   --buttonBackground: #ffffff;
   --buttonBackgroundHover: #e0e0e0;
   --componentPadding: 12px;
-  --inputBackground: #ffffff;
+  --inputBackground: #eeeeff;
+  --inputBackgroundHover: #ffffff;
 }
 
 @media screen and (prefers-color-scheme: dark) {
@@ -18,7 +19,8 @@
     --linkColor: #79a7ff;
     --linkHover: #a3c8ff;
     --background: #121212;
-    --inputBackground: #222233;
+    --inputBackground: #1c1c24;
+    --inputBackgroundHover: #222233;
     --text: #ffffff;
     --panelBackground: rgba(255, 255, 255, 0.05);
     --buttonColor: #a3c8ff;
@@ -26,16 +28,18 @@
     --buttonBorder: black;
     --buttonBackgroundHover: #53557f;
   }
-  input, select, textarea {
+  input, select, textarea, .Markdown > div {
     background-color: var(--inputBackground);
     color: var(--buttonColor);
     padding: 4px;
     border-style: none;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-  input:hover, select:hover, textarea:hover {
+  input:hover, select:hover, textarea:hover, .Markdown > div:hover {
     border-color: var(--linkHover);
+    background-color: var(--inputBackgroundHover);
   }
-  input:focus, select:focus, textarea:focus {
+  input:focus, select:focus, textarea:focus, .Markdown > div:focus {
     outline: 2px solid var(--linkColor);
   }
   input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]), textarea, select {
@@ -75,17 +79,31 @@ table td {
   padding: 8px;
 }
 
+a[rel=external]::after {
+  content: "\f08e";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.8em;
+  margin-left: 2px;
+  padding-left: 5px;
+  text-decoration: none;
+  display: inline-block;
+}
+
 .Boolean-Wrap {
   cursor: pointer;
   display: inline-block;
   border: 2px inset #352727;
-  background-color: var(--panelBackground);
+  background-color: var(--inputBackground);
   min-width: 80px;
   height: 1.8em;
   padding: 4px;
   overflow: hidden;
   position: relative;
   color: var(--buttonColor);
+}
+.Boolean-Wrap:hover {
+  background-color: var(--inputBackgroundHover);
 }
 .Boolean-Wrap > div {
   display: flex;
@@ -441,12 +459,32 @@ label[title] {
 }
 .FormField.FormField-checkbox > div {
   border-style: none;
-  text-align: center;
+  text-align: left;
+}
+.FormField.no-input > div {
+  border-style: none;
+  padding: 4px 0px;
 }
 
 .FormFieldAlternating > div {
   display: flex;
 }
 .FormFieldAlternating > div > button {
+  margin: 0px;
+}
+
+.MarkdownEditor > textarea {
+  border: 1px solid var(--sectionBorder);
+}
+
+.ArgumentEditor .list {
+  display: grid;
+  grid-template-columns: min-content min-content min-content;
+}
+.ArgumentEditor .list input {
+  border: 1px solid var(--buttonBorder);
+  min-width: 150px;
+}
+.ArgumentEditor .list button {
   margin: 0px;
 }/*# sourceMappingURL=globals.css.map */

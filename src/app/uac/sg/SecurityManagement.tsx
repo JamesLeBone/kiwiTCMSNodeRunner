@@ -73,8 +73,8 @@ function SecurityListItem({sg, editItem, deleteItem}: {sg: sg.SecurityGroup, edi
         <td>{sg.description}</td>
         <td>{sg.isDefault ? "Default" : ""}</td>
         <td>
-            <IconButton className="fa fa-pencil" title="Edit Security Group" action={editItem} />
-            <IconButton className="fa fa-trash" title="Delete Security Group" action={deleteItem} />
+            <IconButton className="fa fa-pencil" title="Edit Security Group" onClick={editItem} />
+            <IconButton className="fa fa-trash" title="Delete Security Group" onClick={deleteItem} />
         </td>
     </tr>
 }

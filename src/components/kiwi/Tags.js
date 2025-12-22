@@ -125,7 +125,7 @@ function SearchResults({searchResults, setTag}) {
     
     const list = searchResults[0].map(li => {
         return <div key={li.id} style={{padding:'4px'}}>
-            <IconButton action={() => setTag(li.name)}>
+            <IconButton onClick={() => setTag(li.name)}>
                 <i className="fa fa-plus" />
             </IconButton>
             {li.name}

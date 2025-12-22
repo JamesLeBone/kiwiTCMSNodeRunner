@@ -188,7 +188,7 @@ export function ExecuteButton({src,events,children,icon=stdIcon}) {
     const executor = useExecutor(events,src,-1,icon)
     const body = children || ''
     // TODO: test result isn't coming through
-    return <IconButton title="Execute" action={executor.replay} className={executor.iconState[0]}>
+    return <IconButton title="Execute" onClick={executor.replay} className={executor.iconState[0]}>
         {body + executor.testResult[0]}
     </IconButton>
 }
@@ -313,7 +313,7 @@ export function ExecutionRunner({src,events,limit=-1}) {
     }
     
     return <ActionBar>
-        <IconButton title="Execute" action={replay} className={buttonIcon}>Execute</IconButton>
+        <IconButton title="Execute" onClick={replay} className={buttonIcon}>Execute</IconButton>
         <div className='executionRun'>
             {executionResults}
         </div>

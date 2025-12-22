@@ -9,9 +9,10 @@ export type MarkdownSectionProps = {
     state: [string, (value: string) => void],
     label: string,
     open?: boolean
+    className?: string
 }
 
-export function MarkdownSection({state,label,open=false} : MarkdownSectionProps) {
+export function MarkdownSection({state,label,open=false, className=''} : MarkdownSectionProps) {
     const markdownEditState = useState( open )
     const updateText = (e: React.ChangeEvent<HTMLTextAreaElement>) => state[1](e.target.value)
     const toggleMarkdownEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -21,8 +22,9 @@ export function MarkdownSection({state,label,open=false} : MarkdownSectionProps)
     }
 
     const edit = markdownEditState[0] ? <textarea rows={5} cols={20} value={state[0]} onChange={updateText} /> : ''
+    const fieldClass = 'MarkdownEditor ' + className
 
-    return <div className='MarkdownEditor'>
+    return <div className={fieldClass}>
         <FormField label={label} className="Markdown">
             <Markdown remarkPlugins={[remarkGfm]}>{state[0]}</Markdown>
         </FormField>

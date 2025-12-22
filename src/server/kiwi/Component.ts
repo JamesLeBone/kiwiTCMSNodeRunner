@@ -79,8 +79,7 @@ export const fetch = async (id:number) : Promise<AmalgomatedComponent | null> =>
 
 export const componentCases = async (testCaseId: number) : Promise<AmalgomatedComponent[]> => {
     const params = { cases: testCaseId }
-    const list = await http.search(entityName, params)
-    .then(results => results.map(result => result.values)) as IndividualComponent[]
+    const list = await http.searchEntity<IndividualComponent>(entityName, params, false)
 
     return amalgomateComponents(list)
 }

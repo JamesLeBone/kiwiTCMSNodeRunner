@@ -1,16 +1,17 @@
 declare type inputProps = {
     className?: string,
     title: string,
-    action?: Function,
+    style?: React.CSSProperties,
+    onClick?: Function,
     children?: React.ReactNode,
     active?: boolean,
     href?: string | false
 }
 
-export function IconButton({className,title,action,children,active=false,href=false}: inputProps) {
+export function IconButton({className,title,onClick,children,style,active=false,href=false}: inputProps) {
     const doAction = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
-        if (action) action()
+        if (onClick) onClick()
     }
 
     const activeString = active ? 'active' : 'inactive'
@@ -19,13 +20,13 @@ export function IconButton({className,title,action,children,active=false,href=fa
     const wrappedChildren = children ? <span>{children}</span> : null
 
     if (href) {
-        return <a href={href} title={title} className={buttonClass}>
+        return <a href={href} title={title} className={buttonClass} style={style}>
             <i className={className}></i>
             {wrappedChildren}
         </a>
     }
     
-    return <button onClick={doAction} title={title} className={buttonClass}>
+    return <button onClick={doAction} title={title} className={buttonClass} style={style}>
         <i className={className}></i>
         {wrappedChildren}
     </button>
