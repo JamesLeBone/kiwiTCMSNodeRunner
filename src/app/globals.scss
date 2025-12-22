@@ -347,7 +347,7 @@ table.rowHover {
     .ActionBar {
         border-top: 1px outset #ccc;
         background-color: var(--panelBackground);
-        padding: 4px;
+        padding: 0px;
 
         > *:not(div) {
             @extend .button;
@@ -509,6 +509,7 @@ label[title] {
 .ArgumentEditor {
     .list {
         display: grid;
+        gap:2px;
         grid-template-columns: min-content min-content min-content;
         input {
             border: 1px solid var(--buttonBorder);

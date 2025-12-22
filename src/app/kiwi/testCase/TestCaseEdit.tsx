@@ -40,7 +40,7 @@ export default function TestCaseEdit(props: EditProps) {
     const textState = useState(testCase.text)
     
     const securityGroup = useState(testCase.securityGroupId)
-    const tcArgs = useArgumentHook(testCase.arguments)
+    const tcArgs = useArgumentHook('arguments', testCase.arguments)
         
     // const clone = () => {
     //     const newArgs = tcArgs.getObject()[0]
@@ -77,25 +77,23 @@ export default function TestCaseEdit(props: EditProps) {
 
     const [state, formAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
-            const status = formData.get('caseStatus')
-            console.debug(formData)
-            return blankStatus('updateKiwi')
+            const jsonEncodedArgString = formData.get('arguments') as string
+            let jsonAgs : Record<string,string> = {}
+            try {
+                jsonAgs = JSON.parse(jsonEncodedArgString)
+            } catch(e) {
+                return validationError('updateKiwi', 'Arguments are not valid JSON')
+            }
+            const summary = formData.get('summary') as string
+            const isAutomated = formData.get('isAutomated') == 'true' ? true : false
+            const caseStatusId = parseInt(formData.get('caseStatus') as string)
+            const description = formData.get('description') as string
 
-            // return await Users.update(
-            //     user.userId,
-            //     formData.get('lastName') as string,
-            //     formData.get('firstName') as string,
-            //     formData.get('email') as string,
-            //     formData.get('username') as string
-            // ).then(opResult => {
-            //     const so = {
-            //         id: 'updateUser',
-            //         status: opResult.status,
-            //         message: opResult.message,
-            //         statusType: opResult.status ? 'success' : 'error'
-            //     } as StatusOperation
-            //     return so
-            // })
+            const result = await TestCase.update(
+                id,
+                { summary, isAutomated, caseStatusId, description, arguments: jsonAgs }
+            )
+            return result
         },
         blankStatus('updateKiwi')
     )
@@ -118,12 +116,12 @@ export default function TestCaseEdit(props: EditProps) {
                     <Link href={props.kiwiUrl + id} target="kiwi" rel="external">Kiwi</Link>
                 </fieldset>
                 <fieldset id={pageStyles.fields}>
-                    <FormInputField className={pageStyles.summary} label="Summary" value={summary} name="Summary" required={true}>
+                    <FormInputField className={pageStyles.summary} label="Summary" value={summary} name="summary" required={true}>
                         <IconButton onClick={formatSummaryText} title='Format' className='fa fa-wand-magic' />
                     </FormInputField>
                     <FormInputField label="Automated?" name="isAutomated" type="checkbox" value={testCase.isAutomated} />
                     <FormSelection label="Status" name="caseStatus" value={testCase.caseStatus.value+''} required={true} options={statusOptions} />
-                    <MarkdownSection className={pageStyles.MarkdownEditor} label="Description" state={textState} />
+                    <MarkdownSection name="description" className={pageStyles.MarkdownEditor} label="Description" state={textState} />
                 </fieldset>
                 <fieldset>
                     <legend>Arguments</legend>

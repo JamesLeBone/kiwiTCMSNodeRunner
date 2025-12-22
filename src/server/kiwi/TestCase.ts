@@ -170,26 +170,37 @@ declare type KiwiUpdateParams = {
     priority: number
     arguments: string
 }
-const frontend2UpdateParams = (params: Partial<TestCase>) : Partial<KiwiUpdateParams> => {
+const frontend2UpdateParams = (params: Partial<KiwiUpdateTestCaseParams>) : Partial<KiwiUpdateParams> => {
     const updateParams = {} as Partial<KiwiUpdateParams>
     if (params.summary) updateParams.summary = params.summary
-    if (params.text) updateParams.text = params.text
+    if (params.description) updateParams.text = params.description
     if (typeof params.isAutomated != 'undefined') updateParams.is_automated = params.isAutomated
-    if (params.caseStatus) updateParams.case_status = params.caseStatus.value
-    if (params.category) updateParams.category = params.category.value
+    if (params.caseStatusId) updateParams.case_status = params.caseStatusId
+    if (params.category) updateParams.category = params.category
     if (params.priority) updateParams.priority = params.priority
     
     if (params.arguments) {
         const args = params.arguments
         if (params.securityGroupId) {
-            args.securityGroupId = params.securityGroupId
+            args.securityGroupId = params.securityGroupId+''
         }
         updateParams.arguments = JSON.stringify(args,null,4)
     }
     return updateParams
 }
 
-export const update = async (id: number, params: Partial<TestCase>) : Promise<TypedOperationResult<TestCase>> => {
+declare type KiwiUpdateTestCaseParams = {
+    summary: string
+    description: string
+    isAutomated: boolean
+    caseStatusId: number
+    arguments: Record<string, string>
+    category: number
+    priority: number
+    securityGroupId: number
+}
+
+export const update = async (id: number, params: Partial<KiwiUpdateTestCaseParams>) : Promise<TypedOperationResult<TestCase>> => {
     const op = { id : 'updateTestCase', status: false, message: 'Failed', statusType: 'error' } as TypedOperationResult<TestCase>
     const login = await http.login()
     if (!login) return unAuthenticated
@@ -452,7 +463,7 @@ export const removeFromPlan = async (testCaseId:number, testPlanId:number) : Pro
     return op
 }
 
-export const bulkUpdate = async (ids:number[], params: Partial<TestCase>) : Promise<StatusOperation> => {
+export const bulkUpdate = async (ids:number[], params: Partial<KiwiUpdateTestCaseParams>) : Promise<StatusOperation> => {
     const login = await http.login()
     if (!login) return unAuthenticated
 
@@ -463,7 +474,7 @@ export const bulkUpdate = async (ids:number[], params: Partial<TestCase>) : Prom
 
     const pushArgs = typeof params.arguments == 'undefined' ? {} : params.arguments
     if (typeof params.securityGroupId != 'undefined') {
-        pushArgs.securityGroupId = params.securityGroupId
+        pushArgs.securityGroupId = params.securityGroupId+''
         delete params.securityGroupId
     }
     params.arguments = pushArgs

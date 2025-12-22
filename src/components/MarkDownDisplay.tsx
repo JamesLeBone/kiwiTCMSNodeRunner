@@ -9,10 +9,11 @@ export type MarkdownSectionProps = {
     state: [string, (value: string) => void],
     label: string,
     open?: boolean
+    name?: string
     className?: string
 }
 
-export function MarkdownSection({state,label,open=false, className=''} : MarkdownSectionProps) {
+export function MarkdownSection({state,label,open=false, name, className=''} : MarkdownSectionProps) {
     const markdownEditState = useState( open )
     const updateText = (e: React.ChangeEvent<HTMLTextAreaElement>) => state[1](e.target.value)
     const toggleMarkdownEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -28,6 +29,7 @@ export function MarkdownSection({state,label,open=false, className=''} : Markdow
         <FormField label={label} className="Markdown">
             <Markdown remarkPlugins={[remarkGfm]}>{state[0]}</Markdown>
         </FormField>
+        { name ? <input type="hidden" name={name} value={state[0]} /> : null }
         <button onClick={toggleMarkdownEdit}>Toggle Edit {label}</button>
         {edit}
     </div>
