@@ -35,7 +35,7 @@ function CList({list} : {list:userCredentialList}) {
 
 const newUrl = '/uac/credentials/new'
 
-declare type params = {
+type params = {
     list: userCredentialList
 }
 export default function CredentialList({list} : params) {

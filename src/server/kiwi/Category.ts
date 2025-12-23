@@ -8,7 +8,7 @@ import {
     fetch as fetchProduct
 } from './Product'
 
-export declare type Category = {
+export type Category = {
     id: number
     name: string
     product: number
@@ -22,7 +22,7 @@ const djangoCategory = async (c: Category) : Promise<Category> => {
     return c
 }
 
-declare type CateogryByProduct = Record<number, Category[]>
+type CateogryByProduct = Record<number, Category[]>
 
 export const listByProduct = async (productId?: number) : Promise<CateogryByProduct> => {
     const query : Record<string, any> = {}

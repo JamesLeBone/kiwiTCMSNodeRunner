@@ -17,7 +17,7 @@ const protocols = {
     'https' : https
 }
 
-declare type responseCookies = {[key:string]: HTTPCookie}
+type responseCookies = {[key:string]: HTTPCookie}
 export class HTTPResponse {
     cookies: responseCookies
     statusCode: number
@@ -112,17 +112,17 @@ class HTTPCookie {
     }
 }
 
-export declare type HTTPMethod = 'GET'|'POST'|'PUT'|'DELETE'|'PATCH'
-export declare type HTTPProtocol = 'http'|'https'
+export type HTTPMethod = 'GET'|'POST'|'PUT'|'DELETE'|'PATCH'
+export type HTTPProtocol = 'http'|'https'
 export interface HTTPHostConfig {
     hostname: string
     protocol: HTTPProtocol
     port: number
 }
-export declare type headerType = {key:string, value:string}
-export declare type headerSet = Map<string, string>|{[key:string]:string}
-export declare type postData = string|headerSet
-declare type cookieSet = {[key:string]: HTTPCookie}
+export type headerType = {key:string, value:string}
+export type headerSet = Map<string, string>|{[key:string]:string}
+export type postData = string|headerSet
+type cookieSet = {[key:string]: HTTPCookie}
 
 class CookieStore {
     #cookiePath: string|null = null

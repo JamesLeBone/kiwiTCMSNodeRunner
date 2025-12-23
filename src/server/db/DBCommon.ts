@@ -35,11 +35,11 @@ const createSqlParams = (params: {[key: string]: any}[]): { columns: string, val
     }
 }
 
-declare type inputValue = string|number|null
-declare type dataSetRow = { [key: string]: inputValue }
-declare type convertableValue = string|number|Date|null|object
-declare type dataSetRowConvertible = { [key: string]: convertableValue }
-declare type queryParams = dataSetRowConvertible[]
+type inputValue = string|number|null
+type dataSetRow = { [key: string]: inputValue }
+type convertableValue = string|number|Date|null|object
+type dataSetRowConvertible = { [key: string]: convertableValue }
+type queryParams = dataSetRowConvertible[]
 
 export { 
     createSqlParams,

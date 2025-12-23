@@ -1,12 +1,12 @@
 'use server'
-
+import type { DjangoEntity } from './Django'
 import {http, unAuthenticated} from './Kiwi'
 import { updateOpSuccess, prepareStatus, updateOpError, TypedOperationResult } from '@lib/Operation'
 
 import * as TestCase from './TestCase'
 import * as TestRun from './TestRun'
 
-declare type TestPlan = {
+export type TestPlan = {
     id: number
     name: string
     text: string
@@ -20,7 +20,7 @@ declare type TestPlan = {
     }
     parent?: number
 }
-declare type DetailedTestPlan = {
+export type DetailedTestPlan = {
     id: number
     name: string
     text: string
@@ -42,7 +42,7 @@ declare type DetailedTestPlan = {
     runs: any[]
 }
 
-export declare type UpdatePlanProps = {
+export type UpdatePlanProps = {
     name: string
     text: string
     type?: number
@@ -52,47 +52,38 @@ export declare type UpdatePlanProps = {
     parent?: number
 }
 
-declare type SearchParams = {
+type SearchParams = {
     id : number
     name : string
     nameList : string[]
     product : number
     parent : number
+    cases : number
 }
-declare type DjangoSearchParams = {
+type DjangoSearchParams = {
     id? : number
     name__icontains? : string
     name__in: string[]
     product? : number
     parent? : number
+    cases? : number
 } 
 // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.testplan.html
 
-const fetch = async (testPlanId: number) : Promise<TestPlan | null> => {
-    const tp = await http.get('TestPlan', testPlanId)
-    .then(tp => {
-        if (tp == null) return null
-        tp.addZulu('createDate')
-        return tp.values as TestPlan
-    }, e => null)
-    .catch(e => null)
+const djangoPlan = (dje: DjangoEntity) : TestPlan => {
+    dje.addZulu('createDate')
+    return dje.values as TestPlan
+}
 
+export const fetch = async (testPlanId: number) : Promise<TestPlan | null> => {
+    const tp = await http.get<TestPlan>('TestPlan', testPlanId, djangoPlan)
     return tp
 }
 //  RPC TestPlan.add_attachment(plan_id, filename, b64content)
 
 export const get = async (testPlanId: number) : Promise<TypedOperationResult<TestPlan>> => {
     const op = prepareStatus('fetchTestPlan') as TypedOperationResult<TestPlan>
-    const testplan = await http.get('TestPlan', testPlanId)
-    .then(tp => {
-        if (tp == null) {
-            updateOpError(op, 'Test Plan not found')
-            return null
-        }
-        tp.addZulu('createDate')
-        updateOpSuccess(op, 'Test Plan found')
-        return tp.values as TestPlan
-    })
+    const testplan = await http.get<TestPlan>('TestPlan', testPlanId, djangoPlan)
     .catch(e => {
         const message = e.message ?? 'Failed to fetch test plan'
         updateOpError(op, message)
@@ -121,12 +112,6 @@ export const getDetail = async (testPlanId: number) : Promise<TypedOperationResu
         }
     }
     detailedTestplan.children = await search({parent:testPlanId})
-    .then(list => 
-        list.map(c => {
-            const {id,name,isActive} = c.values
-            return {id,name,isActive}
-        })
-    )
 
     detailedTestplan.testCases = await TestCase.search({plan: testPlanId})
     .then(op => op.data ?? [])
@@ -145,23 +130,21 @@ export const getCases = async (testPlanId:number) : Promise<TypedOperationResult
 export const fetchCases = async (testPlanId:number) : Promise<TestCase.TestCase[]> => getCases(testPlanId).then(r => r.data ?? [], r => [])
 
 
-export const search = async (params: Partial<SearchParams>) => {
+export const search = async (params: Partial<SearchParams>) : Promise<TestPlan[]> => {
     const djangoSearch = {} as DjangoSearchParams
     if (params.id) djangoSearch.id = params.id
     if (params.name) djangoSearch.name__icontains = params.name
     if (params.nameList) djangoSearch.name__in = params.nameList
     if (params.product) djangoSearch.product = params.product
     if (params.parent) djangoSearch.parent = params.parent
+    if (params.cases) djangoSearch.cases = params.cases
 
-    const testplans = await http.search('TestPlan', djangoSearch)
+    const testplans = await http.search('TestPlan', djangoSearch, false)
     .catch(e => {
         console.error('Failed to search test plans', e)
         return []
     })
-    return testplans.map(testplan => {
-        testplan.addZulu('createDate')
-        return testplan.values
-    })
+    return testplans.map(testplan => djangoPlan(testplan))
 }
 
 export const addToPlan = async (testCaseId:number, testPlanId:number) => {
@@ -226,7 +209,7 @@ export const update = async (testPlanId:number, testPlan: Partial<TestPlan>) => 
 
 export const getRuns = async (testPlanId: number) => TestRun.search({plan_id: testPlanId})
 
-declare type CreateMinimal = {
+type CreateMinimal = {
     product: number
     product_version: number
     name: string
@@ -234,7 +217,7 @@ declare type CreateMinimal = {
     type: number
     parent? : number
 }
-declare type CreateParams = {
+type CreateParams = {
     product: number
     product_version: number
     name: string

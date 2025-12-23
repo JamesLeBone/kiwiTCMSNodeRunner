@@ -7,7 +7,7 @@
  * especially if bulk operations return simmilar results
  * and for testing purposes.
  */
-export declare type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading' | 'blank'
+export type statusType = 'error' | 'info' | 'success' | 'warning' | 'loading' | 'blank'
 
 export interface Operation {
     id: string

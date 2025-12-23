@@ -4,7 +4,7 @@ import { TestCase } from '@server/kiwi/TestCase'
 import CaseScript from './CaseScript';
 import ChildrenScripts from './ChildrenScripts';
 
-declare type CommentsProps = {
+type CommentsProps = {
     testCaseId: number
     script?: number|string
     children: TestCase[]

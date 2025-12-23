@@ -2,7 +2,7 @@
 import SetPassword from './SetPassword'
 import type { verifiedUser } from '@server/lib/Users'
 
-declare type props = {
+type props = {
     verifiedUser: verifiedUser,
     accessToken: string
 }

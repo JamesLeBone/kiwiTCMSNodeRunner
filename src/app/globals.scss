@@ -465,7 +465,7 @@ label[title] {
     &.FormField-number > div {
         display: grid;
         grid-template-rows: auto auto;
-        grid-template-columns: auto auto;
+        grid-template-columns: auto min-content;
         input {
             flex-grow: 1;
         }
@@ -475,6 +475,7 @@ label[title] {
             font-size: 10px;
             border-style: none;
             grid-column: 2;
+            min-width: 16px;
         }
         > input {
             grid-row: 1/-1;
@@ -517,6 +518,36 @@ label[title] {
         }
         button {
             margin: 0px;
+        }
+    }
+}
+
+.tabbed-section {
+    border-top: 1px solid var(--sectionBorder);
+
+    .tab-labels {
+        list-style-type: none;
+        margin: 0px;
+        padding: 0px;
+        display: grid;
+        border-bottom: 1px solid var(--sectionBorder);
+        background-color: var(--panelBackground);
+        justify-content: stretch;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+
+        li {
+            margin: 0px;
+            padding: 8px 12px;
+            border-top: 2px solid transparent;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            &:hover {
+                background-color: var(--inputBackgroundHover);
+            }
+            &.active {
+                border-bottom: 2px solid var(--linkColor);
+                font-weight: bold;
+            }
         }
     }
 }

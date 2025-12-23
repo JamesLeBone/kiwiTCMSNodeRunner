@@ -31,7 +31,7 @@ const setPassword = async (userId:number, password:string, verifyPassword:string
     return op
 }
 
-declare type CreateUserParams = {
+type CreateUserParams = {
     lastName: string,
     firstName: string,
     email: string,

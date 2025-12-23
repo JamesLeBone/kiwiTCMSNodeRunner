@@ -14,11 +14,11 @@ import { Selection, SelectionDetailed, selectionOption } from '@/components/Sele
 
 import { listPriorities  } from '@server/kiwi/Priority'
 
-declare type CreateTestCaseProps = {
+type CreateTestCaseProps = {
     statuses: CaseStatus[]
     products: ProductWithClassificationName[]
 }
-declare type psp = {
+type psp = {
     products: ProductWithClassificationName[]
     value?: number
     setProductId: (id: number) => void

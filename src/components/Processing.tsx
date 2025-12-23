@@ -1,4 +1,4 @@
-export declare type statuses = 'processing' | 'done' | 'error' | 'disabled' | 'idle'
+export type statuses = 'processing' | 'done' | 'error' | 'disabled' | 'idle'
 
 export default function Processing({status}: {status: statuses}) {
     if (status == 'processing') {

@@ -11,18 +11,18 @@ import { updateOpError, updateOpSuccess, TypedOperationResult, StatusOperation, 
 import { BasicRecord, DjangoEntity } from './Django'
 import { update } from '@server/lib/Credentials'
 
-export declare type Product = {
+export type Product = {
     id: number,
     name: string,
     description: string,
     classification: number
 }
 
-export declare type ProductWithClassificationName = Product & {
+export type ProductWithClassificationName = Product & {
     classificationName: string
 }
 
-export declare type Classification = {
+export type Classification = {
     id: number,
     name: string
 }

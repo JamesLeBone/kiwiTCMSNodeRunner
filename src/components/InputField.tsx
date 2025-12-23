@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 
-declare type propset = {
+type propset = {
     name: string
     onChange: (value:string) => void
     value?: string|number
@@ -21,7 +21,7 @@ export function InputField({name, onChange, value='', type='text',...props} : pr
     return <input name={name} type={type} value={val} onChange={changeEvent} {...props} />
 }
 
-declare type NumberInputProps = {
+type NumberInputProps = {
     name: string
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
     value: number | ''

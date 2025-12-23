@@ -4,7 +4,7 @@ import { ActionInputField } from './FormActions'
 import { Selection } from './Selection'
 import { IconButton } from './IconButton'
 
-declare type FormFieldProps = {
+type FormFieldProps = {
     label: string
     children: React.ReactNode
     className?: string
@@ -19,7 +19,7 @@ export function FormField({label,children, ...props} : FormFieldProps) {
     </div>
 }
 
-declare type FormFieldAlternatingProps = {
+type FormFieldAlternatingProps = {
     label: string
     name: string
     required?: boolean

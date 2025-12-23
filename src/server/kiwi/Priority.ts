@@ -8,7 +8,7 @@ import {
 //     fetch as fetchProduct
 // } from './Product'
 
-export declare type Priority = {
+export type Priority = {
     id: number
     value: string // typically 'P1' - 'P5'
     isActive: boolean

@@ -2,8 +2,8 @@
 import pageStyles from './page.module.css'
 
 // React imports
-import { useState,useActionState } from 'react';
-import { formatSummary } from '@lib/Functions'
+import { useState,useActionState } from 'react'
+import { formatSummary, formDataValue } from '@lib/Functions'
 
 // Server side imports
 import * as TestCase from '@server/kiwi/TestCase'
@@ -22,10 +22,12 @@ import { FormInputField, FormActionBar, validationError, blankStatus, FormSelect
 import { redirect } from 'next/navigation'
 import Form from 'next/form'
 import Link from 'next/link'
+import type { SecurityGroup } from '@server/lib/SecurityGroups'
 
-declare type EditProps = {
+type EditProps = {
     details: TestCase.TestCaseDetail
     statuses: CaseStatus[]
+    securityGroups: SecurityGroup[]
     kiwiUrl: string
 }
 export default function TestCaseEdit(props: EditProps) {
@@ -42,25 +44,20 @@ export default function TestCaseEdit(props: EditProps) {
         const securityGroupId = securityGroup[0]
         const newSummary = formatSummary(summary, securityGroupId)
         setSummary(newSummary)
-    }
+    }//45
     // const setSecurity = v => {securityGroup[1](v), formatSummaryText()}
 
     const [state, formAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
-            const jsonEncodedArgString = formData.get('arguments') as string
-            let jsonAgs : Record<string,string> = {}
-            try {
-                jsonAgs = JSON.parse(jsonEncodedArgString)
-            } catch(e) {
-                return validationError('updateKiwi', 'Arguments are not valid JSON')
-            }
-            const summary = formData.get('summary') as string
+            const jsonAgs = formDataValue.getJson(formData, 'arguments')
+            const summary = formDataValue.getString(formData, 'summary')
             const isAutomated = formData.get('isAutomated') == 'true' ? true : false
             const caseStatusId = parseInt(formData.get('caseStatus') as string)
             const description = formData.get('description') as string
+            const securityGroupId = formData.get('securityGroupId') as string
 
             const action = (formData.get('action') as string).trim()
-            if (action == 'clone') {
+            if (action == 'Clone') {
                 const cloneResult = await TestCase.clone(
                     id,
                     {
@@ -88,14 +85,19 @@ export default function TestCaseEdit(props: EditProps) {
     )
 
     const actions = [
-        { label: "Update Kiwi", id: 'updateKiwi' },
-        { label: "Format Summary", id: 'formatSummary', onClick: formatSummaryText },
-        { label: "Clone", id: 'clone' }
+        { label: "Update Kiwi" },
+        { label: "Format Summary", onClick: formatSummaryText },
+        { label: "Clone" }
     ]
     const statusOptions = props.statuses.reduce( (acc, status) => {
         acc[status.id+''] = status.description
         return acc
     }, {} as Record<string,string> )
+
+    const securityGroupOptions = props.securityGroups.reduce( (acc, sg) => {
+        acc[sg.securityGroupId+''] = sg.description
+        return acc
+    }, { '' : 'None' } as Record<string,string> )
 
     return <div>
         <ComponentSection header='Test Case Edit' style={{display:'grid'}} id="testCaseEditForm">
@@ -110,6 +112,7 @@ export default function TestCaseEdit(props: EditProps) {
                     </FormInputField>
                     <FormInputField label="Automated?" name="isAutomated" type="checkbox" value={testCase.isAutomated} />
                     <FormSelection label="Status" name="caseStatus" value={testCase.caseStatus.id+''} required={true} options={statusOptions} />
+                    <FormSelection label="Security Group" name="securityGroupId" value={testCase.securityGroupId+''} options={securityGroupOptions} />
                     <MarkdownSection name="description" className={pageStyles.MarkdownEditor} label="Description" state={textState} />
                 </fieldset>
                 <fieldset>
@@ -127,17 +130,3 @@ export default function TestCaseEdit(props: EditProps) {
         </ComponentSection>
     </div>
 }
-/*
-            
-            <RelatedComponents className={styles.SpanOne} parentId={id} entityName="TestCase" primaryKey="case_id" components={components} />
-            <TagList testCaseId={id} className={styles.SpanOne} tags={tags} />
-            
-            <ComponentSection header="Test Plans" className={styles.SpanAll} >
-                <TestPlanList testCaseId={id} list={testPlans[0]} />
-            </ComponentSection>
-            
-            <Execution testCaseId={id} executions={executions} />
-    </div>
-}
-
-*/

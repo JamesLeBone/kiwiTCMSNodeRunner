@@ -5,7 +5,7 @@ import { verifiedUser, list as listUsers } from '@server/lib/Users'
 import SessionManagement from './SessionManagement'
 import EmailVerification from './EmailVerification'
 
-declare type pageProps = {
+type pageProps = {
     currentUser: verifiedUser
 }
 export default async function UACControls({currentUser} : pageProps) {

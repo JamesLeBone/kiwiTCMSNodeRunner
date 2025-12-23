@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer'
 import { currentUser } from './Auth'
 import type { CurrentUser } from './Users'
 
-export declare type emailRecipient = {
+export type emailRecipient = {
     firstName: string
     lastName: string
     email: string
@@ -279,7 +279,7 @@ const determineSender = async (user: CurrentUser|false): Promise<string> => {
     return user2email(user.email, user.firstName, user.lastName)
 }
 
-declare type sendResult = {
+type sendResult = {
     success: boolean
     message: string
     details?: messageInfo

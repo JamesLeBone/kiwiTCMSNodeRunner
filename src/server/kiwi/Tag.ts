@@ -1,7 +1,7 @@
 'use server'
 
 import { http,methods,promiseBoolean } from './Kiwi'
-import { Operation, prepareStatus, TypedOperationResult, unauthorised, updateOpSuccess } from '@lib/Operation'
+import { Operation, prepareStatus, StatusOperation, TypedOperationResult, unauthorised, updateOpError, updateOpSuccess } from '@lib/Operation'
 import { DjangoEntity } from './Django'
 import { fetchTestCase } from './TestCase'
 import type { TestCase } from './TestCase'
@@ -16,7 +16,7 @@ export type IndividualTag = {
     bugs: number,
     run: number
 }
-export type AmlgomatedTag = {
+export type AmalgomatedTag = {
     id: number,
     name: string,
     cases: TestCase[],
@@ -24,9 +24,25 @@ export type AmlgomatedTag = {
     bugs: number[],
     runs: number[]
 }
+export type searchOptions = {
+    case:number
+    name:string
+    bugs:number
+    id:number
+    plan:number
+    run:number
+    testcasetag:string
+    testplantag:string
+    testruntag:string
+}
+export type attachableEntityNames = 'TestCase' // | 'TestRun' | 'Bug' | 'TestPlan'
+type kiwiTagSearchParms = {
+    case? : number
+}
 
-export const amalgomateTags = async (list: IndividualTag[]) : Promise<AmlgomatedTag[]> => {
-    const tagList = {} as Record<number,AmlgomatedTag>
+
+export const amalgomateTags = async (list: IndividualTag[]) : Promise<AmalgomatedTag[]> => {
+    const tagList = {} as Record<number,AmalgomatedTag>
     const caseCache = {} as Record<number, TestCase>
 
     for (const tag of list) {
@@ -71,21 +87,33 @@ export const amalgomateTags = async (list: IndividualTag[]) : Promise<Amlgomated
     return resultList
 }
 
-export const addToTestCase = async (caseId:number, tagName:string) : Promise<Operation> => {
-    const conn = http
-    const login = await conn.login()
-    if (!login) return unauthorised
-    
-    console.debug('Adding tag', tagName, 'to test case', caseId, {case_id:caseId, tag:tagName})
-    const addTag = await conn.call('TestCase.add_tag', {case_id:caseId, tag:tagName})
-    
-    const op = prepareStatus('addTagToTestCase')
+export const addTo = async (entityName: attachableEntityNames, entityId:number, tagName:string) : Promise<StatusOperation> => {
+    const login = await http.login()
+    if (!login) return { ...unauthorised, statusType: 'error' }
 
-    return {
-        id: 'addTagToTestCase',
-        status: addTag,
-        message: addTag ? 'Tag added' : 'Failed to add tag'
+    const op = prepareStatus('addTagTo'+entityName) as StatusOperation
+
+    if (entityName != 'TestCase') return updateOpError(op, 'Unsupported entity type'), op
+    const paramName = 'case_id'
+    const params = {
+        tag: tagName,
+        [paramName]: entityId
     }
+
+    // Even on succeess, this returns null.
+    const addTag = await http.call(entityName+'.add_tag', params)
+    .then(() => true)
+    .catch(e => {
+        console.error('Failed to add tag to '+entityName, e)
+        return false
+    })
+    // console.debug('Tag add result:', addTag)
+    if (addTag) {
+        updateOpSuccess(op, 'Tag added to '+entityName)
+    } else {
+        updateOpError(op, 'Failed to add tag to '+entityName)
+    }
+    return op
 }
 export const removeFromTestCase = async (caseId: number, tagName: string) : Promise<Operation> => {
     const conn = http
@@ -102,7 +130,7 @@ export const removeFromTestCase = async (caseId: number, tagName: string) : Prom
     }
 }
 
-export const get = async (tagId:number) : Promise<TypedOperationResult<AmlgomatedTag>> => {
+export const get = async (tagId:number) : Promise<TypedOperationResult<AmalgomatedTag>> => {
     const conn = http
 
     const listResults = await conn.getList(entityName,tagId)
@@ -111,36 +139,38 @@ export const get = async (tagId:number) : Promise<TypedOperationResult<Amlgomate
         id: 'getTag',
         status: tagResult.length > 0,
         message: tagResult.length > 0 ? 'Tag obtained' : 'Tag not found'
-    } as TypedOperationResult<AmlgomatedTag>
+    } as TypedOperationResult<AmalgomatedTag>
     if (tagResult.length > 0) {
         op.data = tagResult[0]
     }
     return op
 }
 
-const tagSearch = async (search : Promise<DjangoEntity[]>) : Promise<AmlgomatedTag[]> => {
+const tagSearch = async (search : Promise<DjangoEntity[]>) : Promise<AmalgomatedTag[]> => {
     const searchResult = await search
     const tagList = searchResult.map(dj => dj.values) as IndividualTag[]
     return amalgomateTags(tagList)
 }
 
-// search({cases:testCaseId})
-export declare type searchOptions = {
-    cases?:number,
-    tagName?:string
-}
-export const search = async (params: searchOptions) : Promise<AmlgomatedTag[]> => {
-    const conn = http
-    const searchResult = conn.search(entityName, params)
-    return tagSearch(searchResult)
-}
+export const search = async (params: Partial<searchOptions>) : Promise<TypedOperationResult<AmalgomatedTag[]>> => {
+    const op = prepareStatus('searchTags') as TypedOperationResult<AmalgomatedTag[]>
+    if (Object.keys(params).length == 0) {
+        updateOpError(op, 'No search parameters provided')
+        return op
+    }
 
-export declare type attachableEntityNames = 'TestCase' // | 'TestRun' | 'Bug' | 'TestPlan'
-declare type kiwiTagSearchParms = {
-    case? : number
-}
+    const searchResult = http.search(entityName, params)
+    const amalgomatedTags = await tagSearch(searchResult)
 
-export const getAttachedTags = async (sourceEntity:attachableEntityNames, id:number) : Promise<AmlgomatedTag[]> => {
+    if (amalgomatedTags.length == 0) {
+        updateOpError(op, 'No tags found')
+    } else {
+        updateOpSuccess(op, 'Tags found')
+        op.data = amalgomatedTags
+    }
+    return op
+}
+export const getAttachedTags = async (sourceEntity:attachableEntityNames, id:number) : Promise<AmalgomatedTag[]> => {
     let param: kiwiTagSearchParms = {}
     if (sourceEntity == 'TestCase') {
         param.case = id

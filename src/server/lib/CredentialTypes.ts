@@ -2,7 +2,7 @@ import { db } from '../db/Database'
 import { Operation, StatusOperation, TypedOperationResult } from '@lib/Operation'
 import type { credentialFieldSet } from './Credentials'
 
-export declare type credentialType = {
+export type credentialType = {
     credentialTypeId: number
     description: string
     fields: credentialFieldSet

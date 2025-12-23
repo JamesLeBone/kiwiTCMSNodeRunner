@@ -1,4 +1,4 @@
-declare type displayProps = {
+type displayProps = {
     date: Date | string
 }
 

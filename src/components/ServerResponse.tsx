@@ -52,7 +52,7 @@ function useMessage(defaultMessage?:Operation) {
     }
 }
 
-declare type ServerResponseProps = {
+type ServerResponseProps = {
     children: React.ReactNode
     type?: statusType
 }

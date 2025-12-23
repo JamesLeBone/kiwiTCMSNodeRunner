@@ -17,7 +17,7 @@ import fs from 'fs'
 
 import { getFirstCredentialOfType } from '@server/Credentials'
 const kiwiCredentialTypeId = 1
-declare type methodParameters = Object | Array<any> | null
+type methodParameters = Object | Array<any> | null
 
 declare interface RPCReply {
     jsonrpc: string, // float: "2.0"
@@ -159,7 +159,7 @@ class KiwiCall {
             id: id
         }
         if (params != null) sendData.params = params
-        console.log('[KiwiCall] Calling method:', methodName)
+        console.log('[KiwiCall]:', methodName)
 
         // console.debug('Kiwi RPC Call:', {
         //     method: methodName,
@@ -188,6 +188,7 @@ class KiwiCall {
                     return
                 }
                 const content = httpResponse.json as RPCReply
+                // console.debug('Kiwi RPC Response:', content)
                 if (httpResponse.isError) {
                     if (typeof content.error == 'undefined') {
                         content.error = { code: 500, message: 'An error has occured' }
@@ -303,10 +304,16 @@ class KiwiCall {
     /**
      * Use get when you need to run a specific parser over the result
      */
-    async get<T>(entity:string,id:number,parserMethod:(dje: DjangoEntity) => T): Promise<T> {
+    async get<T>(entity:string,id:number,parserMethod?:(dje: DjangoEntity) => T): Promise<T> {
         const query = {id}
-        const dje = await this.call(entity+'.filter',{query:query}).then(list => new DjangoEntity(list[0]))
-        return parserMethod(dje)
+        const dje = await this.call(entity+'.filter',{query:query}).then(list => {
+            if (list.length === 0) return undefined
+            // console.debug(`[KiwiCall.get] Fetched ${entity} with id ${id}`, list)
+            return new DjangoEntity(list[0])
+        })
+        console.debug(`[KiwiCall.get] Retrieved entity: ${entity} with id: ${id}`, dje)
+        if (!dje) return Promise.reject(`Entity ${entity} with id ${id} not found`)
+        return parserMethod ? parserMethod(dje) : dje.values as T
     }
 
     async getEntity<T>(entity:string,id:number,idName='id'): Promise<T | undefined> {

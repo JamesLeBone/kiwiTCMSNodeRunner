@@ -15,8 +15,12 @@ import { fetch as fetchComments, Comment } from './Comments'
 import { componentCases, AmalgomatedComponent } from './Component'
 import * as Tag from './Tag'
 import { fetchCategories } from './Category'
+import { search as searchExecutions, TestExecution } from './Execution'
+import { search as searchPlan, TestPlan } from './TestPlan'
 
 export const django2Case = async (dj : DjangoEntity) : Promise<TestCase> => {
+    if (!dj.values.id) throw new Error('django2Case: Invalid Django Entity, missing id')
+    
     dj.convertJson('arguments')
     dj.addZulu('createDate')
     const tc = dj.values
@@ -41,7 +45,7 @@ export const django2Case = async (dj : DjangoEntity) : Promise<TestCase> => {
 }
 
 // This is what we use internally
-export declare type TestCase = {
+export type TestCase = {
     id: number,
     summary: string
     text: string
@@ -83,7 +87,7 @@ export const getTestCase = async (testCaseId:number) : Promise<TypedOperationRes
 export const fetchTestCase = async (testCaseId:number) : Promise<TestCase | null> => 
     http.get('TestCase', testCaseId, django2Case)
 
-declare type SearchParams = {
+type SearchParams = {
     summary: string
     isAutomated: boolean
     script: number
@@ -119,7 +123,7 @@ export const search = async (params: Partial<SearchParams>) : Promise<TypedOpera
 export const fetchTestCaseComments = async (testCaseId:number) => fetchComments(testCaseId, 'TestCase')
 
 // https://kiwitcms.readthedocs.io/en/latest/_modules/tcms/rpc/api/testcase.html#create
-declare type KiwiCreateTestCaseParams = {
+type KiwiCreateTestCaseParams = {
     summary: string
     priority: number
     product: number
@@ -131,7 +135,7 @@ declare type KiwiCreateTestCaseParams = {
     arguments?: string
 }
 // Send to Kiwi Params.
-declare type KiwiUpdateParams = {
+type KiwiUpdateParams = {
     summary: string
     text: string
     is_automated: boolean
@@ -139,9 +143,10 @@ declare type KiwiUpdateParams = {
     category: number
     priority: number
     arguments: string
+    script: number|''
 }
 // Internal type
-declare type KiwiUpdateTestCaseParams = {
+type KiwiUpdateTestCaseParams = {
     summary: string
     description: string
     isAutomated: boolean
@@ -153,7 +158,7 @@ declare type KiwiUpdateTestCaseParams = {
     securityGroupId: number
 }
 
-declare type CreateTestCaseParams = {
+type CreateTestCaseParams = {
     summary: string
     priority: number
     product: number
@@ -174,6 +179,10 @@ const frontend2UpdateParams = (params: Partial<KiwiUpdateTestCaseParams>) : Part
     if (params.caseStatusId) updateParams.case_status = params.caseStatusId
     if (params.category) updateParams.category = params.category
     if (params.priority) updateParams.priority = params.priority
+    if (typeof params.script != 'undefined') {
+        if (params.script == 0) updateParams.script = ''
+        else updateParams.script = params.script
+    }
     
     if (params.arguments) {
         const args = params.arguments
@@ -244,30 +253,8 @@ export const fetchAttachments = async (testCaseId:number) : Promise<BasicRecord[
     }
     return attachments
 }
-export const fetchExecutions = async (testCaseId:number) : Promise<BasicRecord[]> => {
-    const executions = await http.search('TestExecution', { case_id: testCaseId }, false)
-    .then(results => typeof results == 'undefined' ? [] : results.map(result => {
-        result.addZulu('start_date')
-        result.addZulu('stop_date')
-        return result.values
-    }))
-    .catch( e => {
-        console.error('Failed to get executions', e)
-        return []
-    })
-    const sortedExec = executions.sort((a,b) => {
-        let asc = 0
-        let bs = 0
-        if (a.start_date == null) asc = -5
-        if (b.start_date == null) bs = -5
-        if (asc + bs == -10) return 0
-        if (asc < 0) return 1
-        if (bs < 0) return -1
-        const bStart = new Date(b.start_date)
-        const aStart = new Date(a.start_date)
-        return bStart.getTime() - aStart.getTime()
-    })
-    return sortedExec
+export const fetchExecutions = async (testCaseId:number) : Promise<TestExecution[]> => {
+    return await searchExecutions({ case_id: testCaseId })
 }
 
 export const fetchTags = async (testCaseId:number) => Tag.getAttachedTags('TestCase', testCaseId)
@@ -275,16 +262,7 @@ export const fetchTags = async (testCaseId:number) => Tag.getAttachedTags('TestC
 // TODO: udpate this with test plan type
 export const getPlans = async (testCaseId:number) : Promise<TypedOperationResult<BasicRecord[]>> => {
     const op = { id : 'getTestCasePlans', status: false, message: '', statusType: 'blank' } as TypedOperationResult<any[]>
-    const list = await http.search('TestPlan', { cases: testCaseId }, false)
-    .then(results => typeof results == 'undefined' ? [] : results.map(result => {
-        result.addZulu('createDate')
-        return result.values
-    })).catch( e => {
-        console.error('Failed to fetch test plans', e)
-        updateOpError(op, e.message || 'Failed to fetch test plans')
-        return null
-    })
-    if (list == null) return op
+    const list = await searchPlan({ cases: testCaseId })
     if (list.length == 0) {
         op.message = 'No test plans found'
         op.statusType = 'info'
@@ -293,15 +271,8 @@ export const getPlans = async (testCaseId:number) : Promise<TypedOperationResult
     op.data = list
     return updateOpSuccess(op, 'Test plans fetched successfully')
 }
-export const fetchPlans = async (testCaseId:number) : Promise<BasicRecord[]> => {
-    const slist = await http.search('TestPlan', { cases: testCaseId }, false)
-    .then(results => typeof results == 'undefined' ? [] : results.map(result => {
-        result.addZulu('createDate')
-        return result.values
-    })).catch( e => {
-        console.error('Failed to fetch test plans', e)
-        return []
-    })
+export const fetchPlans = async (testCaseId:number) : Promise<TestPlan[]> => {
+    const slist = await searchPlan({ cases: testCaseId })
     return slist
 }
 
@@ -370,15 +341,15 @@ export const clone = async (id:number, newCaseKvp:Partial<KiwiUpdateTestCasePara
     op.data = createdCase
     return updateOpSuccess(op, 'Test Case cloned successfully')
 }
-export declare type TestCaseDetail = {
+export type TestCaseDetail = {
     testCase: TestCase
     components: AmalgomatedComponent[]
     children: TestCase[]
-    tags: Tag.AmlgomatedTag[]
+    tags: Tag.AmalgomatedTag[]
     comments: Comment[]
     attachments: BasicRecord[]
-    executions: BasicRecord[]
-    plans: BasicRecord[]
+    executions: TestExecution[]
+    plans: TestPlan[]
 }
 export const getDetail = async (testCaseId:number) : Promise<TypedOperationResult<TestCaseDetail>> => {
     const op = { id : 'getTestCaseDetail', status: false, message: '', statusType: 'blank' } as TypedOperationResult<any>
@@ -492,7 +463,7 @@ export const bulkUpdate = async (ids:number[], params: Partial<KiwiUpdateTestCas
     return op
 }
 
-declare type CreationResult = {
+type CreationResult = {
     case?: TestCase
     message: string
 }

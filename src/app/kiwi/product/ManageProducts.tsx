@@ -29,7 +29,7 @@ function ProductCard({product} : {product: ProductWithClassificationName}) {
     </Card>
 }
 
-declare type AddProductFormProps = {
+type AddProductFormProps = {
     addProduct: (p: ProductWithClassificationName) => void
 }
 

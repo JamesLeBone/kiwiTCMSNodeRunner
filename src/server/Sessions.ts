@@ -2,11 +2,11 @@
 import * as Sessions from './lib/Sessions'
 import { currentUser } from './lib/Auth'
 
-export declare type SessionList = {
+export type SessionList = {
     list: SessionDetail[]
     currentSessionId?: number
 }
-export declare type SessionDetail = {
+export type SessionDetail = {
     id: number
     host?: string
     ua?: string

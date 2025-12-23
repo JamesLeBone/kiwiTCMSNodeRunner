@@ -1,4 +1,4 @@
-declare type inputProps = {
+type inputProps = {
     className?: string,
     title: string,
     style?: React.CSSProperties,

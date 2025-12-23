@@ -2,12 +2,12 @@
 import {http, unAuthenticated} from './Kiwi'
 import { updateOpSuccess, prepareStatus, updateOpError, TypedOperationResult } from '@lib/Operation'
 // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.testcasestatus.html
-export declare type CaseStatus = {
+export type CaseStatus = {
     id: number
     name: string
     description: string
 }
-declare type KiwiCaseStatus = {
+type KiwiCaseStatus = {
     id: number
     name: string
     description: string

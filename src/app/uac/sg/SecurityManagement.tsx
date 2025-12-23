@@ -8,7 +8,7 @@ import { FormInputField, FormActionBar, validationError, blankStatus } from '@/c
 import Card from '@/components/Card'
 import { IconButton } from "@/components/IconButton"
 
-declare type eip = {
+type eip = {
     securityItem: sg.SecurityGroup|null,
     updatedItem: (group: sg.SecurityGroup) => void
 }
@@ -79,7 +79,7 @@ function SecurityListItem({sg, editItem, deleteItem}: {sg: sg.SecurityGroup, edi
     </tr>
 }
 
-declare type slp = {
+type slp = {
     securityGroupOptions: sg.SecurityGroup[],
     setSecurityGroupOptions: (sg: sg.SecurityGroup[]) => void,
     editItem: Function,
@@ -127,7 +127,7 @@ function SecurityList({securityGroupOptions, setSecurityGroupOptions, editItem, 
     </ComponentSection>
 }
 
-declare type smp = {
+type smp = {
     list: sg.SecurityGroup[]
 }
 export default function SecurityManagement({list}: smp) {

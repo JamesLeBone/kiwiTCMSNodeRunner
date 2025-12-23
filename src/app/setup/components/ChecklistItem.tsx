@@ -2,12 +2,12 @@
 import { ActionButton } from '@/components/Actions'
 import Processing, {statuses}  from '@/components/Processing'
 
-export declare type clip = {
+export type clip = {
     status: statuses
     message: string
     actionProps: ActionProps
 }
-export declare type ActionProps = {
+export type ActionProps = {
     action: Function
     isLoading: boolean
     actionText: string

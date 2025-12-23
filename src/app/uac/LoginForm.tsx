@@ -16,7 +16,7 @@ function UserInfo({user}: {user: verifiedUser}) {
     </div>
 }
 
-declare type loginState = verifiedUser | false
+type loginState = verifiedUser | false
 
 export function LoginWidget() {
     const loggedIn = useState(false as loginState) // Placeholder for actual auth state

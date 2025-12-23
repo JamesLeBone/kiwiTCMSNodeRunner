@@ -7,7 +7,9 @@ import Form from 'next/form'
 import { useActionState } from 'react'
 import { FormInputField, FormActionBar, validationError } from '@/components/FormActions'
 
-declare type CaseScriptProps = {
+import { formDataValue } from '@lib/Functions'
+
+type CaseScriptProps = {
     testCaseId: number
     script?: number|string
 }
@@ -23,7 +25,7 @@ const useScriptId = (initialValue: number|string) : number|'' => {
 
 const ParentScriptDetails = ({ testCase, script }: { testCase: TestCase|null, script: number|string }) => {
     if (script === '') {
-        return <div>No parent script assigned.</div>
+        return <i style={{padding:'4px'}}>No parent script assigned.</i>
     }
     const linkText = testCase ? `${testCase.id} - ${testCase.summary}` : script
     return <div>
@@ -50,6 +52,15 @@ export default function CaseScript(props: CaseScriptProps) {
     }
 
     const setScriptAction = async (scriptId:number) : Promise<OperationResult> => {
+        if (scriptId === 0) {
+            const result = await update(props.testCaseId, { script: scriptId } )
+            if (result.status) {
+                setScript('')
+                setParentScript(null)
+            }
+            return result
+        }
+
         const testCase = await fetchTestCase(scriptId)
         if (!testCase || !testCase.id) {
             return {
@@ -74,15 +85,13 @@ export default function CaseScript(props: CaseScriptProps) {
     const [state, scriptAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
             const action = formData.get('action')
-            const value = formData.get('scriptId')
-            if (!value) return validationError('caseScript','Script ID is required')
-            const scriptIdNum = Number.parseInt(value.toString())
-            if (isNaN(scriptIdNum)) return validationError('caseScript','Script ID must be a number')
+            const value = formDataValue.getNumber(formData, 'scriptId')
 
             if (action === 'Verify') {
-                return verifyScript(scriptIdNum)
+                if (value === 0) return validationError('caseScript','Script ID is required')
+                return verifyScript(value)
             }
-            return setScriptAction(scriptIdNum)
+            return setScriptAction(value)
         },
         { id: 'blank', status: false, message: '', statusType: 'blank' } as OperationResult
     )
@@ -91,7 +100,7 @@ export default function CaseScript(props: CaseScriptProps) {
         <Form action={scriptAction}>
             <ParentScriptDetails testCase={parentScript} script={script} />
             <fieldset>
-                <FormInputField label="Parent Script ID" value={props.script+''} required={true} name="scriptId" />
+                <FormInputField type='number' label="Parent Script ID" value={props.script ? props.script+'' : ''} name="scriptId" />
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={formActions} />
         </Form>

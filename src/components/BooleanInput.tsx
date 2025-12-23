@@ -1,5 +1,5 @@
 
-declare type BooleanProps = {
+type BooleanProps = {
     name?: string
     checked?: boolean
     setVal: (value: boolean) => void

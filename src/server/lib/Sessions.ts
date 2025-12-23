@@ -145,12 +145,12 @@ const createSession = (userId:Number) => {
     return DbSession.create(userId, secret)
 }
 
-declare type SessionVerification = {
+type SessionVerification = {
     status: boolean,
     message: string,
     data?: VerifiedSessionData
 }
-declare type VerifiedSessionData = {
+type VerifiedSessionData = {
     user: any,
     sessionId: number|null
 }

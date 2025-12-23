@@ -26,7 +26,7 @@ const formatUa = (ua: string) => {
     return parts.join(' / ')
 }
 
-declare type srp = {
+type srp = {
     isCurrent: boolean
     session: SessionDetail
     deactivateFn: (id:number) => void
@@ -48,7 +48,7 @@ function SessionRow({session,isCurrent, deactivateFn}: srp) {
     </tr>
 }
 
-declare type slp = {
+type slp = {
     sessionList: SessionDataList
     removeItem: (id:number) => void
 }
@@ -60,7 +60,7 @@ function SessionList({sessionList, removeItem }: slp) {
     </tbody>
 }
 
-declare type sessionDisplayItem = {
+type sessionDisplayItem = {
     id: number,
     isCurrent: boolean,
     sessionTypeId: {

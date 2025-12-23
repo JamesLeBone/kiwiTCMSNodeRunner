@@ -9,7 +9,7 @@ import { updateOpSuccess, prepareStatus, updateOpError, TypedOperationResult } f
 import * as TestCase from './TestCase'
 import * as Execution from './Execution'
 
-declare type TestRun = {
+type TestRun = {
     id: number
     name: string
     createDate: Date
@@ -32,7 +32,7 @@ declare type TestRun = {
     }
     arguments: Record<string, any>
 }
-declare type SearchParams = {
+type SearchParams = {
     id?: number
     plan_id?: number
     status_id?: number
@@ -58,11 +58,7 @@ const django2TestRun = (testRun: DjangoEntity) : TestRun => {
 }
 
 export const fetch = async (testRunId: number) : Promise<TestRun | null> => {
-    const tr = await http.get('TestRun', testRunId)
-    .then(tr => {
-        if (tr == null) return null
-        return django2TestRun(tr)
-    }, e => null)
+    const tr = await http.get<TestRun>('TestRun', testRunId, django2TestRun)
     .catch(e => null)
     return tr
 }
@@ -88,11 +84,12 @@ export const search = async (params : SearchParams) : Promise<TestRun[]> => {
 
 export const get = async (id: number) : Promise<TypedOperationResult<TestRun>> => {
     const op = prepareStatus('fetchTestRun') as TypedOperationResult<TestRun>
-    await http.get('TestRun', id)
+    await http.get<TestRun>('TestRun', id, django2TestRun)
     .then(tr => {
         if (tr != null) {
             updateOpSuccess(op, 'Test Run found')
-            op.data = django2TestRun(tr)
+            op.data = tr
+            return
         }
         updateOpError(op, 'Test Run not found')
     }, e => updateOpError(op, 'Error fetching Test Run'))
@@ -104,7 +101,7 @@ export const get = async (id: number) : Promise<TypedOperationResult<TestRun>> =
     return op
 }
 
-declare type CaseListItem = {
+type CaseListItem = {
     id: number
     summary: string
     text: string

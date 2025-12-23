@@ -9,7 +9,7 @@ import { FormInputField, FormActionBar, validationError, blankStatus } from '@/c
 
 import Form from 'next/form'
 
-declare type setPwParams = {
+type setPwParams = {
     username: string,
     userId: number,
     accessToken: string

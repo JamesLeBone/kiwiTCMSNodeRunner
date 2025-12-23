@@ -10,11 +10,11 @@ type credentialField = {
 }
 export type credentialFieldSet = { [ key:string ]: credentialField }
 
-export declare type userCredentialList = {
+export type userCredentialList = {
     userCredentialId: number
     description: string
 }[]
-export declare type decryptedCredentialDetails = {
+export type decryptedCredentialDetails = {
     userCredentialId: number
     description: string
     credential: credentialFieldSet

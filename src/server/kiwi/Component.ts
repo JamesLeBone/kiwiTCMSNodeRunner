@@ -4,7 +4,7 @@ import {http,methods, unAuthenticated} from './Kiwi'
 import { updateOpSuccess, prepareStatus, updateOpError } from '@lib/Operation'
 import { fetchTestCase, TestCase } from './TestCase'
 
-declare type ComponentAttachable = 'TestCase' | 'TestPlan'
+export type ComponentAttachable = 'TestCase' | 'TestPlan'
 const entityName = 'Component'
 
 export type IndividualComponent = {
@@ -12,7 +12,7 @@ export type IndividualComponent = {
     name: string
     cases: number
 }
-declare interface RawAmalgomatedComponent {
+interface RawAmalgomatedComponent {
     id: number
     name: string
     cases: number[]
@@ -72,9 +72,15 @@ export const amalgomateComponents = async (list: IndividualComponent[]) : Promis
 }
 
 export const fetch = async (id:number) : Promise<AmalgomatedComponent | null> => {
-    return await http.get(entityName, id)
-    .then(djangoComponent => amalgomateComponents([djangoComponent.values as IndividualComponent]))
+    return await http.get<IndividualComponent>(entityName, id)
+    .then(djangoComponent => amalgomateComponents([djangoComponent]))
     .then(components => components.length > 0 ? components[0] : null)
+}
+export const search = async (name:string) : Promise<AmalgomatedComponent[]> => {
+    const params = { name__icontains: name }
+    const list = await http.searchEntity<IndividualComponent>(entityName, params, false)
+
+    return amalgomateComponents(list)
 }
 
 export const componentCases = async (testCaseId: number) : Promise<AmalgomatedComponent[]> => {
@@ -164,7 +170,7 @@ export const addTo = async (componentName:string, id:number, entityName:Componen
     const productId = await fetchTestCase(id)
         .then(tc => {
             if (!tc) return null
-            return tc.product.value
+            return tc.product.id
         })
     if (!productId) {
         updateOpError(op, 'Failed to determine the product of the associated Test Case')

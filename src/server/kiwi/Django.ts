@@ -1,10 +1,11 @@
-export declare type BasicRecord = Record<string, any>
-declare type parseOptions = {
+export type BasicRecord = Record<string, any>
+type parseOptions = {
     autoDates?: boolean 
 }
 const dtRegx = /^(?<date>.*)T(?<time>\d{2}:\d{2})/
 
 export const htmlEntityDecode = (str: string) => {
+    if (typeof str !== 'string') throw new Error('htmlEntityDecode: input is not a string')
     return str.replaceAll('&quot;', '"')
         .replaceAll('&#x27;', "'")
         .replaceAll('&amp;', '&')
@@ -32,8 +33,10 @@ export const htmlEntityDecode = (str: string) => {
         .replaceAll('&bull;', '•')
 }
 
-export const checkDate = (value: any): any => {
+export const checkDate = (value: any): Date | any => {
+    if (typeof value === 'object') return value as Date
     if (typeof value !== 'string') return value
+    if (value.match(/Z$/)) return new Date(value)
     const m = value.match(dtRegx)
     if (!m || !m.groups) return value
     const stringv = m.groups.date + 'T' + m.groups.time + ':00Z'
@@ -82,8 +85,15 @@ class DjangoEntity {
         }
         return this.values[fieldName]
     }
+
+    parseDate(fieldName:string) : Date | null {
+        const value = this.values[fieldName]
+        if (typeof value !== 'string') return null
+        this.values[fieldName] = checkDate(value)
+        return this.values[fieldName]
+    }
     
-    /**]
+    /**
      * Ensure a Zulu timezone designator is at the end of a datetime string
      */
     addZulu(fieldName: string) {

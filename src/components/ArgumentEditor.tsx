@@ -2,7 +2,7 @@
 import { useState,useEffect } from 'react';
 import { ActionBar, ActionButton } from '@/components/Actions'
 
-export declare type ArgumentEditHook = {
+export type ArgumentEditHook = {
     set: (data: Record<string, string>) => void
     setKey: (key: string,value:string) => void
     removeKey: (key: string) => void
@@ -61,7 +61,7 @@ export const useArgumentHook = (name: string, defaultArgs : Record<string, strin
     return hook
 }
 
-declare type itemProps = {
+type itemProps = {
     name:string
     propName:string
     value:string
