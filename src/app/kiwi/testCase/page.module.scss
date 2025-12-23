@@ -14,21 +14,6 @@
     grid-column: 1/-1;
 }
 
-.summary {
-    > div {
-        display: flex;
-        gap: 0px;
-        input {
-            flex-grow: 1;
-        }
-        button {
-            margin: 0px;
-            margin-left: 2px;
-            border-color: transparent;
-        }
-    }
-}
-
 #audit {
     display: grid;
     grid-template-columns: min-content min-content;

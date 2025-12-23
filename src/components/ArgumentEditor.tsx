@@ -90,7 +90,7 @@ function Item(props:itemProps) {
     return <>
         <input type="text" placeholder='Key' value={prop[0]} onChange={setProp} />
         <input type="text" placeholder='Value' value={val[0]} onChange={setVal} />
-        <ActionButton onClick={remove}>Remove</ActionButton>
+        <ActionButton onClick={remove} title="Remove item"><i className="fa fa-trash"></i></ActionButton>
     </>
 }
 
@@ -110,7 +110,7 @@ function EntryList({hook}: {hook: ArgumentEditHook}) {
 
 function ArgumentObject({hook}: {hook: ArgumentEditHook}) {
     return <div style={{padding:'0px'}}>
-        <EntryList hook={hook} />
+        <EntryList hook={hook} /><br />
         <ActionButton onClick={() => hook.addItem('')}>Add</ActionButton>
     </div>
 }

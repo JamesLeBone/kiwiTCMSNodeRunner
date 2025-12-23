@@ -107,7 +107,7 @@ export default function TestCaseEdit(props: EditProps) {
                     <Link href={props.kiwiUrl + id} target="kiwi" rel="external">Kiwi</Link>
                 </fieldset>
                 <fieldset id={pageStyles.fields}>
-                    <FormInputField className={pageStyles.summary} label="Summary" value={summary} name="summary" required={true}>
+                    <FormInputField className='input-button' label="Summary" value={summary} name="summary" required={true}>
                         <IconButton onClick={formatSummaryText} title='Format' className='fa fa-wand-magic' />
                     </FormInputField>
                     <FormInputField label="Automated?" name="isAutomated" type="checkbox" value={testCase.isAutomated} />

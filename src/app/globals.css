@@ -1,16 +1,30 @@
 :root {
-  --sectionBorder: #ccc;
-  --linkColor: #1f54bb;
-  --linkHover: #537daa;
-  --background: #ffffff;
-  --panelBackground: #f9f9f9;
-  --text: #000000;
-  --buttonColor: #6699d0;
+  --sectionBorder: #e2e8f0;
+  --linkColor: #0c4a6e;
+  --linkHover: #075985;
+  --background: #f0f4f8;
+  --panelBackground: #bdbbb9a1;
+  --text: #1e293b;
+  --buttonColor: #0c4a6e;
   --buttonBackground: #ffffff;
-  --buttonBackgroundHover: #e0e0e0;
+  --buttonBackgroundHover: #e0f2fe;
+  --buttonColorHover: #075985;
+  --buttonBorder: #cbd5e0;
   --componentPadding: 12px;
-  --inputBackground: #eeeeff;
-  --inputBackgroundHover: #ffffff;
+  --inputBackground: #ffffff;
+  --inputBackgroundHover: #f0fdfa;
+  --inputBackgroundFocus: #ffffff;
+  --inputText: #1e293b;
+  --inputTextPlaceholder: #94a3b8;
+  --input-border: #cbd5e0;
+  --input-border-hover: #64748b;
+  --input-border-focus: #0c4a6e;
+  --input-border-error: #dc2626;
+  --input-shadow: rgba(0, 0, 0, 0.05);
+  --input-shadow-focus: rgba(8, 145, 178, 0.2);
+  --input-padding: 4px 8px;
+  --input-border-radius: 6px;
+  --input-transition: all 0.2s ease;
 }
 
 @media screen and (prefers-color-scheme: dark) {
@@ -19,37 +33,24 @@
     --linkColor: #79a7ff;
     --linkHover: #a3c8ff;
     --background: #121212;
-    --inputBackground: #1c1c24;
-    --inputBackgroundHover: #222233;
-    --text: #ffffff;
+    --text: #e8e8e8;
     --panelBackground: rgba(255, 255, 255, 0.05);
     --buttonColor: #a3c8ff;
     --buttonBackground: #223;
     --buttonBorder: black;
     --buttonBackgroundHover: #53557f;
-  }
-  input, select, textarea, .Markdown > div {
-    background-color: var(--inputBackground);
-    color: var(--buttonColor);
-    padding: 4px;
-    border-style: none;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-  }
-  input:hover, select:hover, textarea:hover, .Markdown > div:hover {
-    border-color: var(--linkHover);
-    background-color: var(--inputBackgroundHover);
-  }
-  input:focus, select:focus, textarea:focus, .Markdown > div:focus {
-    outline: 2px solid var(--linkColor);
-  }
-  input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]), textarea, select {
-    display: block;
-    width: 100%;
-  }
-  input[type=number] {
-    -webkit-appearance: textfield;
-       -moz-appearance: textfield;
-            appearance: textfield;
+    --buttonColorHover: #e8e8e8;
+    --inputBackground: #1e1e2e;
+    --inputBackgroundHover: #252535;
+    --inputBackgroundFocus: #2a2a3a;
+    --inputText: #e8e8e8;
+    --inputTextPlaceholder: #6c7a89;
+    --input-border: #3a3a4a;
+    --input-border-hover: #4a4a5a;
+    --input-border-focus: #79a7ff;
+    --input-border-error: #ff6b6b;
+    --input-shadow: rgba(0, 0, 0, 0.3);
+    --input-shadow-focus: rgba(121, 167, 255, 0.25);
   }
 }
 body {
@@ -58,6 +59,125 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]),
+select,
+textarea {
+  background-color: var(--inputBackground);
+  color: var(--inputText);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-border-radius);
+  padding: var(--input-padding);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2em;
+  transition: var(--input-transition);
+  box-shadow: 0 1px 2px var(--input-shadow);
+  width: 100%;
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file])::-moz-placeholder, select::-moz-placeholder, textarea::-moz-placeholder {
+  color: var(--inputTextPlaceholder);
+  opacity: 1;
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file])::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: var(--inputTextPlaceholder);
+  opacity: 1;
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]):hover:not(:disabled):not(:focus),
+select:hover:not(:disabled):not(:focus),
+textarea:hover:not(:disabled):not(:focus) {
+  background-color: var(--inputBackgroundHover);
+  border-color: var(--input-border-hover);
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  background-color: var(--inputBackgroundFocus);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--input-shadow-focus), 0 1px 2px var(--input-shadow);
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]):disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--panelBackground);
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file])[aria-invalid=true], input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]).error,
+select[aria-invalid=true],
+select.error,
+textarea[aria-invalid=true],
+textarea.error {
+  border-color: var(--input-border-error);
+}
+input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file])[aria-invalid=true]:focus, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]).error:focus,
+select[aria-invalid=true]:focus,
+select.error:focus,
+textarea[aria-invalid=true]:focus,
+textarea.error:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15), 0 1px 2px var(--input-shadow);
+}
+
+select {
+  cursor: pointer;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
+select:hover:not(:disabled) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3c8ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  }
+  select:hover:not(:disabled) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d9ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  }
+}
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+input[type=number] {
+  -webkit-appearance: textfield;
+     -moz-appearance: textfield;
+          appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+          appearance: none;
+  margin: 0;
+}
+
+input[type=checkbox],
+input[type=radio] {
+  width: auto;
+  cursor: pointer;
+  margin: 0 6px 0 0;
+  accent-color: var(--linkColor);
+}
+
+input[type=file] {
+  width: 100%;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--inputText);
+}
+input[type=file]::file-selector-button {
+  margin-right: 12px;
+  cursor: pointer;
 }
 
 .DynamicTable > table {
@@ -92,37 +212,54 @@ a[rel=external]::after {
 
 .Boolean-Wrap {
   cursor: pointer;
-  display: inline-block;
-  border: 2px inset #352727;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--input-border);
   background-color: var(--inputBackground);
-  min-width: 80px;
-  height: 1.8em;
-  padding: 4px;
+  border-radius: var(--input-border-radius);
+  min-width: 90px;
+  height: 28px;
+  padding: var(--input-padding);
   overflow: hidden;
   position: relative;
-  color: var(--buttonColor);
+  color: var(--inputText);
+  transition: var(--input-transition);
+  box-shadow: 0 1px 2px var(--input-shadow);
 }
 .Boolean-Wrap:hover {
   background-color: var(--inputBackgroundHover);
+  border-color: var(--input-border-hover);
+}
+.Boolean-Wrap:focus-within {
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--input-shadow-focus), 0 1px 2px var(--input-shadow);
 }
 .Boolean-Wrap > div {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 500;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1;
+  position: relative;
 }
 .Boolean-Wrap .slider {
   position: absolute;
-  top: 0px;
-  height: 100%;
-  width: 24px;
-  box-shadow: 0px 0px 6px black;
-  width: 50%;
-  background-color: var(--inputBackground);
+  top: 2px;
+  height: calc(100% - 4px);
+  width: calc(50% - 2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: var(--linkColor);
   z-index: 1;
-  left: -2%;
-  transition: left 0.3s ease;
+  left: 2px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: calc(var(--input-border-radius) - 3px);
 }
 .Boolean-Wrap input[value=true] + .slider {
-  left: 52%;
+  left: calc(50% - 2px);
 }
 .Boolean-Wrap input {
   display: none;
@@ -133,7 +270,7 @@ a {
   padding: 6px;
   color: var(--linkColor);
   margin: 4px;
-  font-family: "Roboto", "Courier New", Courier, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
   border-radius: 0px;
   border-style: none;
   font-size: 14px;
@@ -223,12 +360,12 @@ body > header {
   margin-left: 4px;
 }
 
-.button, .ComponentSection .ActionBar > *:not(div), button {
+.button, .ComponentSection .ActionBar > *:not(div), button, input[type=file]::file-selector-button {
   cursor: pointer;
   padding: 6px;
   color: var(--linkColor);
   margin: 4px;
-  font-family: "Roboto", "Courier New", Courier, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
   border-radius: 0px;
   border-style: none;
   font-size: 14px;
@@ -238,11 +375,13 @@ body > header {
   vertical-align: middle;
   background-color: var(--buttonBackground);
   border: 1px solid var(--buttonBorder, transparent);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
-.button:hover, .ComponentSection .ActionBar > :hover:not(div), button:hover {
+.button:hover, .ComponentSection .ActionBar > :hover:not(div), button:hover, input[type=file]:hover::file-selector-button {
   background-color: var(--panelBackground);
 }
-.button:hover, .ComponentSection .ActionBar > :hover:not(div), button:hover {
+.button:hover, .ComponentSection .ActionBar > :hover:not(div), button:hover, input[type=file]:hover::file-selector-button {
+  color: var(--buttonColorHover);
   background-color: var(--buttonBackgroundHover);
 }
 
@@ -426,6 +565,32 @@ fieldset {
   vertical-align: middle;
 }
 
+.input-button > div {
+  display: flex;
+  gap: 0px;
+}
+.input-button > div input {
+  flex-grow: 1;
+  border-radius: var(--input-border-radius) 0 0 var(--input-border-radius) !important;
+  border-right: none;
+}
+.input-button > div input:focus {
+  border-right: 1px solid var(--input-border-focus);
+  z-index: 1;
+}
+.input-button > div button {
+  margin: 0px;
+  border-radius: 0 var(--input-border-radius) var(--input-border-radius) 0;
+  padding: var(--input-padding);
+  border: 1px solid var(--input-border);
+  background-color: var(--buttonBackground);
+  white-space: nowrap;
+}
+.input-button > div button:hover {
+  background-color: var(--buttonBackgroundHover);
+  border-color: var(--input-border-hover);
+}
+
 label[title] {
   cursor: help;
   -webkit-text-decoration: underline dotted;
@@ -435,32 +600,81 @@ label[title] {
 .FormField label {
   display: block;
   margin-top: 0.5em;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: var(--text);
 }
 .FormField > div {
-  border: 2px inset #352727;
+  position: relative;
+}
+.FormField > div > input,
+.FormField > div > select,
+.FormField > div > textarea {
+  border-radius: var(--input-border-radius);
+}
+.FormField > div > input:focus-visible,
+.FormField > div > select:focus-visible,
+.FormField > div > textarea:focus-visible {
+  outline: none;
 }
 .FormField.FormField-number > div {
   display: grid;
-  grid-template-rows: auto auto;
   grid-template-columns: auto min-content;
+  grid-template-rows: min-content min-content;
+  gap: 0px;
 }
 .FormField.FormField-number > div input {
-  flex-grow: 1;
+  grid-column: 1;
+  grid-row: 1/span 2;
+  border-radius: var(--input-border-radius) 0 0 var(--input-border-radius) !important;
+  border-right: none;
+}
+.FormField.FormField-number > div > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
 }
 .FormField.FormField-number > div button {
   padding: 0px;
   margin: 0px;
-  font-size: 10px;
-  border-style: none;
-  grid-column: 2;
-  min-width: 16px;
+  font-size: 11px;
+  line-height: 1;
+  border: 1px solid var(--input-border);
+  min-width: 28px;
+  height: 19px;
+  background-color: var(--buttonBackground);
+  color: var(--linkColor);
+  transition: var(--input-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.FormField.FormField-number > div > input {
-  grid-row: 1/-1;
+.FormField.FormField-number > div button:first-of-type {
+  border-radius: 0 var(--input-border-radius) 0 0;
+  border-bottom: 0.5px solid var(--input-border);
+}
+.FormField.FormField-number > div button:last-of-type {
+  border-radius: 0 0 var(--input-border-radius) 0;
+  border-top: 0.5px solid var(--input-border);
+}
+.FormField.FormField-number > div button:hover:not(:disabled) {
+  background-color: var(--buttonBackgroundHover);
+  color: var(--buttonColorHover);
+}
+.FormField.FormField-number > div button:active:not(:disabled) {
+  background-color: var(--input-border-hover);
+  transform: scale(0.95);
+}
+.FormField.FormField-number > div button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .FormField.FormField-checkbox > div {
   border-style: none;
   text-align: left;
+}
+.FormField.FormField-checkbox > div input[type=checkbox] {
+  margin-right: 8px;
 }
 .FormField.no-input > div {
   border-style: none;
@@ -469,26 +683,48 @@ label[title] {
 
 .FormFieldAlternating > div {
   display: flex;
+  gap: 4px;
+}
+.FormFieldAlternating > div > select,
+.FormFieldAlternating > div > input {
+  flex: 1;
 }
 .FormFieldAlternating > div > button {
   margin: 0px;
+  border-radius: var(--input-border-radius);
+  padding: 10px 12px;
 }
 
 .MarkdownEditor > textarea {
-  border: 1px solid var(--sectionBorder);
+  border-radius: var(--input-border-radius);
+  min-height: 200px;
 }
 
 .ArgumentEditor .list {
-  display: grid;
-  gap: 2px;
-  grid-template-columns: min-content min-content min-content;
+  display: inline-grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr min-content;
+  align-items: center;
 }
 .ArgumentEditor .list input {
-  border: 1px solid var(--buttonBorder);
   min-width: 150px;
+  margin: 0;
+  height: 38px;
 }
 .ArgumentEditor .list button {
   margin: 0px;
+  white-space: nowrap;
+  height: 36px;
+  padding: var(--input-padding);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 38px;
+  border-radius: var(--input-border-radius);
+}
+.ArgumentEditor .list button i {
+  font-size: 14px;
 }
 
 .tabbed-section {

@@ -59,9 +59,11 @@ export function NumberInput({name, onChange, step=1, min=0,max, value='', ...pro
             setAtMax( val >= max )
         }
     }, [val, min, max] )
+    props.pattern = '[0-9]*'
+    props.type = 'text'
 
     return <>
-        <input name={name} type="number" value={val} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e)} {...props} />
+        <input name={name} value={val} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e)} {...props} />
         <button type="button" disabled={atMax} onClick={ () => {
             const nval = typeof val === 'number' ? val : 0
             const newValue = nval + step
