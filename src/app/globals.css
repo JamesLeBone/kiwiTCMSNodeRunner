@@ -52,6 +52,12 @@
     --input-shadow: rgba(0, 0, 0, 0.3);
     --input-shadow-focus: rgba(121, 167, 255, 0.25);
   }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3c8ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  }
+  select:hover:not(:disabled) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d9ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  }
 }
 body {
   margin: 0px;
@@ -74,7 +80,6 @@ textarea {
   line-height: 1.2em;
   transition: var(--input-transition);
   box-shadow: 0 1px 2px var(--input-shadow);
-  width: 100%;
 }
 input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file])::-moz-placeholder, select::-moz-placeholder, textarea::-moz-placeholder {
   color: var(--inputTextPlaceholder);
@@ -131,23 +136,23 @@ select {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 select:hover:not(:disabled) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
 }
 
-@media screen and (prefers-color-scheme: dark) {
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3c8ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  }
-  select:hover:not(:disabled) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d9ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  }
+input, button {
+  line-height: 1.2em;
+  height: 33px;
 }
+
 textarea {
   resize: vertical;
   min-height: 80px;
   font-family: inherit;
+  width: 100%;
 }
 
 input[type=number] {
@@ -566,7 +571,7 @@ fieldset {
 }
 
 .input-button > div {
-  display: flex;
+  display: inline-flex;
   gap: 0px;
 }
 .input-button > div input {
@@ -581,7 +586,7 @@ fieldset {
 .input-button > div button {
   margin: 0px;
   border-radius: 0 var(--input-border-radius) var(--input-border-radius) 0;
-  padding: var(--input-padding);
+  padding: 0px 8px;
   border: 1px solid var(--input-border);
   background-color: var(--buttonBackground);
   white-space: nowrap;
@@ -606,6 +611,7 @@ label[title] {
 }
 .FormField > div {
   position: relative;
+  height: 33px;
 }
 .FormField > div > input,
 .FormField > div > select,
@@ -618,16 +624,18 @@ label[title] {
   outline: none;
 }
 .FormField.FormField-number > div {
-  display: grid;
+  display: inline-grid;
   grid-template-columns: auto min-content;
-  grid-template-rows: min-content min-content;
+  grid-template-rows: 50% 50%;
   gap: 0px;
+  height: 33px;
 }
 .FormField.FormField-number > div input {
   grid-column: 1;
   grid-row: 1/span 2;
   border-radius: var(--input-border-radius) 0 0 var(--input-border-radius) !important;
   border-right: none;
+  height: 100%;
 }
 .FormField.FormField-number > div > div {
   display: flex;
@@ -637,11 +645,11 @@ label[title] {
 .FormField.FormField-number > div button {
   padding: 0px;
   margin: 0px;
-  font-size: 11px;
+  font-size: 8px;
   line-height: 1;
   border: 1px solid var(--input-border);
   min-width: 28px;
-  height: 19px;
+  height: 100%;
   background-color: var(--buttonBackground);
   color: var(--linkColor);
   transition: var(--input-transition);
@@ -676,6 +684,9 @@ label[title] {
 .FormField.FormField-checkbox > div input[type=checkbox] {
   margin-right: 8px;
 }
+.FormField.Markdown > div, .FormField.FormField-textarea > div {
+  height: auto;
+}
 .FormField.no-input > div {
   border-style: none;
   padding: 4px 0px;
@@ -709,12 +720,10 @@ label[title] {
 .ArgumentEditor .list input {
   min-width: 150px;
   margin: 0;
-  height: 38px;
 }
 .ArgumentEditor .list button {
   margin: 0px;
   white-space: nowrap;
-  height: 36px;
   padding: var(--input-padding);
   display: inline-flex;
   align-items: center;
@@ -722,6 +731,7 @@ label[title] {
   gap: 6px;
   min-width: 38px;
   border-radius: var(--input-border-radius);
+  border: 1px solid var(--input-border);
 }
 .ArgumentEditor .list button i {
   font-size: 14px;

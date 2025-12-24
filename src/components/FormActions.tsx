@@ -94,7 +94,7 @@ export function ActionInputField({name, onChange, value='', type='text', ...prop
         return <BooleanInput name={name} checked={val as boolean} setVal={(v:boolean) => setVal(v)} {...props} />
     }
     if (type === 'textarea') {
-        return <textarea name={name} rows={5} cols={5} value={val as string} onChange={(e) => changeEvent(e)} {...props} />
+        return <textarea name={name} rows={5} cols={30} value={val as string} onChange={(e) => changeEvent(e)} {...props} />
     }
     if (type === 'number') {
         const numValue = typeof val === 'number' ? val : ''

@@ -54,7 +54,7 @@ export default function KiwiComments(params : CommentParams) {
         <CommentList comments={comments} />
         <Form action={submitForm}>
             <fieldset>
-                <FormInputField label="New Comment" name="comment" />
+                <FormInputField label="New Comment" type='textarea' name="comment" />
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={'Add Comment'} />
         </Form>

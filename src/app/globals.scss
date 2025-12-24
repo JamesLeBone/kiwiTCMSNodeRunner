@@ -60,6 +60,13 @@
         --input-shadow: rgba(0, 0, 0, 0.3);
         --input-shadow-focus: rgba(121, 167, 255, 0.25);
     }
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3c8ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        
+        &:hover:not(:disabled) {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d9ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        }
+    }
 }
 
 body {
@@ -82,7 +89,6 @@ textarea {
     line-height: 1.2em;
     transition: var(--input-transition);
     box-shadow: 0 1px 2px var(--input-shadow);
-    width: 100%;
     
     &::placeholder {
         color: var(--inputTextPlaceholder);
@@ -116,7 +122,6 @@ textarea {
     }
 }
 
-// Select specific styles
 select {
     cursor: pointer;
     padding-right: 32px;
@@ -124,30 +129,26 @@ select {
     background-repeat: no-repeat;
     background-position: right 10px center;
     appearance: none;
+    padding-top: 8px;
+    padding-bottom: 8px;
     
     &:hover:not(:disabled) {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
     }
 }
 
-@media screen and (prefers-color-scheme: dark) {
-    select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3c8ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-        
-        &:hover:not(:disabled) {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d9ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-        }
-    }
+input, button {
+    line-height: 1.2em;
+    height: 33px;
 }
 
-// Textarea specific styles
 textarea {
     resize: vertical;
     min-height: 80px;
     font-family: inherit;
+    width: 100%;
 }
 
-// Number input - hide spinners for cleaner look
 input[type="number"] {
     appearance: textfield;
     
@@ -158,7 +159,6 @@ input[type="number"] {
     }
 }
 
-// Checkbox and radio button styles
 input[type="checkbox"],
 input[type="radio"] {
     width: auto;
@@ -167,7 +167,6 @@ input[type="radio"] {
     accent-color: var(--linkColor);
 }
 
-// File input
 input[type="file"] {
     width: 100%;
     padding: 8px;
@@ -591,7 +590,7 @@ fieldset {
 
 .input-button {
     > div {
-        display: flex;
+        display: inline-flex;
         gap: 0px;
         
         input {
@@ -608,7 +607,9 @@ fieldset {
         button {
             margin: 0px;
             border-radius: 0 var(--input-border-radius) var(--input-border-radius) 0;
-            padding: var(--input-padding);
+            padding: 0px 8px;
+            // font-size: 8px;
+            
             border: 1px solid var(--input-border);
             background-color: var(--buttonBackground);
             white-space: nowrap;
@@ -636,6 +637,7 @@ label[title] {
     }
     > div {
         position: relative;
+        height: 33px;
         
         > input,
         > select,
@@ -649,16 +651,18 @@ label[title] {
     }
     
     &.FormField-number > div {
-        display: grid;
+        display: inline-grid;
         grid-template-columns: auto min-content;
-        grid-template-rows: min-content min-content;
+        grid-template-rows: 50% 50%;
         gap: 0px;
+        height: 33px;
         
         input {
             grid-column: 1;
             grid-row: 1 / span 2;
             border-radius: var(--input-border-radius) 0 0 var(--input-border-radius) !important;
             border-right: none;
+            height: 100%;
         }
         
         > div {
@@ -670,11 +674,11 @@ label[title] {
         button {
             padding: 0px;
             margin: 0px;
-            font-size: 11px;
+            font-size: 8px;
             line-height: 1;
             border: 1px solid var(--input-border);
             min-width: 28px;
-            height: 19px;
+            height: 100%;
             background-color: var(--buttonBackground);
             color: var(--linkColor);
             transition: var(--input-transition);
@@ -715,6 +719,11 @@ label[title] {
         
         input[type="checkbox"] {
             margin-right: 8px;
+        }
+    }
+    &.Markdown, &.FormField-textarea {
+        > div {
+            height: auto;
         }
     }
     
@@ -760,13 +769,11 @@ label[title] {
         input {
             min-width: 150px;
             margin: 0;
-            height: 38px;
         }
         
         button {
             margin: 0px;
             white-space: nowrap;
-            height: 36px;
             padding: var(--input-padding);
             display: inline-flex;
             align-items: center;
@@ -774,6 +781,7 @@ label[title] {
             gap: 6px;
             min-width: 38px;
             border-radius: var(--input-border-radius);
+            border: 1px solid var(--input-border);
             
             i {
                 font-size: 14px;

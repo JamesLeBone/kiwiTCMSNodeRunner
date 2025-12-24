@@ -86,7 +86,6 @@ export default function TestCaseEdit(props: EditProps) {
 
     const actions = [
         { label: "Update Kiwi" },
-        { label: "Format Summary", onClick: formatSummaryText },
         { label: "Clone" }
     ]
     const statusOptions = props.statuses.reduce( (acc, status) => {

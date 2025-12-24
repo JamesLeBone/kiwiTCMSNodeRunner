@@ -2,13 +2,11 @@
 import * as TestCaseStatus from '@server/kiwi/TestCaseStatus'
 // import { fetchList as fetchProductList } from '@server/kiwi/Product'
 import { getDetail } from '@server/kiwi/TestCase'
-import TestCaseLineage from './TestCaseLineage'
 import TestCaseSearch from './search/TestCaseSearch'
 import TestCaseAttachments from './TestCaseAttachments'
 import { kiwiBaseUrl } from '@lib/Functions'
 
 import TestCaseEdit from './TestCaseEdit'
-import TestCaseComments from './Comments'
 
 import { getList as fetchSecurityGroups } from '@server/lib/SecurityGroups'
 
@@ -50,19 +48,13 @@ export default async function TestCase(params: NextPageProps) {
     }
     const statuses = await TestCaseStatus.fetchAll()
     // const products = await fetchProductList()
-
+    
     const kiwiUrl = kiwiBaseUrl()+'/case/'
     const securityGroups = await fetchSecurityGroups()
-
-    const components = response.data.components
-    const tags = response.data.tags
-    const plans = response.data.plans
-    const executions = response.data.executions
+    const testCaseDetail = response.data
     
     return <>
         <TestCaseEdit details={response.data} statuses={statuses} kiwiUrl={kiwiUrl} securityGroups={securityGroups} />
-        <TestCaseLineage testCaseId={testCaseId} script={response.data.testCase.script} children={response.data.children || []} />
-        <TestCaseComments testCaseId={testCaseId} comments={response.data.comments} />
-        <TestCaseAttachments testCaseId={testCaseId} components={components} tags={tags} plans={plans} executions={executions} />
+        <TestCaseAttachments testCaseId={testCaseId} details={testCaseDetail} />
     </>
 }
