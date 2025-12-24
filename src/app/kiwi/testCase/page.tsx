@@ -1,19 +1,16 @@
 'use server'
 import * as TestCaseStatus from '@server/kiwi/TestCaseStatus'
-// import { fetchList as fetchProductList } from '@server/kiwi/Product'
 import { getDetail } from '@server/kiwi/TestCase'
 import TestCaseSearch from './search/TestCaseSearch'
 import TestCaseAttachments from './TestCaseAttachments'
-import { kiwiBaseUrl } from '@lib/Functions'
 
+import { kiwiBaseUrl } from '@lib/Functions'
 import TestCaseEdit from './TestCaseEdit'
 
 import { getList as fetchSecurityGroups } from '@server/lib/SecurityGroups'
 
-const metaData = {
-    title: 'Test Cases'
-}
 export async function generateMetadata(props : NextPageProps) {
+    const metaData = {title: 'Test Cases'}
     const id = (await props.params).id
     if (id) {
         metaData.title = process.env.APP_TITLE + ` - Test case #${id}`

@@ -10,7 +10,8 @@ import type { ProductWithClassificationName } from '@server/kiwi/Product'
 import * as TestCase from '@server/kiwi/TestCase'
 import { Category, listByProduct } from '@server/kiwi/Category'
 import { FormField } from '@/components/FormField'
-import { Selection, SelectionDetailed, selectionOption } from '@/components/Selection'
+import { SelectionDetailed, selectionOption } from '@/components/Selection'
+import ProductSelection from '@/components/kiwi/Products'
 
 import { listPriorities  } from '@server/kiwi/Priority'
 
@@ -18,12 +19,6 @@ type CreateTestCaseProps = {
     statuses: CaseStatus[]
     products: ProductWithClassificationName[]
 }
-type psp = {
-    products: ProductWithClassificationName[]
-    value?: number
-    setProductId: (id: number) => void
-}
-
 const getBooleanFormValue = (formData: FormData, key: string) => {
     const val = formData.get(key) as string
     // Boolean input uses 'true' and 'false' but let's be flexible
@@ -42,23 +37,6 @@ const getFormValues = (formData: FormData) => {
     const priority = getNumericFormValue(formData, 'priority') as number
     const product = getNumericFormValue(formData, 'product') as number
     return { summary, text, isAutomated, caseStatus, category, priority, product }
-}
-
-function ProductSelection({products, value, setProductId} : psp) {
-    const productOptions = products.reduce( (acc, product) => {
-        acc[product.id+''] = product.name
-        return acc
-    }, {} as Record<string,string> )
-
-    const stringValue = value ? value.toString() : undefined
-    const oc = (value: string|number) => {
-        if (typeof value === 'string') value = parseInt(value)
-        setProductId( value )
-    }
-    
-    return <FormField label="Product">
-        <Selection name="product" required={true} options={productOptions} value={stringValue} onChange={oc} />
-    </FormField>
 }
 
 function CategorySelection({options}: {options: selectionOption[]}) {

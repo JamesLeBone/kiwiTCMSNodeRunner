@@ -6,10 +6,8 @@ https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.testrun.html#modu
 */
 import {http,methods} from './Kiwi'
 import { updateOpSuccess, prepareStatus, updateOpError, TypedOperationResult } from '@lib/Operation'
-import * as TestCase from './TestCase'
-import * as Execution from './Execution'
 
-type TestRun = {
+export type TestRun = {
     id: number
     name: string
     createDate: Date

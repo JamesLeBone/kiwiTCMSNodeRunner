@@ -1,5 +1,5 @@
 'use server'
-import type { DjangoEntity } from './Django'
+import { DjangoEntity } from './Django'
 import {http, unAuthenticated} from './Kiwi'
 import { updateOpSuccess, prepareStatus, updateOpError, TypedOperationResult } from '@lib/Operation'
 
@@ -38,8 +38,8 @@ export type DetailedTestPlan = {
         isActive: boolean
     }[]
     testCases: TestCase.TestCase[]
-    parent: { id: number, name: string }
-    runs: any[]
+    parent: { id: number, name: string } | false
+    runs: TestRun.TestRun[]
 }
 
 export type UpdatePlanProps = {
@@ -98,7 +98,7 @@ export const getDetail = async (testPlanId: number) : Promise<TypedOperationResu
     const op = prepareStatus('getDetailedPlan') as TypedOperationResult<DetailedTestPlan>
     const testplan = await fetch(testPlanId)
     if (testplan == null) return op.message = 'Test plan not found', op
-    const detailedTestplan = { ...testplan } as Partial<DetailedTestPlan>
+    const detailedTestplan = { ...testplan, parent: false } as Partial<DetailedTestPlan>
     
     if (typeof testplan.parent == 'number') {
         const parent = await fetch(testplan.parent)
@@ -209,47 +209,43 @@ export const update = async (testPlanId:number, testPlan: Partial<TestPlan>) => 
 
 export const getRuns = async (testPlanId: number) => TestRun.search({plan_id: testPlanId})
 
-type CreateMinimal = {
-    product: number
-    product_version: number
-    name: string
-    text: string
-    type: number
-    parent? : number
-}
 type CreateParams = {
-    product: number
-    product_version: number
+    product: {
+        id: number
+        version: number
+    }
     name: string
     text: string
-    type: number
+    type?: number
     isActive?: boolean
     parent? : number
 }
-
 export const create = async (data: CreateParams) : Promise<TypedOperationResult<TestPlan>> => {
     const login = await http.login()
     if (!login) return unAuthenticated
     
-    const kiwiParams = {
-        product : data.product,
-        product_version : data.product_version,
-        type : data.type,
-        isActive : data.isActive ?? true,
+    // Build params - parent is optional (can be null for top-level test plans)
+    const kiwiParams: any = {
+        product : data.product.id,
+        product_version : data.product.version,
         name: data.name,
-        text: data.text
-    } as CreateParams
-    if (data.parent) kiwiParams.parent = data.parent
+        text: data.text,
+        type : data.type ?? 1,
+        is_active : data.isActive ?? true
+    }
+    
+    // Only include parent if explicitly set
+    if (data.parent !== undefined && data.parent !== null) {
+        kiwiParams.parent = data.parent
+    }
+    
     const op = prepareStatus('createTestPlan') as TypedOperationResult<TestPlan>
     
-    const r = await http.callDjango('TestPlan.create', {values:kiwiParams})
+    await http.callDjango('TestPlan.create', {values:kiwiParams})
         .then(r => {
             updateOpSuccess(op, 'Test plan created')
-            op.data = r.values as TestPlan
-        }, e => {
-            console.error('Failed to create test plan', e)
-            const message = e.message ?? 'Failed to create test plan'
-            updateOpError(op, message)
+            const testPlan = djangoPlan(r)
+            op.data = testPlan
         })
         .catch(e => {
             console.error('Failed to create test plan', e)

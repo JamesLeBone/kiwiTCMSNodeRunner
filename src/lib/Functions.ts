@@ -20,13 +20,22 @@ export const formDataValue = {
         if (v && typeof v === 'string') return v
         return defaultValue
     },
-    getNumber: (formData: FormData, key: string, defaultValue: number=0) : number => {
+    getNumber: (formData: FormData, key: string, defaultValue?: number) : number => {
         const v = formData.get(key)
         if (v && typeof v === 'string') {
             const n = Number.parseInt(v)
             if (!isNaN(n)) return n
         }
-        return defaultValue
+        return defaultValue ?? 0
+    },
+    getOptionalNumber: (formData: FormData, key: string) : number | undefined => {
+        const v = formData.get(key)
+        if (!v) return undefined
+        if (typeof v === 'string') {
+            const n = Number.parseInt(v)
+            if (!isNaN(n)) return n
+        }
+        return undefined
     },
     getBoolean: (formData: FormData, key: string, defaultValue: boolean=false) : boolean => {
         const v = formData.get(key)

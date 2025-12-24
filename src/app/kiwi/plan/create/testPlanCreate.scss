@@ -1,0 +1,10 @@
+#basicInfoFieldset {
+    display: grid;
+    grid-template-columns: auto auto auto;
+}
+
+#productSelectionFieldset {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+}

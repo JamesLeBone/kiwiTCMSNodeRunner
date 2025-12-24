@@ -1,0 +1,13 @@
+.ProductCard {
+  display: inline-block;
+  vertical-align: top;
+}
+.ProductCard.ProductCard-Active h3 {
+  color: var(--highlightColour);
+}
+.ProductCard.ProductCard-Active .addProduct {
+  display: none;
+}
+.ProductCard > div {
+  margin-top: 2em;
+}/*# sourceMappingURL=productCard.css.map */

@@ -98,7 +98,7 @@ type tpr = {
 }
 const TestPlanRow = (props: tpr) => {
     const testPlanId = props.plan.id
-    const path = "/kiwi/plan/"+testPlanId
+    const path = "/kiwi/plan?id="+testPlanId
     
     return <tr>
         <td className="numeric">

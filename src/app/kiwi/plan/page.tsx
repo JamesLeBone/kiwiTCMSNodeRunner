@@ -1,64 +1,31 @@
-'use client'
+'use server'
+import { getDetail } from '@server/kiwi/TestPlan'
+import TestPlanSearch from '@/components/kiwi/TestPlanSearch'
+import TestPlanEdit from './TestPlanEdit'
+import TestPlanAttachments from './TestPlanAttachments'
 
-import { useState } from 'react';
-import * as TestPlan from '@server/kiwi/TestPlan'
-import { CheckboxBoolean } from '@/components/Selection'
+export async function generateMetadata(props : NextPageProps) {
+    const id = (await props.params).id
+    const metaData = {title: process.env.APP_TITLE + ` - Test Plan`}
+    if (id) metaData.title += ` #${id}`
+    return metaData
+}
 
-import { MarkdownSection } from '@/components/MarkDownDisplay'
-import { ComponentSection } from '@/components/ComponentSection'
-import { FormField } from '@/components/FormField'
-// import { InputField } from '@/components/FormField'
-import { ActionBar, ActionButton } from '@/components/Actions'
+export default async function PlanPage(params: NextPageProps) {
+    const searchParams = await params.searchParams
+    if (!searchParams || !searchParams.id) return <TestPlanSearch />
 
-// import styles from './page.module.css'
+    const testPlanId = Number.parseInt(searchParams.id as string)
+    if (isNaN(testPlanId)) return <TestPlanSearch />
 
-// http://localhost:3001/kiwi
-
-export default function PlanPage() {
-    const name = useState('')
-    const isActive = useState(true)
-    const description = useState('')
-    
-    const status = useState('')
-    const link = useState('')
-    
-    const create = () => {
-        const sendData =  {
-            summary:description[0],
-            isActive:isActive[0],
-            name:name[0]
-        }
-        // TestPlan.create(sendData)
-        // .then(serverResponse => {
-        //     if (!serverResponse.status) {
-        //         status[1](`Failed to create test plan: ${serverResponse.message}`)
-        //         return
-        //     }
-        //     const newPlan = serverResponse.message
-
-        //     const testPlandId = newPlan.id
-        //     status[1](`Created test plan ${testPlandId}`)
-        //     window.location.href = `/kiwi/plan/${testPlandId}`
-        //     // link[1](<a href={`/kiwi/plan/${testPlandId}`}>View Test plan {testPlandId}</a>)
-        // })
+    const response = await getDetail(testPlanId)
+    if (!response.status || !response.data) {
+        return <TestPlanSearch />
     }
-    
-    return <main>
-        <ComponentSection header="Test Plan">
-            <div>{status[0]}</div>
-            <fieldset>
-                <FormField label="Name">a
-                </FormField>
-                <FormField label="Is Active?">a
-                </FormField>
-                
-            </fieldset>
-            
-            <MarkdownSection state={description} label="Full description" open={true} />
-            
-            <ActionBar>
-                {link[0]}
-            </ActionBar>
-        </ComponentSection>
-    </main>
+    const testPlan = response.data
+
+    return <>
+        <TestPlanEdit testPlan={testPlan} />
+        <TestPlanAttachments testPlan={testPlan} />
+    </>
 }

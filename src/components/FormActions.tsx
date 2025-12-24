@@ -19,8 +19,10 @@ type FormInputProps = {
     onChange?: (value: string) => void
     step?: number
     style?: React.CSSProperties
+    placeholder?: string
+    maxLength?: number
 }
-export function FormInputField({className,style,label,name,value='', type='text', children, required=false, step, onChange} : FormInputProps) {
+export function FormInputField({className,maxLength,placeholder,style,label,name,value='', type='text', children, required=false, step, onChange} : FormInputProps) {
     const [val,setVal] = useState(value)
 
     const setValAction = (v:string) => {
@@ -40,7 +42,7 @@ export function FormInputField({className,style,label,name,value='', type='text'
     const fieldClassName = (className ? className + ' ' : '') + `FormField-${type}`
 
     return <FormField label={label} className={fieldClassName} style={style}>
-        <ActionInputField name={name} type={type} value={val} step={step} required={required} onChange={setValAction} />
+        <ActionInputField maxLength={maxLength} name={name} type={type} placeholder={placeholder} value={val} step={step} required={required} onChange={setValAction} />
         {children}
     </FormField>
 }

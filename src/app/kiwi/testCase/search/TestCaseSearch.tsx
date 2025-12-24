@@ -4,9 +4,9 @@ import { search, getTestCase } from '@server/kiwi/TestCase'
 import type { TestCase } from '@server/kiwi/TestCase'
 
 import { useState } from 'react';
-import Link from 'next/link'
-import { DynamicTable } from '@/components/DynamicTable'
 import { ComponentSection } from '@/components/ComponentSection'
+
+import TestCaseList from '@/components/kiwi/TestCaseList'
 
 import Form from 'next/form'
 import { useActionState } from 'react'
@@ -60,24 +60,6 @@ export default function TestCaseSearch() {
                 <FormActionBar pendingState={isPending} state={state} actions={[{ label: 'Search' }]} />
             </Form>
         </div>
-        <DynamicTable headers={['ID','Automated','Summary','Status']}>
-            {testCaseList.map(tc => <TestCaseSummary key={tc.id} testCase={tc} />)}
-        </DynamicTable>
+        <TestCaseList cases={testCaseList} />
     </ComponentSection>
-}
-
-
-function TestCaseSummary({testCase} : {testCase: TestCase}) {
-    const path = "/kiwi/testCase?id="+testCase.id
-        
-    const status = testCase.caseStatus.description
-
-    return <tr>
-        <td className="numeric">
-            <Link href={path} style={{padding:'4px'}}>{testCase.id}</Link>
-        </td>
-        <td className="status">{testCase.isAutomated ? 'Automated' : 'Manual'}</td>
-        <td className="textual">{testCase.summary}</td>
-        <td className="status" style={{textAlign:'right',textTransform:'capitalize',paddingRight:'1em'}}>{status}</td>
-    </tr>
 }

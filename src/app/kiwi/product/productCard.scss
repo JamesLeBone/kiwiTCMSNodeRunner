@@ -1,0 +1,14 @@
+.ProductCard {
+    display: inline-block;
+    vertical-align: top;
+    &.ProductCard-Active {
+        h3 {
+            color: var(--highlightColour);
+        }
+        .addProduct { display: none;}
+    }
+    > div {
+        margin-top: 2em;
+    }
+}
+

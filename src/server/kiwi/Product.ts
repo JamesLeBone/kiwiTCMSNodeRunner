@@ -27,6 +27,12 @@ export type Classification = {
     name: string
 }
 
+export type Version = {
+    id: number,
+    value: string,
+    product: number
+}
+
 const djangoProduct = async (p: Product) : Promise<ProductWithClassificationName> => {
     const classificationId = p.classification
     const classification = await http.getEntity<Classification>('Classification', classificationId)
@@ -138,4 +144,63 @@ export const fetchClassifications = async () : Promise<Classification[]> => {
     .catch( e => [] )
     // console.debug('Product Classifications', classifications)
     return classifications
+}
+
+export const getProductVersions = async (productId: number) : Promise<TypedOperationResult<Version[]>> => {
+    const login = await http.login()
+    if (!login) return unAuthenticated
+    
+    const op = prepareStatus('getProductVersions') as TypedOperationResult<Version[]>
+    
+    const versions = await http.search('Version', {product: productId}, false)
+    .then( djlist => {
+        const versionList = djlist.map( (dj: DjangoEntity) => dj.values as Version )
+        updateOpSuccess(op, 'Product versions retrieved successfully')
+        op.data = versionList
+        return versionList
+    })
+    .catch( e => {
+        const message = e.message ?? 'Failed to fetch product versions'
+        updateOpError(op, message)
+        return []
+    })
+    
+    return op
+}
+
+export const fetchProductVersions = async (productId: number) : Promise<Version[]> => {
+    const versions = await http.searchEntity<Version>('Version', {product: productId}, false)
+    .catch( e => {
+        console.error('Failed to fetch product versions', e)
+        return []
+    } )
+    return versions
+}
+
+export const createVersion = async (value: string, productId: number) : Promise<TypedOperationResult<Version>> => {
+    const login = await http.login()
+    if (!login) return unAuthenticated
+    
+    const op = prepareStatus('createVersion') as TypedOperationResult<Version>
+    
+    const versionProps = {
+        value,
+        product: productId
+    }
+    
+    const newVersion = await http.callDjango('Version.create', {values: versionProps})
+    .then( result => {
+        const version = result.values as Version
+        console.debug('Created Version', version)
+        updateOpSuccess(op, 'Version created successfully')
+        op.data = version
+        return version
+    })
+    .catch( e => {
+        console.error('Failed to create version', e)
+        updateOpError(op, 'Failed to create version: ' + (e.message || 'Unknown error'))
+        return null
+    })
+    
+    return op
 }
