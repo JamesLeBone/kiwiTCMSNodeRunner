@@ -57,8 +57,12 @@ This is to be a folio peice to demonstrate my ability to work with APIs, NodeJs 
 ## Kiwi TCMS
 
 https://kiwitcms.org/
-
 "The leading open source test management system"
+
+### Modifications to Kiwi TCMS
+
+1. Added a script prefix field so all test cases can inherit a prefixed string (`script_prefix = models.TextField(blank=True)`)
+2. Added a product edit API endpoint to modify this prefix
 
 ## Author
 
