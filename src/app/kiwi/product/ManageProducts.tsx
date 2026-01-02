@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useActionState } from 'react'
 import { FormInputField, FormActionBar, validationError, blankStatus } from '@/components/FormActions'
 
-import {  ProductWithClassificationName, Version, create, createVersion, fetchClassifications, fetchProductVersions } from '@server/kiwi/Product'
+import {  ProductWithClassificationName, create, fetchClassifications } from '@server/kiwi/Product'
 
 type AddProductFormProps = {
     addProduct: (p: ProductWithClassificationName) => void
@@ -37,12 +37,15 @@ export function ProductCard(props : pcprops) {
     }
 
     return <div className={className}>
-        <h3>{name}</h3>
-        <p className="card-text">{description}</p>
-        <i>{classificationName}</i>
-        <div>
-            <Link className='addProduct' onClick={setActiveProduct} href={`/kiwi/product`}>Load</Link>
+        <div className='padded'>
+            <h3>{name}</h3>
+            <p className="card-text">{description}</p>
+            <i>{classificationName}</i>
         </div>
+        <footer>
+            <Link href={'/kiwi/product?id='+productId}>Edit</Link>
+            <Link className='addProduct' onClick={setActiveProduct} href={`/kiwi/product`}>Load</Link>
+        </footer>
     </div>
 }
 
@@ -74,7 +77,19 @@ function AddProductForm({addProduct} : AddProductFormProps) {
 
             // Call server to create product
             const op = await create(name, description, classification)
-            if (op.status && op.data) addProduct(op.data)
+            if (op.status && op.data) {
+                // If a string was entered for classification, update local options
+                const isNewClassification = typeof classifications[classification] === 'undefined'
+                if (isNewClassification) {
+                    const classificationId = op.data.classification + ''
+                    setClassifications( prev => {
+                        const newCls = { ...prev }
+                        newCls[classificationId] = classification
+                        return newCls
+                    })
+                }
+                addProduct(op.data)
+            }
             return op
         }
         , blankStatus(operationId)
@@ -98,7 +113,13 @@ type pprops = {
     activeProductId?: number
 }
 export function Products(props: pprops) {
-    return <div>
+    const styles = {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, 300px)',
+        justifyContent: 'start',
+        gap: '18px'
+    }
+    return <div style={styles}>
         { props.productList.map( (product) => {
             const isActive = (props.activeProductId && props.activeProductId == product.id) ? true : false
             const key = product.id + '_ ' + (isActive ? 'active' : 'inactive')
@@ -107,75 +128,9 @@ export function Products(props: pprops) {
     </div>
 }
 
-function ProductVersionList({versions} : {versions: Version[]}) {
-    if (versions.length === 0) {
-        return <em>No versions</em>
-    }
-    return <ul className='basic'>
-        { versions.map( v => 
-            <div key={v.id} title={v.id+''}>{v.value}</div>
-        ) }
-    </ul>
-}
-
-type apv = {
-    productName: string
-    productId: number
-    addVersion: (version: Version) => void
-}
-function AddProductVersion({productName, productId, addVersion} : apv) {
-    const operationId = 'addProductVersion'
-    
-    const [state, formaction, isPending] = useActionState(
-        async (prevState: any, formData: FormData) => {
-            const value = formData.get('value') as string
-
-            if (!value || value.trim().length === 0) {
-                return validationError(operationId, 'Version value is required')
-            }
-
-            // Call server to create version
-            const op = await createVersion(value, productId)
-            if (op.status && op.data) {
-                addVersion(op.data)
-            }
-            return op
-        },
-        blankStatus(operationId)
-    )
-
-    return <ComponentSection header={`Add ${productName} Version`}>
-        <Form action={formaction}>
-            <fieldset>
-                <FormInputField label="Version" name="value" placeholder="e.g., 1.0, 2.0, main, devel" required={true} />
-            </fieldset>
-            <FormActionBar pendingState={isPending} state={state} actions={[{label:'Add Version'}]} />
-        </Form>
-    </ComponentSection>
-}
-
-type pvp = {
-    product: ProductWithClassificationName | null
-    addVersion: (version: Version) => void
-    versions: Version[]
-}
-function ProductVersions(props : pvp) {
-    if (!props.product) return <></>
-
-    const productName = props.product.name
-
-    return <>
-        <ComponentSection header={productName + " Versions"}>
-            <ProductVersionList versions={props.versions} />
-        </ComponentSection>
-        <AddProductVersion productName={productName} productId={props.product.id} addVersion={props.addVersion} />
-    </>
-}
-
 export default function ManageProducts({productList} :{productList: ProductWithClassificationName[]}) {
     const [products, setProducts] = useState<ProductWithClassificationName[]>(productList)
     const [activeProduct, setActiveProduct] = useState<ProductWithClassificationName|null>(null)
-    const [versionList,setVersionList] = useState<Version[]>([])
 
     useEffect( () => {
         const storedProductId = window.localStorage.getItem('activeProduct')
@@ -190,17 +145,6 @@ export default function ManageProducts({productList} :{productList: ProductWithC
         // console.debug('Setting active product to', activeProduct)
         setActiveProduct( activeProduct )
     }
-    const addVersion = (version: Version) => setVersionList([...versionList, version])
-
-    useEffect( () => {
-        if (!activeProduct) {
-            setVersionList([])
-            return
-        }
-        fetchProductVersions(activeProduct.id).then( vr => {
-            setVersionList(vr)
-        })
-    }, [activeProduct] )
 
     return <div>
         <Products productList={products} activeProductId={activeProduct?.id} setActiveProductId={setActiveProductId} />
@@ -208,6 +152,5 @@ export default function ManageProducts({productList} :{productList: ProductWithC
             setProducts([...products, p])
             setActiveProduct(p)
         }} />
-        <ProductVersions product={activeProduct} versions={versionList} addVersion={addVersion} />
     </div>
 }

@@ -3,7 +3,7 @@ import CredentialTypeList from './CredentialTypeList'
 import CredentialList from './CredentialList'
 import { getCredentialTypes, listUserCredentials } from '@server/Credentials'
 
-export async function metadata() {
+export async function generateMetadata() {
     const title = process.env.APP_TITLE
     return { 
         title: `${title} - Credentials`

@@ -46,3 +46,9 @@ export const fetchCategories = async (dtls : Partial<Category>) : Promise<Catego
     const categories = await http.searchEntity<Category>('Category', dtls, false)
     return categories
 }
+
+export const fetchCategory = async (id: number) : Promise<Category | null> => {
+    const category = await http.getEntity<Category>('Category', id)
+    if (!category) return null
+    return djangoCategory(category)
+}

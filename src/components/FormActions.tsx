@@ -21,8 +21,9 @@ type FormInputProps = {
     style?: React.CSSProperties
     placeholder?: string
     maxLength?: number
+    title?: string
 }
-export function FormInputField({className,maxLength,placeholder,style,label,name,value='', type='text', children, required=false, step, onChange} : FormInputProps) {
+export function FormInputField({className,maxLength,placeholder,style,label,title,name,value='', type='text', children, required=false, step, onChange} : FormInputProps) {
     const [val,setVal] = useState(value)
 
     const setValAction = (v:string) => {
@@ -41,7 +42,7 @@ export function FormInputField({className,maxLength,placeholder,style,label,name
 
     const fieldClassName = (className ? className + ' ' : '') + `FormField-${type}`
 
-    return <FormField label={label} className={fieldClassName} style={style}>
+    return <FormField label={label} title={title} className={fieldClassName} style={style}>
         <ActionInputField maxLength={maxLength} name={name} type={type} placeholder={placeholder} value={val} step={step} required={required} onChange={setValAction} />
         {children}
     </FormField>
@@ -50,7 +51,7 @@ export function FormInputField({className,maxLength,placeholder,style,label,name
 type FormSelectionProps = {
     label: string
     name: string
-    value?: string
+    value?: string | number
     required?: boolean
     children?: React.ReactNode
     options: Record<string, string>
@@ -106,10 +107,16 @@ export function ActionInputField({name, onChange, value='', type='text', ...prop
     return <input name={name} type={type} value={val as string} onChange={(e) => changeEvent(e)} {...props} />
 }
 
+export type FormAction = {
+    label: string
+    id?: string
+    onClick?: () => void
+}
+
 type FormActionBarProps = {
     pendingState: boolean
     state: OperationResult
-    actions: { label: string, id?: string, onClick?: () => void }[] | string
+    actions: FormAction[] | string
 }
 export function FormActionBar({pendingState, state, actions} : FormActionBarProps) {
     if (typeof actions === 'string' && actions.length) {

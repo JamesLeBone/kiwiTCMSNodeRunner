@@ -8,14 +8,15 @@ import {
     unAuthenticated
 } from './Kiwi'
 import { updateOpError, updateOpSuccess, TypedOperationResult, StatusOperation, prepareStatus } from '@lib/Operation'
-import { BasicRecord, DjangoEntity } from './Django'
-import { update } from '@server/lib/Credentials'
+import { DjangoEntity } from './Django'
+import { update } from '@server/Users'
 
 export type Product = {
-    id: number,
-    name: string,
-    description: string,
+    id: number
+    name: string
+    description: string
     classification: number
+    scriptPrefix?: string
 }
 
 export type ProductWithClassificationName = Product & {
@@ -46,8 +47,29 @@ const djangoProduct = async (p: Product) : Promise<ProductWithClassificationName
     return obj
 }
 
-const destermineClassificationId = async (classification: number|string) : Promise<number|null> => {
+const determineClassificationId = async (classification: number|string, op: TypedOperationResult<ProductWithClassificationName>) : Promise<number|null> => {
     if (typeof classification === 'number') return classification
+    if (!classification) {
+        updateOpError(op, 'Classification is required')
+        return null
+    }
+    if (typeof classification === 'string') {
+        if (classification.trim().length > 64) {
+            updateOpError(op, 'Classification name is too long (max 64 characters)')
+            return null
+        }
+        if (classification.trim().length === 0) {
+            updateOpError(op, 'Classification name is required')
+            return null
+        }
+    }
+
+    const exisitng = await fetchClassifications()
+    .then( clsList => clsList.find( cls => cls.name.toLowerCase() === (classification as string).toLowerCase() ) )
+    if (exisitng) {
+        return exisitng.id
+    }
+
     const createClassification = await http.callDjango('Classification.create', {values: {
         name: classification
     }})
@@ -58,6 +80,7 @@ const destermineClassificationId = async (classification: number|string) : Promi
     })
     .catch( e => {
         console.error('Failed to create classification', e)
+        updateOpError(op, 'Failed to create classification: ' + (e.message ?? 'Unknown error'))
         return null
     } )
     return createClassification
@@ -66,17 +89,22 @@ const destermineClassificationId = async (classification: number|string) : Promi
 export const create = async (name: string, description: string, classification: number|string) : Promise<TypedOperationResult<ProductWithClassificationName>> => {
     const login = await http.login()
     if (!login) return unAuthenticated
-
-    // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.classification.html#module-tcms.rpc.api.classification
-    const classificationId = await destermineClassificationId(classification)
-    if (classificationId === null) {
-        const opFail = prepareStatus('createClassification') as TypedOperationResult<ProductWithClassificationName>
-        updateOpError(opFail, 'Failed to create new classification')
-        return opFail
-    }
-
     // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.product.html#module-tcms.rpc.api.product
     const op:TypedOperationResult<ProductWithClassificationName> = prepareStatus('createProduct')
+
+    if (typeof classification === 'string') {
+        if (classification.trim().length > 64) {
+            return updateOpError(op, 'Classification name is too long (max 64 characters)')
+        }
+        if (classification.trim().length === 0) {
+            return updateOpError(op, 'Classification name is required')
+        }
+    }
+
+    // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.classification.html#module-tcms.rpc.api.classification
+    const classificationId = await determineClassificationId(classification, op)
+    if (classificationId === null) return op
+
     const productProps: Partial<Product> = {
         name,
         description,
@@ -118,12 +146,13 @@ export const getList = async () : Promise<TypedOperationResult<ProductWithClassi
 export const fetchList = async (searchParams? : Partial<Product>) : Promise<ProductWithClassificationName[]> => {
     const filter = searchParams || {}
     const pl = await http.searchEntity<Product>('Product', filter)
-    .then( djlist => Promise.all(
-        djlist.map( product => djangoProduct(product) ) 
-    ))
-    .catch( e => null )
-    if (!pl) return []
-    
+    .then(
+        djlist => Promise.all( djlist.map( dj => djangoProduct(dj) ) ),
+        err => {
+            console.error('Failed to fetch product list', err)
+            return []
+        }
+    )
     return pl
 }
 
@@ -131,12 +160,47 @@ export const fetch = async (productId: number) : Promise<ProductWithClassificati
     const p =  await http.getEntity<Product>('Product', productId)
     .then( async product => {
         if (!product) return null
+        console.debug('Fetched Product raw', product)
         const pwcn = await djangoProduct(product)
         return pwcn
     })
     .catch( e => null )
     return p
 }
+
+export const updateProduct = async (productId: number, name:string, description:string, classification: number|string, scriptPrefix:string) : Promise<TypedOperationResult<ProductWithClassificationName>> => {
+    const login = await http.login()
+    if (!login) return unAuthenticated
+
+    const op = prepareStatus('updateProduct') as TypedOperationResult<ProductWithClassificationName>
+
+    // https://kiwitcms.readthedocs.io/en/latest/modules/tcms.rpc.api.classification.html#module-tcms.rpc.api.classification
+    const classificationId = await determineClassificationId(classification, op)
+    if (classificationId === null) return op
+    const updates = {
+        name,
+        description,
+        classification: classificationId,
+        script_prefix: scriptPrefix
+    }
+    console.debug('Updating Product', productId, updates)
+
+    const updatedProduct = await http.update('Product', productId, 'product_id', updates)
+    .catch( e => {
+        console.error('Failed to update product', e)
+        updateOpError(op, 'Failed to update product: ' + (e.message || 'Unknown error'))
+        return null
+    } )
+    if (!updatedProduct) return op
+    // console.debug('Updated Product raw', updatedProduct)
+
+    // const dbc = 
+    updateOpSuccess(op, 'Product updated successfully')
+    // op.data = true?
+    return op
+}
+
+
 
 export const fetchClassifications = async () : Promise<Classification[]> => {
     const classifications = await http.search('Classification', {})

@@ -7,6 +7,7 @@ import type {
     SessionList as SessionDataList
     , SessionDetail
 } from '@server/Sessions'
+import { DynamicTable } from '@/components/DynamicTable'
 
 import { useState, useEffect } from 'react'
 import { logout } from '../actions'
@@ -55,9 +56,9 @@ type slp = {
 function SessionList({sessionList, removeItem }: slp) {
     const deactivate = (id:number) => removeItem(id)
 
-    return <tbody>
-        {sessionList.list.map((s,i) => <SessionRow key={i} isCurrent={s.id === sessionList.currentSessionId} session={s} deactivateFn={deactivate} />)}
-    </tbody>
+    return sessionList.list.map((s,i) => 
+        <SessionRow key={i} isCurrent={s.id === sessionList.currentSessionId} session={s} deactivateFn={deactivate} />
+    )
 }
 
 type sessionDisplayItem = {
@@ -90,19 +91,12 @@ export default function SessionManagement() {
         })
     }
 
+    const headers = ['ID','User Agent','IP Address','Expires At','Actions']
+
     return <ComponentSection header='Session Management' className={['session-management']}>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User Agent</th>
-                    <th>IP Address</th>
-                    <th>Expires At</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+        <DynamicTable headers={headers}>
             <SessionList sessionList={sessionState} removeItem={removeItem} />
-        </table>
+        </DynamicTable>
         <form onSubmit={logout} >
             <ActionBar>
                 <input type='submit' value='Log out' />

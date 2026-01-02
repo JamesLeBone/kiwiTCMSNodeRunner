@@ -4,8 +4,9 @@ import { readFileSync } from 'fs'
 import { db, check } from '@server/db/Database'
 import * as Users from '@server/lib/Users'
 import { emailRecipient, send } from '@server/lib/Email'
+import * as kdb from '@server/kiwi/KiwiDb'
 
-import { Operation, StatusOperation, TypedOperationResult } from '@lib/Operation'
+import { Operation, prepareStatus, StatusOperation, TypedOperationResult } from '@lib/Operation'
 
 export async function dbReady() : Promise<Operation> {
     const r = await check()
@@ -162,4 +163,13 @@ export async function sendEmail(recipient: emailRecipient) : Promise<StatusOpera
     op.statusType = res.success ? 'success' : 'error'
 
     return op
+}
+
+
+export async function verifyKiwiDbConnection() : Promise<StatusOperation> {
+    return await kdb.verifyConnection()
+}
+
+export async function verifyKiwiDbSchema() : Promise<StatusOperation> {
+    return await kdb.updateSchema()
 }

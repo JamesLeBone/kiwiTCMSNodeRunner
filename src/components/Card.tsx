@@ -1,7 +1,7 @@
 import React from 'react'
 import { ActionBar } from './Actions'
 
-typeps = {
+type CardProps = {
     header: React.ReactNode
     children: React.ReactNode
     actions?: React.ReactNode

@@ -51,7 +51,7 @@ export const checkDate = (value: any): Date | any => {
  * - handle JSON fields
  * - ensure Zulu timezone designators
  */
-class DjangoEntity {
+export class DjangoEntity {
     values: BasicRecord = {}
     
     constructor(values: BasicRecord = {}, type='django') {
@@ -169,8 +169,4 @@ class DjangoEntity {
         }
         return newObject
     }
-}
-
-export {
-    DjangoEntity
 }

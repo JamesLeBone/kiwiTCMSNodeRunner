@@ -5,7 +5,7 @@ import * as Users from '@server/lib/Users'
 import { redirect } from 'next/navigation'
 import { UserEdit } from './UserEdit'
 
-export async function metadata() {
+export async function generateMetadata() {
     const title = process.env.APP_TITLE
     return { 
         title: `${title} - Edit User`

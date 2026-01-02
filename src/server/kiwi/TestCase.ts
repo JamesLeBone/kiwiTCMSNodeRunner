@@ -14,7 +14,7 @@ import { BasicRecord, DjangoEntity, htmlEntityDecode } from './Django'
 import { fetch as fetchComments, Comment } from './Comments'
 import { componentCases, AmalgomatedComponent } from './Component'
 import * as Tag from './Tag'
-import { fetchCategories } from './Category'
+import { Category, fetchCategories, fetchCategory } from './Category'
 import { search as searchExecutions, TestExecution } from './Execution'
 import { search as searchPlan, TestPlan } from './TestPlan'
 
@@ -113,7 +113,6 @@ export const search = async (params: Partial<SearchParams>) : Promise<TypedOpera
         return []
     })
     if (!results.length) return op
-    // console.debug('results',results)
 
     op.data = await Promise.all( results.map(result => django2Case(result)) )
     // console.debug('results - converted',op.data)
@@ -350,6 +349,7 @@ export type TestCaseDetail = {
     attachments: BasicRecord[]
     executions: TestExecution[]
     plans: TestPlan[]
+    category: Category | null
 }
 export const getDetail = async (testCaseId:number) : Promise<TypedOperationResult<TestCaseDetail>> => {
     const op = { id : 'getTestCaseDetail', status: false, message: '', statusType: 'blank' } as TypedOperationResult<any>
@@ -369,6 +369,8 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
     const executions = await fetchExecutions(testCaseId)
     const plans = await fetchPlans(testCaseId)
 
+    const category = await fetchCategory(testCase.category.id)
+
     const detailObject: TestCaseDetail = {
         testCase,
         components,
@@ -377,7 +379,8 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
         comments,
         attachments,
         executions,
-        plans
+        plans,
+        category
     }
     updateOpSuccess(op, 'Test Case detail fetched successfully')
     op.data = detailObject

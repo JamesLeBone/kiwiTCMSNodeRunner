@@ -3,11 +3,15 @@ import * as lib from './lib/Users'
 import * as Auth from './Auth'
 import { TypedOperationResult } from '@lib/Operation'
 
-const verifyToken = async (userId:number, accessToken:string) => lib.verifyToken(userId, accessToken)
+export async function verifyToken(userId:number, accessToken:string) {
+    return lib.verifyToken(userId, accessToken)
+}
 
-const resetPassword = (email:string) => lib.resetPassword(email)
+export async function resetPassword(email:string) {
+    return lib.resetPassword(email)
+}
 
-const setPassword = async (userId:number, password:string, verifyPassword:string, accessToken:string) : Promise<TypedOperationResult<lib.verifiedUser>> => {
+export async function setPassword(userId:number, password:string, verifyPassword:string, accessToken:string) : Promise<TypedOperationResult<lib.verifiedUser>> {
     const vfUser = await lib.verifyToken(userId, accessToken)
     if (!vfUser.status || vfUser.data == null) {
         return {
@@ -38,17 +42,15 @@ type CreateUserParams = {
     username: string
 }
 
-const create = (user: CreateUserParams) => lib.create(user.username,user.firstName, user.lastName, user.email)
+export async function create(user: CreateUserParams) {
+    return lib.create(user.username,user.firstName, user.lastName, user.email)
+}
 
-const update = (userId:number, lastName:string, firstName:string, email:string, username:string|null) => lib.update(userId, lastName, firstName, email, username)
+export async function update(userId:number, lastName:string, firstName:string, email:string, username:string|null) {
+    return lib.update(userId, lastName, firstName, email, username)
+}
 
-const promptPasswordReset = (userId:number) => lib.promptPasswordReset(userId)
-export {
-    verifyToken,
-    setPassword,
-    resetPassword,
-    promptPasswordReset,
-    create,
-    update
+export async function promptPasswordReset(userId:number) {
+    return lib.promptPasswordReset(userId)
 }
 

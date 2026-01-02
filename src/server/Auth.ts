@@ -3,12 +3,11 @@ import { cookies } from 'next/headers.js'
 import * as Users from './lib/Users'
 import * as Sessions from './lib/Sessions'
 import { getCurrentUser } from '@server/lib/Auth'
-import { cache } from 'react'
 
 // Use this
 import { Operation, TypedOperationResult } from '../lib/Operation'
 
-async function logout() : Promise<Operation> {
+export async function logout() : Promise<Operation> {
     const cookieStore = await cookies()
     // cookieStore.clear() // Clear all cookies
     cookieStore.delete('sessionId')
@@ -31,7 +30,7 @@ export type loginCredentails = {
     password: string
 }
 
-async function login({ username, password }: loginCredentails) {
+export async function login({ username, password }: loginCredentails) {
     const op = {
         id: 'login',
         status: false,
@@ -66,18 +65,11 @@ async function login({ username, password }: loginCredentails) {
 }
 
 // Cache the current user for the duration of the request
-const currentUser = cache(async () => getCurrentUser())
+export const currentUser = async () => getCurrentUser()
 // Get the current user ID for the duration of the request
-const getUserId = cache(async () => {
+export const getUserId = async () => {
     const u = await getCurrentUser()
     if (!u.data) return null
     return u.data.userId
-})
-
-export {
-    login,
-    logout,
-    currentUser,
-    getUserId
 }
 

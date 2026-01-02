@@ -187,6 +187,9 @@ input[type=file]::file-selector-button {
   cursor: pointer;
 }
 
+.DynamicTable {
+  overflow: auto;
+}
 .DynamicTable > table {
   width: 100%;
 }
@@ -291,6 +294,10 @@ a {
 a:hover {
   background-color: var(--panelBackground);
 }
+a.inline {
+  margin: 0px;
+  padding: 0px;
+}
 
 html {
   min-width: 320px;
@@ -301,11 +308,18 @@ html {
 
 .Well {
   margin: 8px;
-  padding: var(--componentPadding);
   background-color: var(--panelBackground);
 }
-.Well > h3 {
+.Well h3 {
   margin-top: 0px;
+}
+.Well footer {
+  margin-top: var(--componentPadding);
+  background-color: var(--panelBackground);
+}
+
+.padded {
+  padding: var(--componentPadding);
 }
 
 ul.basic {
@@ -703,6 +717,8 @@ label[title] {
 }
 .FormField.no-input > div {
   border-style: none;
+  height: auto;
+  min-height: 33px;
   padding: 4px 0px;
 }
 

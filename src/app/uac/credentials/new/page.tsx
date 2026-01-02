@@ -3,7 +3,7 @@ import { getCredentialTypes } from '@server/Credentials'
 import { redirect } from 'next/navigation'
 import CreateCredential from './CreateCredential'
 
-export async function metadata() {
+export async function generateMetadata() {
     const title = process.env.APP_TITLE
     return { 
         title: `${title} - Create Credential`

@@ -24,6 +24,19 @@ import Form from 'next/form'
 import Link from 'next/link'
 import type { SecurityGroup } from '@server/lib/SecurityGroups'
 
+const getCategoryName = (props: EditProps) : string => {
+    const category = props.details.category
+    if (!category) return 'Unknown'
+    return category.name == '--default--' ? 'Default' : category.name
+}
+const getScriptPrefix = (details: TestCase.TestCaseDetail) : string => {
+    const category = details.category
+    if (!category) return ''
+    const product = category.productRecord
+    if (!product) return ''
+    return product.scriptPrefix || ''
+}
+
 type EditProps = {
     details: TestCase.TestCaseDetail
     statuses: CaseStatus[]
@@ -98,12 +111,19 @@ export default function TestCaseEdit(props: EditProps) {
         return acc
     }, { '' : 'None' } as Record<string,string> )
 
+    const categoryName = getCategoryName(props)
+    const scriptPrefix = getScriptPrefix(props.details)
+
     return <div>
         <ComponentSection header='Test Case Edit' style={{display:'grid'}} id="testCaseEditForm">
             <Form action={formAction}>
                 <fieldset id={pageStyles.identifiers}>
-                    <span>Test Case: {id}</span>
-                    <Link href={props.kiwiUrl + id} target="kiwi" rel="external">Kiwi</Link>
+                    <FormField label="ID" className='no-input'>{id}</FormField>
+                    <FormField label="Kiwi TCMS URL" className='no-input'>
+                        <Link className='inline' href={props.kiwiUrl + id} target="kiwi" rel="external">Kiwi</Link>
+                    </FormField>
+                    <FormField label="Category" className='no-input'>{categoryName}</FormField>
+                    <FormField label="Product" className='no-input'>{props.details.category?.productRecord?.name}</FormField>
                 </fieldset>
                 <fieldset id={pageStyles.fields}>
                     <FormInputField className='input-button' label="Summary" value={summary} name="summary" required={true}>
@@ -115,8 +135,12 @@ export default function TestCaseEdit(props: EditProps) {
                     <MarkdownSection name="description" className={pageStyles.MarkdownEditor} label="Description" state={textState} />
                 </fieldset>
                 <fieldset>
-                    <legend>Arguments</legend>
-                    <ArgumentEditor hook={tcArgs} />
+                    <FormField label="Script Prefix" className='no-input'>
+                        <pre>{scriptPrefix}</pre>
+                    </FormField>
+                    <FormField label='Arguments' className='no-input'>
+                        <ArgumentEditor hook={tcArgs} />
+                    </FormField>
                 </fieldset>
                 <fieldset id={pageStyles.audit}>
                     <FormField label="Created" className='no-input'>

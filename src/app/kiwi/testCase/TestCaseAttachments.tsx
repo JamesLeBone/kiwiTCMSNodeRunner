@@ -11,6 +11,8 @@ import { useState } from 'react'
 import { TestCaseDetail } from '@server/kiwi/TestCase'
 import TestCaseLineage from './TestCaseLineage'
 
+import { ComponentList, ComponentSearch } from '@/components/kiwi/Component'
+
 import KiwiComments from '@/components/kiwi/KiwiComments'
 
 type TestCaseAttachmentsProps = {
@@ -35,9 +37,17 @@ export default function TestCaseAttachments(props: TestCaseAttachmentsProps) {
 }
 
 function ComponentSection({components}: {components: Array<AmalgomatedComponent>}) {
-    if (components.length === 0) return <div>No components attached.</div>
+    const [associatedComponents, setAssociatedComponents] = useState<AmalgomatedComponent[]>(components)
+
+    const onRowClick = (component: AmalgomatedComponent) => {
+        // Avoid duplicates
+        if (associatedComponents.find(c => c.id === component.id)) return
+        setAssociatedComponents([...associatedComponents, component])
+    }
+
     return <div>
-        Components Section
+        <ComponentList componentList={associatedComponents} />
+        <ComponentSearch onRowClick={onRowClick} />
     </div>
 }
 

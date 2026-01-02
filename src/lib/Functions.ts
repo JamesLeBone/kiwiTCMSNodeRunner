@@ -15,6 +15,11 @@ export function kiwiBaseUrl() : string {
 }
 
 export const formDataValue = {
+    /**
+     * Get string value from FormData
+     * Formdata values are of type FormDataEntryValue which is string | File
+     * so if it's not a file, it's a string.
+     */
     getString: (formData: FormData, key: string, defaultValue: string='') : string => {
         const v = formData.get(key)
         if (v && typeof v === 'string') return v

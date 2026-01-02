@@ -9,7 +9,7 @@ import { Operation, StatusOperation, TypedOperationResult, unauthorised } from '
 import { credentialType } from './lib/CredentialTypes'
 
 // Exported
-const addCredential = async (credential:credentialFieldSet, credentialTypeId:number = 1) : Promise<Operation> => {
+export async function addCredential(credential:credentialFieldSet, credentialTypeId:number = 1) : Promise<Operation> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
@@ -17,7 +17,7 @@ const addCredential = async (credential:credentialFieldSet, credentialTypeId:num
     return credentials.addCredential(userId, credential, credentialTypeId)
 }
 
-const updateCredential = async (userCredentialId:number, credential:credentialFieldSet) : Promise<Operation> => {
+export async function updateCredential(userCredentialId:number, credential:credentialFieldSet) : Promise<Operation> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
@@ -32,7 +32,7 @@ const updateCredential = async (userCredentialId:number, credential:credentialFi
     return credentials.update(userCredentialId,credential)
 }
 
-const deleteCredential = async (userCredentialId:number) : Promise<Operation> => {
+export async function deleteCredential(userCredentialId:number) : Promise<Operation> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
@@ -51,7 +51,7 @@ const deleteCredential = async (userCredentialId:number) : Promise<Operation> =>
     }
 }
 
-const getCredentials = async (userCredentialId:number) : Promise<TypedOperationResult<credentials.decryptedCredentialDetails>> => {
+export async function getCredentials(userCredentialId:number) : Promise<TypedOperationResult<credentials.decryptedCredentialDetails>> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
@@ -72,14 +72,14 @@ const getCredentials = async (userCredentialId:number) : Promise<TypedOperationR
         data: creds
     }
 }
-const getFirstCredentialOfType = async (credentialTypeId:number) : Promise<credentials.decryptedCredentialDetails | null> => {
+export async function getFirstCredentialOfType(credentialTypeId:number) : Promise<credentials.decryptedCredentialDetails | null> {
     const login = await getCurrentUser()
     if (!login.data) return null
     const userId = login.data.userId
     return await credentials.getFirstCredentialOfType(userId, credentialTypeId)
 }
 
-const listUserCredentials = async () : Promise<TypedOperationResult<credentials.userCredentialList>> => {
+export async function listUserCredentials() : Promise<TypedOperationResult<credentials.userCredentialList>> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
@@ -100,34 +100,20 @@ const listUserCredentials = async () : Promise<TypedOperationResult<credentials.
     return op
 }
 
-const getCredentialTypes = async () : Promise<credentialType[]> => {
+export async function getCredentialTypes() : Promise<credentialType[]> {
     const login = await getCurrentUser()
     if (!login.data) return []
     return credentialTypes.getTypes()
 }
 
-const addNewType = async (description:string, fields:credentialFieldSet) : Promise<StatusOperation> => {
+export async function addNewType(description:string, fields:credentialFieldSet) : Promise<StatusOperation> {
     const login = await getCurrentUser()
     if (!login.data) return { ...unauthorised, statusType: 'error' }
     return credentialTypes.addType(description, fields)
 }
-const deleteType = async (credentialTypeId:number) : Promise<Operation> => {
+export async function deleteType(credentialTypeId:number) : Promise<Operation> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     return credentialTypes.deleteType(credentialTypeId)
-}
-
-export {
-    // Export to frontend call
-    addCredential,
-    updateCredential,
-    deleteCredential,
-    getCredentials,
-    getFirstCredentialOfType,
-    listUserCredentials,
-    // Type management
-    getCredentialTypes,
-    addNewType,
-    deleteType
 }
 

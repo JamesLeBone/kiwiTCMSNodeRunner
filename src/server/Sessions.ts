@@ -15,7 +15,7 @@ export type SessionDetail = {
     createdAt?: string
 }
 
-const list = async (): Promise<SessionList> => {
+export async function list(): Promise<SessionList> {
     const user = await currentUser()
     if (!user) return {list: []}
 
@@ -39,15 +39,10 @@ const list = async (): Promise<SessionList> => {
         currentSessionId: sessionId
     }
 }
-const deactivate = async (id:number) => {
+export async function deactivate(id:number) : Promise<boolean> {
     const user = await currentUser()
     if (!user) return false
 
     const {userId} = user
     return Sessions.deactivate(userId, id)
-}
-
-export {
-    list,
-    deactivate
 }

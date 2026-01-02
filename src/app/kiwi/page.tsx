@@ -3,7 +3,7 @@ import { Products as ProductList } from './product/ManageProducts'
 import * as Products from '@server/kiwi/Product'
 import { redirect } from 'next/navigation'
 
-export async function metadata() {
+export async function generateMetadata() {
     const title = process.env.APP_TITLE
     return { 
         title: `${title}`

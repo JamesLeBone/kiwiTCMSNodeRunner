@@ -46,13 +46,13 @@ function rawDbRow2User(row:any) : dbUserRecord {
     } as dbUserRecord
 }
 
-const getUserByUsername = async (username:string) : Promise<dbUserRecord | null> => {
+export async function getUserByUsername(username:string) : Promise<dbUserRecord | null> {
     const sql = `SELECT * FROM users WHERE username = ?`;
     const userReply = await db.fetchOne(sql,[username])
     if (!userReply) return null
     return rawDbRow2User(userReply)
 }
-const getUser = async (userId:number) : Promise<dbUserRecord | null> => {
+export async function getUser(userId:number) : Promise<dbUserRecord | null> {
     const sql = `SELECT * FROM users WHERE user_id = ?`;
     const userReply = await db.fetchOne(sql,[userId])
     if (!userReply) return null
@@ -87,7 +87,7 @@ const encrypt = (text:string) => sha256(text)
  * Server-to-Sever function, login
  * @returns ServerMessages.Operation
  */
-async function login(username:string,password:string) : Promise<TypedOperationResult<verifiedUser>> {
+export async function login(username:string,password:string) : Promise<TypedOperationResult<verifiedUser>> {
     const op = {
         id: 'login',
         status: false,
@@ -116,13 +116,13 @@ async function login(username:string,password:string) : Promise<TypedOperationRe
     return op
 }
 
-async function hasLogin(userId:number) {
+export async function hasLogin(userId:number) {
     const login = await db.get('logins', userId, 'user_id')
     if (!login) return false
     return true
 }
 
-async function create(username:string,firstName:string,lastName:string,email:string) : Promise<TypedOperationResult<verifiedUser>> {
+export async function create(username:string,firstName:string,lastName:string,email:string) : Promise<TypedOperationResult<verifiedUser>> {
     const op = {
         id: 'createUser',
         status: false,
@@ -151,7 +151,7 @@ async function create(username:string,firstName:string,lastName:string,email:str
     return op
 }
 
-async function update(userId:number,lastName:string,firstName:string,email:string,username:string|null) : Promise<TypedOperationResult<verifiedUser>> {
+export async function update(userId:number,lastName:string,firstName:string,email:string,username:string|null) : Promise<TypedOperationResult<verifiedUser>> {
     const op = {
         id: 'updateUser',
         status: false,
@@ -177,7 +177,7 @@ async function update(userId:number,lastName:string,firstName:string,email:strin
     return op
 }
 
-async function setPassword(username:string,password:string) : Promise<TypedOperationResult<verifiedUser>> {
+export async function setPassword(username:string,password:string) : Promise<TypedOperationResult<verifiedUser>> {
     const op = {
         id: 'setPassword',
         status: false,
@@ -202,7 +202,7 @@ async function setPassword(username:string,password:string) : Promise<TypedOpera
     op.data = vfUser as verifiedUser
     return op
 }
-async function resetPassword(email:string) : Promise<StatusOperation> {
+export async function resetPassword(email:string) : Promise<StatusOperation> {
     const op = {
         id: 'resetPassword',
         status: false,
@@ -218,7 +218,7 @@ async function resetPassword(email:string) : Promise<StatusOperation> {
     return sendPasswordResetEmail(user)
 }
 
-async function list() : Promise<TypedOperationResult<verifiedUser[]>> {
+export async function list() : Promise<TypedOperationResult<verifiedUser[]>> {
     const users = await db.fetchProps('users', ['userId','firstName','lastName','email','username'])
     return {
         id: 'listUsers',
@@ -238,7 +238,7 @@ const setPasswordResetToken = async (userId:number, token:Object) : Promise<bool
     return res ? true : false
 }
 
-async function sendPasswordResetEmail(user: dbUserRecord) : Promise<StatusOperation> {
+export async function sendPasswordResetEmail(user: dbUserRecord) : Promise<StatusOperation> {
     const op = {
         id: 'sendPasswordResetEmail',
         status: false,
@@ -317,7 +317,7 @@ const getToken = async (userId:number) : Promise<string | false> => {
 /**
  * Verify a password reset token for a user.
  */
-async function verifyToken(userId:number,accessToken:string): Promise<TypedOperationResult<verifiedUser>> {
+export async function verifyToken(userId:number,accessToken:string): Promise<TypedOperationResult<verifiedUser>> {
     const operation = {
         id: 'verifyToken',
         status: false,
@@ -357,7 +357,7 @@ async function verifyToken(userId:number,accessToken:string): Promise<TypedOpera
     return operation
 }
 
-const promptPasswordReset = async (userId:number) => {
+export async function promptPasswordReset(userId:number) {
     const op = {
         id: 'promptPasswordReset',
         status: false,
@@ -371,20 +371,5 @@ const promptPasswordReset = async (userId:number) => {
         return op.message = 'Prompt password reset is enabled', op
     }
     return op.message = 'Prompt password reset is disabled', op
-}
-
-export {
-    verifyToken,
-    sendPasswordResetEmail,
-    list,
-    setPassword,
-    resetPassword,
-    update,
-    create,
-    login,
-    getUser,
-    hasLogin,
-    getUserByUsername,
-    promptPasswordReset
 }
 

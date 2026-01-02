@@ -1,6 +1,5 @@
 'use client'
 
-import styles from './Component.module.css'
 import { useState, useActionState } from 'react'
 import Form from 'next/form'
 import Link from 'next/link'
@@ -8,6 +7,7 @@ import Link from 'next/link'
 import { FormInputField, FormActionBar, validationError, blankStatus, FormSelection } from '@/components/FormActions'
 import { AmalgomatedComponent, ComponentAttachable, search } from '@server/kiwi/Component'
 import { OperationResult } from '@lib/Operation'
+import { DynamicTable } from '../DynamicTable'
 
 
 function ComponentSummaryItem({component} : {component: AmalgomatedComponent}) {
@@ -30,8 +30,11 @@ export const ComponentList = ({componentList}: ComponentListProps) => {
     </ul>
 }
 
-export function ComponentSearch({}) {
-    const components = useState([])
+type ComponentSearchProps = {
+    onRowClick?: (component: AmalgomatedComponent) => void
+}
+export function ComponentSearch(props: ComponentSearchProps) {
+    const components = useState<AmalgomatedComponent[]>([])
 
     const [state, formAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
@@ -42,10 +45,22 @@ export function ComponentSearch({}) {
                 message: list.length > 0 ? `Found ${list.length} components` : 'No components found',
                 data: list
             }
+            components[1](list)
             return newState
         },
         blankStatus('searchingComponents')
     )
+
+    const headers = ['id', 'name', 'cases']
+    if (props.onRowClick) headers.push('actions')
+    const selectionButton = (component: AmalgomatedComponent) => {
+        if (!props.onRowClick) return null
+        return <td><button onClick={() => {
+            if (props.onRowClick) {
+                props.onRowClick(component)
+            }
+        }}>Select</button></td>
+    }
     
     return <div>
         <Form action={formAction}>
@@ -54,7 +69,16 @@ export function ComponentSearch({}) {
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={'Search'} />
         </Form>
-        <fieldset className={styles.componentList}>{components[0]}</fieldset>
+        <DynamicTable data={state.data} headers={headers}>
+            {components[0].map(component => 
+                <tr key={component.id}>
+                    <td><Link href={`/kiwi/component/?id=${component.id}`}>{component.id}</Link></td>
+                    <td>{component.name}</td>
+                    <td>{component.cases.length}</td>
+                    {selectionButton(component)}
+                </tr>
+            )}
+        </DynamicTable>
     </div>
 }
 

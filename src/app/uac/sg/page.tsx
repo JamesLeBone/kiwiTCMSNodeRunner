@@ -3,7 +3,7 @@ import SecurityManagement from './SecurityManagement'
 import { getList } from '@server/lib/SecurityGroups'
 
 // This only works on server components, on the client side you need to use useEffect to set document.title
-export async function metadata() {
+export async function generateMetadata() {
     const title = process.env.APP_TITLE
     return { 
         title: `${title} - Security Groups`

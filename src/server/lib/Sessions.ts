@@ -70,7 +70,7 @@ class DbSession {
         return new Date(new Date().getTime() + 1000*60*60*24*7)
     }
     renewExpiry() {
-        if (this.id == null) return
+        if (this.id == null) return null
         this.#expiresAt = DbSession.newExpiry()
         return db.update('sessions',this.id, {expiresAt: this.expiresAt})
     }
@@ -140,9 +140,9 @@ class DbSession {
     }
 }
 
-const createSession = (userId:Number) => {
+export async function createSession(userId:Number) {
     const secret = genuuid()
-    return DbSession.create(userId, secret)
+    return await DbSession.create(userId, secret)
 }
 
 type SessionVerification = {
@@ -155,7 +155,7 @@ type VerifiedSessionData = {
     sessionId: number|null
 }
 
-const verify = async (secret:string):Promise<SessionVerification> => {
+export async function verify(secret:string):Promise<SessionVerification> {
     // console.info('Verifying session:', secret, sessionTypeId)
     const session = await DbSession.getBySecret(secret)
     if (!session) return {status: false, message: 'Session not found'}
@@ -189,7 +189,7 @@ const verify = async (secret:string):Promise<SessionVerification> => {
     return {status: true, message: 'Session verified', data: sessionData}
 }
 
-const clear = async (username:string,sessionId:number|null) => {
+export async function clear(username:string,sessionId:number|null) {
     const user = await getUserByUsername(username)
     if (!user) {
         console.error('User not found:', username)
@@ -216,7 +216,7 @@ const clear = async (username:string,sessionId:number|null) => {
     }
 }
 
-const list = async (userId:number) : Promise<DbSession[]> => {
+export async function list(userId:number) : Promise<DbSession[]> {
     const list = await db.fetch(`Select * FROM SESSIONS WHERE USER_ID = ?`, [userId])
     // console.debug('Session list for user', userId, ':', list)
     const sessionList = list.map((r:Object) => {
@@ -226,17 +226,9 @@ const list = async (userId:number) : Promise<DbSession[]> => {
     return sessionList
 }
 
-const deactivate = async (userId:number, sessionId:number) => {
+export async function deactivate(userId:number, sessionId:number) {
     const session = await db.fetchOne('SELECT * FROM sessions WHERE id = ? and user_id = ?', [sessionId, userId])
     if (!session) return false
     const update = await db.update('sessions', sessionId, {expiresAt: new Date()})
     return update ? true : false
-}
-
-export {
-    createSession,
-    verify,
-    clear,
-    list,
-    deactivate
 }

@@ -1,15 +1,15 @@
-'use server'
 import { cookies } from 'next/headers.js'
+import { cache } from 'react'
 import * as Sessions from '@server/lib/Sessions'
 import { TypedOperationResult } from '@lib/Operation'
 import type { CurrentUser } from '@server/lib/Users'
 
 /**
- * Get the current user
+ * Get the current user (cached for request duration)
  * for when you want the user but should have been warned if not logged in
  * elsewhere.
  */
-async function currentUser() : Promise<CurrentUser | null> {
+export const currentUser = cache(async () : Promise<CurrentUser | null> => {
     const cookieStore = await cookies()
     // const userCookie = cookieStore.get('username') ?? false
     const sessionIdCookie = cookieStore.get('sessionId')
@@ -34,9 +34,9 @@ async function currentUser() : Promise<CurrentUser | null> {
         sessionId: sessionId
     } as CurrentUser
     return returnInfo
-}
+})
 
-async function getCurrentUser(): Promise<TypedOperationResult<CurrentUser>> {
+export const getCurrentUser = cache(async (): Promise<TypedOperationResult<CurrentUser>> => {
     const opGetUser = {
         id: 'getCurrentUser',
         status: false,
@@ -70,9 +70,4 @@ async function getCurrentUser(): Promise<TypedOperationResult<CurrentUser>> {
     opGetUser.message = 'User verified'
     opGetUser.data = returnInfo
     return opGetUser
-}
-
-export {
-    currentUser,
-    getCurrentUser
-}
+})

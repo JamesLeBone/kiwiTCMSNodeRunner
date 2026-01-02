@@ -3,7 +3,7 @@ import * as Auth from '@server/Auth'
 import CreateUser from './CreateUser'
 import { ActionBar } from '@/components/Actions'
 
-export async function metadata() {
+export async function generateMetadata() {
     const title = process.env.APP_TITLE
     return { 
         title: `${title} - Create User`
