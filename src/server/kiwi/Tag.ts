@@ -10,7 +10,7 @@ const entityName = 'Tag'
 
 export type IndividualTag = {
     id: number,
-    name: string,
+    name: string, // max 255 chars
     cases: number,
     plan: number,
     bugs: number,

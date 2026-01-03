@@ -9,25 +9,47 @@ import { AmalgomatedComponent, ComponentAttachable, search } from '@server/kiwi/
 import { OperationResult } from '@lib/Operation'
 import { DynamicTable } from '../DynamicTable'
 
+type ComponentSummaryItemProps = {
+    component: AmalgomatedComponent
+    actions?: GenericClickEvent[]
+}
+function ComponentSummaryItem(props : ComponentSummaryItemProps) {
+    const name = props.component.name
+    const size = props.component.cases.length
 
-function ComponentSummaryItem({component} : {component: AmalgomatedComponent}) {
-    const {id,name} = component
-    const size = component.cases.length
+    if (!props.actions || props.actions.length == 0) {
+        return <tr>
+            <td>{name}</td>
+            <td>{size}</td>
+        </tr>
+    }
+    const buttons = props.actions.map((action) => {
+        const clickEvent = () => {
+            action.callback(props.component)
+        }
+        return <button key={action.buttonText} onClick={clickEvent}>{action.buttonText}</button>
+    })
     
-    return <li>
-        <span>{name}</span> <span>{size} cases</span>
-    </li>
+    return <tr>
+        <td>{name}</td>
+        <td>{size}</td>
+        <td>{buttons}</td>
+    </tr>
 }
 
 type ComponentListProps = {
     componentList: AmalgomatedComponent[]
+    listActions?: GenericClickEvent[]
 }
-export const ComponentList = ({componentList}: ComponentListProps) => {
-    if (componentList.length == 0) return <div>No components</div>
+export const ComponentList = (props: ComponentListProps) => {
+    if (props.componentList.length == 0) return <div>No components</div>
+    // console.debug('Rendering ComponentList with', props)
+    const headers = ['Name', '# Test Cases']
+    if (props.listActions) headers.push('Actions')
     
-    return <ul>
-        {componentList.map(c => <ComponentSummaryItem key={c.id} component={c} />)}
-    </ul>
+    return <DynamicTable headers={headers}>
+        {props.componentList.map(c => <ComponentSummaryItem key={c.id} component={c} actions={props.listActions} />)}
+    </DynamicTable>
 }
 
 type ComponentSearchProps = {
@@ -43,7 +65,8 @@ export function ComponentSearch(props: ComponentSearchProps) {
                 id: 'searchComponents',
                 status: list.length > 0,
                 message: list.length > 0 ? `Found ${list.length} components` : 'No components found',
-                data: list
+                data: list,
+                statusType: list.length > 0 ? 'success' : 'info'
             }
             components[1](list)
             return newState

@@ -12,7 +12,12 @@ import {
 import { updateOpError, updateOpSuccess, TypedOperationResult, StatusOperation, prepareStatus } from '@lib/Operation'
 import { BasicRecord, DjangoEntity, htmlEntityDecode } from './Django'
 import { fetch as fetchComments, Comment } from './Comments'
-import { componentCases, AmalgomatedComponent } from './Component'
+import {
+    componentCases,
+    AmalgomatedComponent,
+    fetch as fetchComponent,
+    createNewComponent
+} from './Component'
 import * as Tag from './Tag'
 import { Category, fetchCategories, fetchCategory } from './Category'
 import { search as searchExecutions, TestExecution } from './Execution'
@@ -237,6 +242,56 @@ export const getComponents = async (testCaseId:number) : Promise<TypedOperationR
     return updateOpSuccess(op, 'Components fetched successfully')
 }
 export const fetchComponents = componentCases
+
+export const addComponent  = async (testCaseId:number, reference:string, productId:number) : Promise<TypedOperationResult<AmalgomatedComponent>> => {
+    const op = prepareStatus('addComponentToTestCase') as TypedOperationResult<AmalgomatedComponent>
+    const login = await http.login()
+    if (!login) return unAuthenticated
+
+    const component = await createNewComponent(reference, reference, productId)
+    if (typeof component == 'boolean') {
+        op.message = 'Failed to create or find component'
+        return op
+    }
+    
+    console.info('Adding component to test case',testCaseId,component)
+    const result = await http.call('TestCase.add_component', {case_id:testCaseId, component:component.name})
+        .then(r => {
+            op.message = 'Component added to test case successfully'
+            op.status = true
+            op.statusType = 'success'
+            return true
+        }, r => {
+            console.debug(r)
+            op.message = r.message || 'Failed to add component to test case'
+            return false
+        })
+    if (!result) return op
+
+    const componentDetails = await fetchComponent(component.id)
+    if (!componentDetails) {
+        op.message = 'Component added but failed to fetch component details'
+        return op
+    }
+    op.data = componentDetails
+
+    return op
+}
+export const removeComponent = async (testCaseId:number, componentId:number) : Promise<StatusOperation> => {
+    const op = prepareStatus('removeComponentFromTestCase')
+    const login = await http.login()
+    if (!login) return unAuthenticated
+    console.info('Removing component from test case',testCaseId,componentId)
+
+    const status = await http.call('TestCase.remove_component', {case_id:testCaseId, component_id:componentId})
+        .then(r => true, r => false)
+    if (!status) {
+        op.message = 'Failed to remove component from test case'
+        return op
+    }
+    updateOpSuccess(op, 'Component removed from test case successfully')
+    return op
+}
 
 export const fetchAttachments = async (testCaseId:number) : Promise<BasicRecord[]> => {
     const attachments = [] as BasicRecord[]

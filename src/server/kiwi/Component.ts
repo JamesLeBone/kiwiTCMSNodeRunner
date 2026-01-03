@@ -1,16 +1,28 @@
 'use server'
 
-import {http,methods, unAuthenticated} from './Kiwi'
+import {http, unAuthenticated} from './Kiwi'
 import { updateOpSuccess, prepareStatus, updateOpError } from '@lib/Operation'
 import { fetchTestCase, TestCase } from './TestCase'
 
 export type ComponentAttachable = 'TestCase' | 'TestPlan'
 const entityName = 'Component'
 
+type AutoComponent = {
+    id: number
+    name: string
+    description: string
+    // For initial qa, and owner.
+    [key: string]: any
+}
+
+// UNIQUE (product, name)
 export type IndividualComponent = {
     id: number
     name: string
     cases: number
+    product? : number
+    initialOwner?: number
+    initialQaContact?: number
 }
 interface RawAmalgomatedComponent {
     id: number
@@ -23,6 +35,11 @@ export type AmalgomatedComponent = {
     name: string
     cases: TestCase[]
     // plans: 
+}
+
+type searchParams = {
+    name__icontains: string
+    product?: number
 }
 
 export const amalgomateComponents = async (list: IndividualComponent[]) : Promise<AmalgomatedComponent[]> => {
@@ -76,10 +93,13 @@ export const fetch = async (id:number) : Promise<AmalgomatedComponent | null> =>
     .then(djangoComponent => amalgomateComponents([djangoComponent]))
     .then(components => components.length > 0 ? components[0] : null)
 }
-export const search = async (name:string) : Promise<AmalgomatedComponent[]> => {
-    const params = { name__icontains: name }
+export const search = async (name:string, productId?:number) : Promise<AmalgomatedComponent[]> => {
+    const params: searchParams = { name__icontains: name }
+    if (productId) {
+        params.product = productId
+    }
     const list = await http.searchEntity<IndividualComponent>(entityName, params, false)
-
+    
     return amalgomateComponents(list)
 }
 
@@ -102,13 +122,34 @@ export const createComponent = async (componentName:string, description:string, 
     return op
 }
 
-const createNewComponent = async (componentName:string, description:string, product:number) : Promise<any|false> => {
+/**
+ * Creates a new component if it does not already exist.
+ * If it exists, returns the existing component.
+ */
+export const createNewComponent = async (componentName:string, description:string, product:number) : Promise<AutoComponent | boolean> => {
+    const searchResult = await search(componentName, product)
+    // console.debug('Component search result', searchResult)
+    if (searchResult.length > 0) {
+        return {
+            id: searchResult[0].id,
+            name: searchResult[0].name,
+            description: description,
+        }
+    }
+
     const createComponent = await http.call('Component.create', {values:{
         name:componentName,
         description:description,
         product:product
     }})
-    .then(newComponent => newComponent, createError => {
+    .then(newComponent => {
+        // console.debug('Created component', newComponent)
+        return {
+            id: newComponent.id,
+            name: newComponent.name,
+            description: newComponent.description
+        }
+    }, createError => {
         console.error('Failed to create component', createError)
         return false
     })

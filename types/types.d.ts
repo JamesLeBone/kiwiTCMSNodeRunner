@@ -20,3 +20,9 @@ declare module '*.css' {
   const content: { [className: string]: string };
   export default content;
 }
+
+declare type GenericClickEvent = {
+  buttonText: string
+  callback: (data:any) => void
+}
+

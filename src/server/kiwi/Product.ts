@@ -160,7 +160,7 @@ export const fetch = async (productId: number) : Promise<ProductWithClassificati
     const p =  await http.getEntity<Product>('Product', productId)
     .then( async product => {
         if (!product) return null
-        console.debug('Fetched Product raw', product)
+        // console.debug('Fetched Product raw', product)
         const pwcn = await djangoProduct(product)
         return pwcn
     })
