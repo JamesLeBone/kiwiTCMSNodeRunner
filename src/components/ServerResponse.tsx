@@ -19,7 +19,9 @@ function useMessage(defaultMessage?:Operation) {
             let status = response.status
             if (verifyData && typeof response.data == 'undefined') status = false
 
-            if (status) {
+            if (typeof response.statusType != 'undefined') {
+                setMessageType(response.statusType)
+            } else if (status) {
                 setMessageType('success')
             } else {
                 setMessageType('error')

@@ -115,17 +115,18 @@ export const addTo = async (entityName: attachableEntityNames, entityId:number, 
     }
     return op
 }
-export const removeFromTestCase = async (caseId: number, tagName: string) : Promise<Operation> => {
+export const removeFrom = async (entityName: attachableEntityNames, entityId: number, tagName: string) : Promise<StatusOperation> => {
     const conn = http
     const login = await conn.login()
     if (!login) return unauthorised
 
-    const removeTag = await promiseBoolean( conn.call('TestCase.remove_tag', {case_id:caseId, tag:tagName}) )
+    const removeTag = await promiseBoolean( conn.call(entityName+'.remove_tag', {case_id:entityId, tag:tagName}) )
     // Don't logout - we're using a shared singleton session
 
     return {
-        id: 'removeTagFromTestCase',
+        id: 'removeTagFrom'+entityName,
         status: removeTag,
+        statusType: removeTag ? 'success' : 'error',
         message: removeTag ? 'Tag removed' : 'Failed to remove tag'
     }
 }

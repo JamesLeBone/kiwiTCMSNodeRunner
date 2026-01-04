@@ -35,13 +35,20 @@ type UserListProps = {
 }
 export default function UserList({users,currentUserId} : UserListProps) {
     const headers = ['First name','Last name','Email','Username','Edit']
+    const style = {
+        display: 'grid',
+        gridTemplateRows: 'auto min-content',
+        height: '100%'
+    }
 
     return <ComponentSection header='Users'>
-        <DynamicTable headers={headers}>
-            {users.map(user => <UserDisplay key={user.userId} selected={user.userId == currentUserId} {...user} />)}
-        </DynamicTable>
-        <ActionBar>
-            <a href="/uac/create" className='button'>Create User</a>
-        </ActionBar>
+        <div style={style}>
+            <DynamicTable headers={headers}>
+                {users.map(user => <UserDisplay key={user.userId} selected={user.userId == currentUserId} {...user} />)}
+            </DynamicTable>
+            <ActionBar>
+                <a href="/uac/create" className='button'>Create User</a>
+            </ActionBar>
+        </div>
     </ComponentSection>
 }

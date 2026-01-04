@@ -22,7 +22,7 @@ export function MarkdownSection({state,label,open=false, name, className=''} : M
         markdownEditState[1](!mds)
     }
 
-    const edit = markdownEditState[0] ? <textarea rows={5} cols={20} value={state[0]} onChange={updateText} /> : ''
+    const edit = markdownEditState[0] ? <textarea rows={5} cols={20} style={{width:'100%'}} value={state[0]} onChange={updateText} /> : ''
     const fieldClass = 'MarkdownEditor ' + className
 
     return <div className={fieldClass}>
@@ -30,7 +30,7 @@ export function MarkdownSection({state,label,open=false, name, className=''} : M
             <Markdown remarkPlugins={[remarkGfm]}>{state[0]}</Markdown>
         </FormField>
         { name ? <input type="hidden" name={name} value={state[0]} /> : null }
-        <button onClick={toggleMarkdownEdit}>Toggle Edit {label}</button>
+        <button onClick={toggleMarkdownEdit} style={{whiteSpace: 'nowrap'}}>Toggle Edit {label}</button>
         {edit}
     </div>
 }

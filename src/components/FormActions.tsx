@@ -43,7 +43,9 @@ export function FormInputField({className,maxLength,placeholder,style,label,titl
     const fieldClassName = (className ? className + ' ' : '') + `FormField-${type}`
 
     return <FormField label={label} title={title} className={fieldClassName} style={style}>
-        <ActionInputField maxLength={maxLength} name={name} type={type} placeholder={placeholder} value={val} step={step} required={required} onChange={setValAction} />
+        <div>
+            <ActionInputField maxLength={maxLength} name={name} type={type} placeholder={placeholder} value={val} step={step} required={required} onChange={setValAction} />
+        </div>
         {children}
     </FormField>
 }

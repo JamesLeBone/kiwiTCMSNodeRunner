@@ -171,6 +171,12 @@ Use FontAwesome 6 classes: `<IconButton className="fa fa-trash" title="Delete" /
 
 Common icons: `fa-plus`, `fa-trash`, `fa-edit`, `fa-search`, `fa-save`, `fa-rotate`
 
+## Code Style
+- Use 4 spaces for indentation
+- Single quotes for strings
+- No semicolons at end of statements unless necessary
+- If function calls are long, break into multiple lines and define outside JSX
+
 ## Development Commands
 
 ```bash

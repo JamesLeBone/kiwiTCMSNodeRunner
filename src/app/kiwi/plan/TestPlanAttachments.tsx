@@ -1,6 +1,6 @@
 'use client'
 import { DetailedTestPlan } from '@server/kiwi/TestPlan'
-import { TabbedComponentSection } from '@/components/ComponentSection'
+import TabbedComponentSection from '@/components/TabbedComponentSection'
 import type { TestRun } from '@server/kiwi/TestRun'
 
 import Link from 'next/link'

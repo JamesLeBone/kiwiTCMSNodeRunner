@@ -12,6 +12,7 @@ import { MarkdownSection } from '@/components/MarkDownDisplay'
 import { FormInputField, FormActionBar, validationError, blankStatus } from '@/components/FormActions'
 
 import { DetailedTestPlan, get, update } from '@server/kiwi/TestPlan'
+import { ActionBar, IconButton } from '@/components/Actions';
 
 type upp = {
     currentPlanId: number
@@ -29,7 +30,7 @@ function UpdateParentPlan({currentPlanId, value, onChange} : upp) {
 
             const parentResult = await get(parentId)
             if (!parentResult.status || !parentResult.data) {
-                return { ...parentResult, message: 'Parent plan not found' }
+                return { ...parentResult, message: `Plan not found` }
             }
 
             const updateResult = await update(currentPlanId, { parent: parentId })
@@ -43,9 +44,9 @@ function UpdateParentPlan({currentPlanId, value, onChange} : upp) {
         blankStatus('updateParent')
     )
 
-    return <Form action={doUpdate}>
+    return <Form action={doUpdate} className='inlineForm'>
         <FormInputField label='Parent Plan' name="parentId" type="number" value={value ? value+'' : ''} />
-        <FormActionBar pendingState={isPending} state={state} actions={[{ label: 'Set Parent Plan' }]} />
+        <FormActionBar pendingState={isPending} state={state} actions={'Set'} />
     </Form>
 }
 
@@ -56,12 +57,17 @@ type plprops = {
 function ParentLink({currentPlanId, parent} : plprops) {
     const [parentId, setParentId] = useState(parent ? parent.id : false)
     const [parentName, setParentName] = useState(parent ? parent.name : 'No Parent')
+    const [mode,setMode] = useState<boolean>(false)
 
-    const url = '/kiwi/plan/'+parentId
+    const url = '/kiwi/plan?id='+parentId
     const display = parentId ? <Link href={url}>{parentName}</Link> : parentName
-    return <FormField label="Parent Test Plan">
+
+    const buttonIcon = mode ? 'fa fa-caret-up' : 'fa fa-caret-down'
+
+    return <FormField label="Parent Test Plan" className='noFixedHeight'>
         {display}
-        <UpdateParentPlan currentPlanId={currentPlanId} value={parentId} onChange={(id,name) => {setParentId(id); setParentName(name)}} />
+        <IconButton className={buttonIcon} title={mode ? 'Hide edit parent plan' : 'Change parent plan'} onClick={() => setMode(!mode)} />
+        { mode && <UpdateParentPlan currentPlanId={currentPlanId} value={parentId} onChange={(id,name) => {setParentId(id); setParentName(name)}} /> }
     </FormField>
 }
 
@@ -105,13 +111,13 @@ export default function TestPlanEdit({testPlan}: tpeprops) {
         { label: "Reformat name" }
     ]
 
-    return <div>
-        <ComponentSection header={`Test Plan ${id}`}>
+    return <>
+        <ComponentSection header={`Test Plan ${id}`} style={{display:'grid'}}>
+            <fieldset>
+                <ParentLink currentPlanId={id} parent={parent} />
+                <FormField label="Version" title={testPlan.product.version.id}>{testPlan.product.version.value}</FormField>
+            </fieldset>
             <Form action={formAction}>
-                <fieldset>
-                    <ParentLink currentPlanId={id} parent={parent} />
-                    <FormField label="Version">{product.version}</FormField>
-                </fieldset>
                 <fieldset>
                     <FormInputField label="Name" name="name" value={name} required={true} />
                     <FormField label="Created" className='no-input'>
@@ -123,5 +129,5 @@ export default function TestPlanEdit({testPlan}: tpeprops) {
                 <FormActionBar pendingState={isPending} state={state} actions={actions} />
             </Form>
         </ComponentSection>
-    </div>
+    </>
 }

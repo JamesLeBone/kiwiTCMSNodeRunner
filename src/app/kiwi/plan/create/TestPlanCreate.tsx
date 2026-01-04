@@ -8,12 +8,11 @@ import Link from 'next/link'
 
 import { ComponentSection } from '@/components/ComponentSection'
 import { FormField } from '@/components/FormField'
-import { DateDisplay } from '@/components/DateDisplay'
 import { MarkdownSection } from '@/components/MarkDownDisplay'
 import { FormInputField, FormActionBar, validationError, blankStatus } from '@/components/FormActions'
 
 import { create, get, update, TestPlan } from '@server/kiwi/TestPlan'
-import type { Product, ProductWithClassificationName, Version } from '@server/kiwi/Product'
+import type { ProductWithClassificationName, Version } from '@server/kiwi/Product'
 import { getProductVersions } from '@server/kiwi/Product'
 import ProductSelection, { VersionSelection } from '@/components/kiwi/Products'
 import BooleanInput from '@/components/BooleanInput';
@@ -147,7 +146,7 @@ export default function TestPlanCreate(props: tpeprops) {
                     </FormField>
                     <FormInputField label="Parent Plan ID" name="parentId" type="number" />
                 </fieldset>
-                <fieldset>
+                <fieldset style={{display:'block'}}>
                     <MarkdownSection name="text" label="Description" state={textState} open={true} />
                 </fieldset>
                 <FormActionBar pendingState={isPending} state={state} actions={actions} />

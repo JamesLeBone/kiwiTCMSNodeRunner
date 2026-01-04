@@ -134,11 +134,11 @@ export default function TestCaseEdit(props: EditProps) {
                     <FormSelection label="Security Group" name="securityGroupId" value={testCase.securityGroupId+''} options={securityGroupOptions} />
                     <MarkdownSection name="description" className={pageStyles.MarkdownEditor} label="Description" state={textState} />
                 </fieldset>
-                <fieldset>
-                    <FormField label="Script Prefix" className='no-input'>
+                <fieldset style={{gridTemplateColumns: 'auto 1fr'}}>
+                    <FormField label="Script Prefix" className='no-input' title='This is inherited from the Product settings.'>
                         <pre>{scriptPrefix}</pre>
                     </FormField>
-                    <FormField label='Arguments' className='no-input'>
+                    <FormField label='Arguments' className='no-input' title='These arguments will be used during test execution.'>
                         <ArgumentEditor hook={tcArgs} />
                     </FormField>
                 </fieldset>

@@ -7,7 +7,10 @@ export type DynamicTableProps = {
 export function DynamicTable({headers,children,...args} : DynamicTableProps) {
     const length = Array.isArray(children) ? children.length : 1
 
-    return <div className='DynamicTable' {...args}>
+    const {className, ...rest} = args
+    const cnstring = args.className ? 'DynamicTable ' + args.className : 'DynamicTable'
+
+    return <div className={cnstring} {...rest}>
         <table>
             <thead>
                 <tr>

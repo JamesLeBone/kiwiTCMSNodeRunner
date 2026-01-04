@@ -92,15 +92,22 @@ export default function SessionManagement() {
     }
 
     const headers = ['ID','User Agent','IP Address','Expires At','Actions']
+    const style = {
+        display: 'grid',
+        gridTemplateRows: 'auto min-content',
+        height: '100%'
+    }
 
     return <ComponentSection header='Session Management' className={['session-management']}>
-        <DynamicTable headers={headers}>
-            <SessionList sessionList={sessionState} removeItem={removeItem} />
-        </DynamicTable>
-        <form onSubmit={logout} >
-            <ActionBar>
-                <input type='submit' value='Log out' />
-            </ActionBar>
-        </form>
+        <div style={style}>
+            <DynamicTable headers={headers}>
+                <SessionList sessionList={sessionState} removeItem={removeItem} />
+            </DynamicTable>
+            <form onSubmit={logout} >
+                <ActionBar>
+                    <input type='submit' value='Log out' />
+                </ActionBar>
+            </form>
+        </div>
     </ComponentSection>
 }

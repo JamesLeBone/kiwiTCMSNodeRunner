@@ -16,7 +16,10 @@ export type TestPlan = {
     createDate: Date
     product: {
         id: number
-        version: number
+        version: {
+            id: number
+            value: string
+        }
     }
     parent?: number
 }
@@ -30,7 +33,10 @@ export type DetailedTestPlan = {
     createDate: Date
     product: {
         id: number
-        version: number
+        version: {
+            id: number
+            value: string
+        }
     }
     children: {
         id: number
@@ -72,7 +78,9 @@ type DjangoSearchParams = {
 
 const djangoPlan = (dje: DjangoEntity) : TestPlan => {
     dje.addZulu('createDate')
-    return dje.values as TestPlan
+    const { productVersion, ...rest } = dje.values
+    rest.product.version = productVersion
+    return rest as TestPlan
 }
 
 export const fetch = async (testPlanId: number) : Promise<TestPlan | null> => {
@@ -90,6 +98,7 @@ export const get = async (testPlanId: number) : Promise<TypedOperationResult<Tes
         return null
     })
     if (testplan == null) return op
+    updateOpSuccess(op, 'Test plan obtained')
     op.data = testplan
     return op
 }
@@ -98,7 +107,9 @@ export const getDetail = async (testPlanId: number) : Promise<TypedOperationResu
     const op = prepareStatus('getDetailedPlan') as TypedOperationResult<DetailedTestPlan>
     const testplan = await fetch(testPlanId)
     if (testplan == null) return op.message = 'Test plan not found', op
-    const detailedTestplan = { ...testplan, parent: false } as Partial<DetailedTestPlan>
+
+    const detailedTestplan: Partial<DetailedTestPlan> = { ...testplan, parent: false }
+
     
     if (typeof testplan.parent == 'number') {
         const parent = await fetch(testplan.parent)
@@ -204,6 +215,7 @@ export const update = async (testPlanId:number, testPlan: Partial<TestPlan>) => 
         updateOpError(op, message)
         return null
     })
+    
     return op
 }
 

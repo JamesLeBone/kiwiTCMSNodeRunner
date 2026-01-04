@@ -63,6 +63,7 @@
 }
 body {
   margin: 0px;
+  margin-bottom: 80px;
 }
 
 * {
@@ -193,11 +194,22 @@ input[type=file]::file-selector-button {
 .DynamicTable > table {
   width: 100%;
 }
+.DynamicTable tbody tr:hover {
+  background-color: var(--panelBackground);
+}
 .DynamicTable .no-results td {
   text-align: center;
   padding: 16px;
   font-style: italic;
   color: var(--text);
+}
+.DynamicTable.table-with-actions tr:not(.no-results) th:last-child, .DynamicTable.table-with-actions tr:not(.no-results) td:last-child {
+  width: 70px;
+  text-align: right;
+  white-space: nowrap;
+}
+.DynamicTable.table-with-actions tr:not(.no-results) td:last-child {
+  padding: 0px;
 }
 
 table th {
@@ -382,6 +394,10 @@ main > nav > nav a > span {
 fieldset {
   margin: 0px;
   padding: 0px;
+  gap: var(--componentPadding);
+  justify-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: grid;
 }
 
 body > header {
@@ -445,7 +461,9 @@ table.rowHover tbody tr:hover {
 }
 .ComponentGrid > .ComponentSection {
   margin: 0px;
-  display: block;
+  display: grid;
+  align-content: start;
+  grid-template-rows: min-content 1fr;
 }
 
 .Card {
@@ -516,6 +534,10 @@ table.rowHover tbody tr:hover {
   border-bottom-style: none;
   border-left-style: none;
   border-right-style: none;
+}
+.ComponentSection .ComponentSection {
+  margin: 0px;
+  border-style: none;
 }
 
 .component-body > table {
@@ -634,7 +656,7 @@ label[title] {
   display: block;
   margin-top: 0.5em;
   margin-bottom: 4px;
-  font-weight: 500;
+  font-weight: bold;
   color: var(--text);
 }
 .FormField > div {
@@ -651,26 +673,26 @@ label[title] {
 .FormField > div > textarea:focus-visible {
   outline: none;
 }
-.FormField.FormField-number > div {
+.FormField.FormField-number > div > div:first-child {
   display: inline-grid;
   grid-template-columns: auto min-content;
   grid-template-rows: 50% 50%;
   gap: 0px;
   height: 33px;
 }
-.FormField.FormField-number > div input {
+.FormField.FormField-number > div > div:first-child input {
   grid-column: 1;
   grid-row: 1/span 2;
   border-radius: var(--input-border-radius) 0 0 var(--input-border-radius) !important;
   border-right: none;
   height: 100%;
 }
-.FormField.FormField-number > div > div {
+.FormField.FormField-number > div > div:first-child > div {
   display: flex;
   flex-direction: column;
   gap: 0px;
 }
-.FormField.FormField-number > div button {
+.FormField.FormField-number > div > div:first-child button {
   padding: 0px;
   margin: 0px;
   font-size: 8px;
@@ -685,34 +707,34 @@ label[title] {
   align-items: center;
   justify-content: center;
 }
-.FormField.FormField-number > div button:first-of-type {
+.FormField.FormField-number > div > div:first-child button:first-of-type {
   border-radius: 0 var(--input-border-radius) 0 0;
   border-bottom: 0.5px solid var(--input-border);
 }
-.FormField.FormField-number > div button:last-of-type {
+.FormField.FormField-number > div > div:first-child button:last-of-type {
   border-radius: 0 0 var(--input-border-radius) 0;
   border-top: 0.5px solid var(--input-border);
 }
-.FormField.FormField-number > div button:hover:not(:disabled) {
+.FormField.FormField-number > div > div:first-child button:hover:not(:disabled) {
   background-color: var(--buttonBackgroundHover);
   color: var(--buttonColorHover);
 }
-.FormField.FormField-number > div button:active:not(:disabled) {
+.FormField.FormField-number > div > div:first-child button:active:not(:disabled) {
   background-color: var(--input-border-hover);
   transform: scale(0.95);
 }
-.FormField.FormField-number > div button:disabled {
+.FormField.FormField-number > div > div:first-child button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-.FormField.FormField-checkbox > div {
+.FormField.FormField-checkbox > div > div:first-child {
   border-style: none;
   text-align: left;
 }
-.FormField.FormField-checkbox > div input[type=checkbox] {
+.FormField.FormField-checkbox > div > div:first-child input[type=checkbox] {
   margin-right: 8px;
 }
-.FormField.Markdown > div, .FormField.FormField-textarea > div {
+.FormField.Markdown > div, .FormField.FormField-textarea > div, .FormField.noFixedHeight > div {
   height: auto;
 }
 .FormField.no-input > div {
@@ -736,9 +758,15 @@ label[title] {
   padding: 10px 12px;
 }
 
+.MarkdownEditor {
+  padding: var(--componentPadding);
+}
 .MarkdownEditor > textarea {
   border-radius: var(--input-border-radius);
   min-height: 200px;
+}
+.MarkdownEditor .Markdown h1 {
+  text-align: left;
 }
 
 .ArgumentEditor .list {
@@ -793,4 +821,18 @@ label[title] {
 .tabbed-section .tab-labels li.active {
   border-bottom: 2px solid var(--linkColor);
   font-weight: bold;
+}
+
+.inlineForm {
+  border: 1px solid var(--sectionBorder);
+}
+.inlineForm label {
+  padding: var(--componentPadding);
+  margin: 0px;
+  background-color: var(--panelBackground);
+  white-space: nowrap;
+}
+.inlineForm .FormField > div {
+  padding: var(--componentPadding);
+  height: auto;
 }/*# sourceMappingURL=globals.css.map */

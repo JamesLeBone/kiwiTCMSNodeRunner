@@ -9,6 +9,8 @@ import { FormInputField, FormActionBar, validationError, blankStatus, FormSelect
 
 import { useActionState } from 'react'
 import { StatusOperation } from '@lib/Operation';
+import { useMessage } from '@/components/ServerResponse'
+import { DynamicTable } from '../DynamicTable';
 
 type srpops = {
     searchResults: Tags.AmalgomatedTag[]
@@ -27,7 +29,10 @@ function SearchResults({searchResults, setTag}: srpops) {
     return <div style={{maxHeight:'100px',overflow:'auto',borderTop:'1px solid #aaa'}}>{list}</div>
 }
 
-export const TagSearch = ({addTag}: {addTag: (name: string) => Promise<StatusOperation>}) => {
+type tsp = {
+    addTag: (name: string) => Promise<StatusOperation>
+}
+export const TagSearch = ({addTag}:tsp) => {
     const [tags,setTags] = useState([] as Tags.AmalgomatedTag[])
 
     const [searchState, searchAction, searchPending] = useActionState(
@@ -54,7 +59,6 @@ export const TagSearch = ({addTag}: {addTag: (name: string) => Promise<StatusOpe
     ]
 
     return <>
-        <h3 style={{padding:'8px'}}>Search</h3>
         <Form action={searchAction}>
             <fieldset>
                 <FormInputField label="Tag" name="tagName" style={{display:'inline-block'}} />
@@ -63,6 +67,15 @@ export const TagSearch = ({addTag}: {addTag: (name: string) => Promise<StatusOpe
         </Form>
         <SearchResults searchResults={tags} setTag={addTag} />
     </>
+}
+
+function TagRow(props: {value: string, doRemove: () => Promise<StatusOperation>}) {
+    return <tr>
+        <td>{props.value}</td>
+        <td>
+            <button onClick={() => props.doRemove()}>Remove</button>
+        </td>
+    </tr>
 }
 
 type tagListProps = {
@@ -75,16 +88,39 @@ type tagListProps = {
  */
 export const TagList = (props : tagListProps) => {
     const [tags, setTags] = useState(props.tags)
+    const msg = useMessage()
+
     const add = async (name:string) : Promise<StatusOperation> => {
+        if (tags.includes(name)) {
+            const so:StatusOperation = {
+                id: 'tagExists',
+                status: false,
+                message: `Tag ${name} is already attached`,
+                statusType: 'info'
+            }
+            msg.statusResponse(so, false)
+            return so
+        }
         const status = await Tags.addTo(props.entityType, props.entityId, name)
         if (status.status) setTags([...tags, name])
+        msg.statusResponse(status)
         return status
     }
+    const removeFromList = async (name:string) : Promise<StatusOperation> => {
+        const status = await Tags.removeFrom(props.entityType, props.entityId, name)
+        if (status.status) {
+            const newList = tags.filter(t => t != name)
+            setTags(newList)
+        }
+        msg.statusResponse(status)
+        return status
+    }
+
     return <>
-        <div style={{padding:'8px'}}>
-            <h3>List</h3>
-            <ul>{tags.map(li => <li key={li}>{li}</li>)}</ul>
-        </div>
+        {msg.message}
+        <DynamicTable headers={['Tag', 'Actions']} className='table-with-actions' >
+            {tags.map(li => <TagRow key={li} doRemove={() => removeFromList(li)} value={li} />)}
+        </DynamicTable>
         <TagSearch addTag={(name:string) => add(name)} />
     </>
 }

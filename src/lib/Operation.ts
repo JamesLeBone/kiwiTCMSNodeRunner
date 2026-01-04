@@ -40,8 +40,9 @@ export interface TypedComplexResult<T> extends ComplexResult {
 export const unauthorised = {
     id: 'unauthorised',
     status: false,
+    statusType: 'error',
     message: 'You are not logged in'
-} as Operation
+} as StatusOperation
 
 export const updateOpError = (op: Operation, message: string) => {
     op.status = false

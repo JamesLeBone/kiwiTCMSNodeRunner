@@ -89,8 +89,13 @@ export const getTestCase = async (testCaseId:number) : Promise<TypedOperationRes
     op.data = testCase
     return updateOpSuccess(op, 'Test Case fetched successfully')
 }
-export const fetchTestCase = async (testCaseId:number) : Promise<TestCase | null> => 
-    http.get('TestCase', testCaseId, django2Case)
+export const fetchTestCase = async (testCaseId:number) : Promise<TestCase | null> => {
+    return http.get('TestCase', testCaseId, django2Case)
+    .catch( e => {
+        console.warn('Failed to fetch test case', e)
+        return null
+    })
+}
 
 type SearchParams = {
     summary: string

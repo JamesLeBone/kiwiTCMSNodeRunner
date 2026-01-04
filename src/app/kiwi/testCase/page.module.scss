@@ -6,10 +6,6 @@
         padding: 0px;
     }
 }
-#fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-}
 .MarkdownEditor {
     grid-column: 1/-1;
 }

@@ -1,24 +1,28 @@
 'use client'
 
+// Server imports
 import type { AmalgomatedComponent }    from '@server/kiwi/Component'
 import type { TestPlan }                from '@server/kiwi/TestPlan'
 import type { TestExecution }           from '@server/kiwi/Execution'
-import { TestCaseDetail, addComponent, removeComponent } from '@server/kiwi/TestCase'
+import { TestCaseDetail, addComponent, removeComponent, addToPlan, removeFromPlan } from '@server/kiwi/TestCase'
 
+// Sub-components
 import TestCaseLineage from './TestCaseLineage'
 
-import { TabbedComponentSection }          from '@/components/ComponentSection'
+// UI Components
+import TabbedComponentSection              from '@/components/TabbedComponentSection'
 import { TagList }                         from '@/components/kiwi/Tags'
 import TestPlanSearch, { TestPlanTable }   from '@/components/kiwi/TestPlanSearch'
 import { ComponentList, ComponentSearch }  from '@/components/kiwi/Component'
 import KiwiComments                        from '@/components/kiwi/KiwiComments'
 import { blankStatus,FormInputField,FormActionBar } from '@/components/FormActions'
-// import { FormInputField, FormActionBar, validationError, blankStatus, FormSelection } from '@/components/FormActions'
 
+// Types and hooks
 import { TypedOperationResult } from '@lib/Operation'
 import { formDataValue }   from '@lib/Functions'
 import { useMessage } from '@/components/ServerResponse'
 
+// Module-imported hooks
 import { useState,useActionState } from 'react'
 import Form                        from 'next/form'
 
@@ -35,7 +39,7 @@ export default function TestCaseAttachments(props: TestCaseAttachmentsProps) {
     const tabs = [
         {id : 'components', label: 'Components', content: <ComponentSection productId={productId} testCaseId={testCaseId} components={components} />},
         {id : 'tags', label: 'Tags', content: <TagList tags={tags} entityType="TestCase" entityId={testCaseId} />},
-        {id : 'plans', label: 'Test Plans', content: <TestPlanSection plans={plans} />},
+        {id : 'plans', label: 'Test Plans', content: <TestPlanSection testCaseId={testCaseId} plans={plans} />},
         {id : 'executions', label: 'Test Executions', content: <TestExecutionSection executions={executions} />},
         {id : 'lineage', label: 'Lineage', content: <TestCaseLineage testCaseId={testCaseId} script={testCase.script} children={children} /> },
         {id : 'comments', label: 'Comments', content: <KiwiComments id={testCaseId} comments={comments} /> }
@@ -120,6 +124,7 @@ function ComponentSection(props: ComponentSectionProps) {
 
 type tpsProps = {
     plans: TestPlan[]
+    testCaseId: number
 }
 function TestPlanSection(props: tpsProps) {
     const [planList, setPlanList] = useState<TestPlan[]>(props.plans)
@@ -127,9 +132,32 @@ function TestPlanSection(props: tpsProps) {
         setPlanList([...planList, plan])
     }
 
+    const callback: GenericClickEvent = {
+        buttonText: 'Add to Plan',
+        callback: async (data: any) => {
+            const plan = data as TestPlan
+            const result = await addToPlan(plan.id, props.testCaseId)
+            if (result.status) {
+                addPlan(plan)
+            }
+            return result
+        }
+    }
+
+    const removeCallback: GenericClickEvent = {
+        buttonText: 'Remove from Plan',
+        callback: async (data: any) => {
+            const plan = data as TestPlan
+            const result = await removeFromPlan(props.testCaseId, plan.id)
+            if (result.status)
+                setPlanList(planList.filter(p => p.id !== plan.id))
+            return result
+        }
+    }
+
     return <div>
-        <TestPlanTable plans={planList} />
-        <TestPlanSearch addPlan={addPlan} />
+        <TestPlanTable plans={planList} actions={[removeCallback]} />
+        <TestPlanSearch actions={[callback]} />
     </div>
 }
 

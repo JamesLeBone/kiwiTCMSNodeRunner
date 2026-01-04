@@ -311,7 +311,7 @@ class KiwiCall {
             // console.debug(`[KiwiCall.get] Fetched ${entity} with id ${id}`, list)
             return new DjangoEntity(list[0])
         })
-        console.debug(`[KiwiCall.get] Retrieved entity: ${entity} with id: ${id}`, dje)
+        console.debug(`[KiwiCall.get] Retrieved entity: ${entity} with id: ${id}`)
         if (!dje) return Promise.reject(`Entity ${entity} with id ${id} not found`)
         return parserMethod ? parserMethod(dje) : dje.values as T
     }

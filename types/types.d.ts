@@ -1,4 +1,3 @@
-
 declare type BasicValue = string|number|boolean|null|undefined
 declare type KVP = { [key: string]: BasicValue }
 declare type KVS = { [key: string]: string }
@@ -23,6 +22,6 @@ declare module '*.css' {
 
 declare type GenericClickEvent = {
   buttonText: string
-  callback: (data:any) => void
+  callback: (data:any) => Promise // StatusOperation
 }
 

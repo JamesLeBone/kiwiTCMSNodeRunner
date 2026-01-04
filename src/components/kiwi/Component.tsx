@@ -32,7 +32,7 @@ function ComponentSummaryItem(props : ComponentSummaryItemProps) {
     
     return <tr>
         <td>{name}</td>
-        <td>{size}</td>
+        <td className='align-right'>{size}</td>
         <td>{buttons}</td>
     </tr>
 }
@@ -45,9 +45,13 @@ export const ComponentList = (props: ComponentListProps) => {
     if (props.componentList.length == 0) return <div>No components</div>
     // console.debug('Rendering ComponentList with', props)
     const headers = ['Name', '# Test Cases']
-    if (props.listActions) headers.push('Actions')
+    let cn = undefined
+    if (props.listActions) {
+        headers.push('Actions')
+        cn = 'table-with-actions'
+    }
     
-    return <DynamicTable headers={headers}>
+    return <DynamicTable headers={headers} className={cn}>
         {props.componentList.map(c => <ComponentSummaryItem key={c.id} component={c} actions={props.listActions} />)}
     </DynamicTable>
 }
@@ -84,6 +88,7 @@ export function ComponentSearch(props: ComponentSearchProps) {
             }
         }}>Select</button></td>
     }
+    const tableClassName = props.onRowClick ? 'table-with-actions' : undefined
     
     return <div>
         <Form action={formAction}>
@@ -92,12 +97,12 @@ export function ComponentSearch(props: ComponentSearchProps) {
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={'Search'} />
         </Form>
-        <DynamicTable data={state.data} headers={headers}>
+        <DynamicTable data={state.data} headers={headers} className={tableClassName} >
             {components[0].map(component => 
                 <tr key={component.id}>
                     <td><Link href={`/kiwi/component/?id=${component.id}`}>{component.id}</Link></td>
                     <td>{component.name}</td>
-                    <td>{component.cases.length}</td>
+                    <td className='align-right'>{component.cases.length}</td>
                     {selectionButton(component)}
                 </tr>
             )}

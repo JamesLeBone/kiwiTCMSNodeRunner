@@ -357,12 +357,12 @@ export class SimpleHttp {
 
                 // Critical: Handle request-level errors (connection failures, ENOTFOUND, etc.)
                 req.on('error', error => {
-                    console.error('HTTP Request Error:', error.message)
+                    console.warn('HTTP Request Error:', error.message)
                     reject(error)
                 })
 
             } catch (e) {
-                console.error('Failed to make request', e)
+                console.warn('Failed to make request', e)
                 reject(e)
                 return
             }

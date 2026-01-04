@@ -6,7 +6,8 @@ import { DynamicTable } from '../DynamicTable'
 function TestCaseSummary({testCase} : {testCase: TestCase}) {
     const path = "/kiwi/testCase?id="+testCase.id
         
-    const status = testCase.caseStatus.description
+    const status = testCase.caseStatus
+    const statusText = status.description ?? status.name.charAt(0).toUpperCase() + status.name.slice(1).toLowerCase()
 
     return <tr>
         <td className="numeric">
@@ -14,7 +15,7 @@ function TestCaseSummary({testCase} : {testCase: TestCase}) {
         </td>
         <td className="status">{testCase.isAutomated ? 'Automated' : 'Manual'}</td>
         <td className="textual">{testCase.summary}</td>
-        <td className="status" style={{textAlign:'right',textTransform:'capitalize',paddingRight:'1em'}}>{status}</td>
+        <td className="status">{statusText}</td>
     </tr>
 }
 export default function TestCaseList({cases} : {cases: TestCase[]}) {

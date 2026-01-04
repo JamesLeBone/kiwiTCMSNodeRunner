@@ -6,7 +6,7 @@ export default async function TestPlanLayout({children} : {children: React.React
     return <>
     <nav>
         <Link href="/kiwi/plan/create">Create Test Plan</Link>
-        <Link href="/kiwi/plan/search">Search Test Plans</Link>
+        <Link href="/kiwi/plan">Search Test Plans</Link>
     </nav>
     {children}
     </>

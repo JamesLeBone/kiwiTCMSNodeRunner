@@ -73,6 +73,7 @@
 
 body {
     margin: 0px;
+    margin-bottom:80px;
 }
 * {
     box-sizing: border-box;
@@ -187,12 +188,29 @@ input[type="file"] {
     > table {
         width: 100%;
     }
+    tbody tr:hover {
+        background-color: var(--panelBackground);
+    }
     
     .no-results td {
         text-align: center;
         padding: 16px;
         font-style: italic;
         color: var(--text);
+    }
+    &.table-with-actions {
+        tr:not(.no-results) {
+            th, td {
+                &:last-child {
+                    width: 70px;
+                    text-align: right;
+                    white-space: nowrap;
+                }
+            }
+            td:last-child {
+                padding: 0px;
+            }
+        }
     }
 }
 
@@ -395,6 +413,10 @@ main > nav {
 fieldset {
     margin: 0px;
     padding: 0px;
+    gap: var(--componentPadding);
+    justify-content: start;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: grid;
 }
 
 body > header {
@@ -446,7 +468,9 @@ table.rowHover {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     > .ComponentSection {
         margin: 0px;
-        display: block;
+        display: grid;
+        align-content: start;
+        grid-template-rows: min-content 1fr;
     }
 }
 
@@ -528,6 +552,11 @@ table.rowHover {
             border-left-style: none;
             border-right-style: none;
         }
+    }
+
+    .ComponentSection {
+        margin: 0px;
+        border-style: none;
     }
 }
 .component-body > table {
@@ -657,7 +686,7 @@ label[title] {
         display: block;
         margin-top: 0.5em;
         margin-bottom: 4px;
-        font-weight: 500;
+        font-weight: bold;
         color: var(--text);
     }
     > div {
@@ -675,7 +704,7 @@ label[title] {
         }
     }
     
-    &.FormField-number > div {
+    &.FormField-number > div > div:first-child {
         display: inline-grid;
         grid-template-columns: auto min-content;
         grid-template-rows: 50% 50%;
@@ -738,7 +767,7 @@ label[title] {
         }
     }
     
-    &.FormField-checkbox > div {
+    &.FormField-checkbox > div > div:first-child {
         border-style: none;
         text-align: left;
         
@@ -746,7 +775,7 @@ label[title] {
             margin-right: 8px;
         }
     }
-    &.Markdown, &.FormField-textarea {
+    &.Markdown, &.FormField-textarea, &.noFixedHeight {
         > div {
             height: auto;
         }
@@ -780,9 +809,13 @@ label[title] {
 }
 
 .MarkdownEditor {
+    padding: var(--componentPadding);
     > textarea {
         border-radius: var(--input-border-radius);
         min-height: 200px;
+    }
+    .Markdown h1 {
+        text-align: left;
     }
 }
 
@@ -844,5 +877,20 @@ label[title] {
                 font-weight: bold;
             }
         }
+    }
+}
+
+
+.inlineForm {
+    border: 1px solid var(--sectionBorder);
+    label {
+        padding: var(--componentPadding);
+        margin: 0px;
+        background-color: var(--panelBackground);
+        white-space: nowrap;
+    }
+    .FormField > div {
+        padding: var(--componentPadding);
+        height: auto;
     }
 }
