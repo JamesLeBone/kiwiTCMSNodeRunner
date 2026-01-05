@@ -1,7 +1,7 @@
 // @see app/api/executions/%5BtestCaseId%5D/%5Bexecution%5D/route.js
 
 
-import {testPlan} from '@server/kiwi/PuppeteerExec.js'
+import {testPlan} from '@server/kiwi/PuppeteerExec'
 
 
 export async function GET(request, {params}) {

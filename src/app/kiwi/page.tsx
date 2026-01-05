@@ -1,5 +1,5 @@
 'use server'
-import { Products as ProductList } from './product/ManageProducts'
+import ManageProducts from './product/ManageProducts'
 import * as Products from '@server/kiwi/Product'
 import { redirect } from 'next/navigation'
 
@@ -17,6 +17,6 @@ export default async function Home({params, searchParams} : NextPageProps) {
     }
 
     return <main>
-        <ProductList productList={getProductList.data} />
+        <ManageProducts productList={getProductList.data} />
     </main>
 }

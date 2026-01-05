@@ -8,31 +8,72 @@ import { IconButton } from '@/components/IconButton'
 
 import './scriptExecution.css'
 
-const iconDef = {
-    'info': 'fa fa-info',
-    'debug': 'fa fa-bug',
-    'error': 'fa fa-exclamation-triangle',
-    'warning': 'fa fa-exclamation-circle',
-    'success': 'fa fa-check',
+type iconType = 'info' | 'debug' | 'error' | 'warning' | 'success' | 'running'
+type executionMessage = {
+    icon: iconType
+    message: string
 }
-function Icon({type}) {
-    const icon = iconDef[type] || ''
+type executionImage = {
+    content: string
+}
+
+const iconDef: {[key in iconType]: string} = {
+    info: 'fa fa-info',
+    debug: 'fa fa-bug',
+    error: 'fa fa-exclamation-triangle',
+    warning: 'fa fa-exclamation-circle',
+    success: 'fa fa-check',
+    running: 'fa fa-spinner fa-spin'
+}
+function Icon({type}: {type: iconType}) {
+    const icon = iconDef[type] ?? 'fa fa-info'
     return <i className={icon} />
 }
 
-function ExecutionMessage({type,message}) {
+const parseMessage = (message:any) : executionMessage | null => {
+    if (typeof message == 'undefined') return null
+    if (typeof message == 'string') return { icon: 'info', message }
+    if (Array.isArray(message)) {
+        message = message.map( msg => {
+            if (typeof msg == 'object') {
+                return JSON.stringify(msg,null,4)
+            }
+            return msg
+        }).join('\n')
+        return { icon: 'info', message }
+    } else if (typeof message == 'object') {
+        // Todo: try to look for something that indicates type/icon
+        return {
+            icon: 'info',
+            message:JSON.stringify(message,null,4)
+        }
+    }
+    try {
+        return {
+            icon: 'info',
+            message: message.toString()
+        }
+    } catch (e) {
+        console.warn('Unable to parse message', message, e)
+        return null
+    }
+}
+
+type messageProps = {
+    type: string
+    message: string | string[] | object
+}
+function ExecutionMessage({type,message}: messageProps) {
     if (typeof message == 'undefined') return <></>
+    const parsedMessage = parseMessage(message)
+    if (parsedMessage == null) return <></>
+
     return <div className={`message message-${type}`}>
-        <Icon type={type} />
-        <div>
-        {Array.isArray(message) ? message.map(( msg, index ) => {
-            const msgText = typeof msg == 'object' ? JSON.stringify(msg,null,4) : msg
-            return <div key={index} className="messageText">{msgText}</div>
-        }) : message}
-        </div>
+        <Icon type={ parsedMessage.icon } />
+        <div>{parsedMessage.message}</div>
     </div>
 }
-function ExecutionImage({content}) {
+function ExecutionImage({content}: {content:string}) {
     const src = 'data:image/png;base64,'+content
     return <div>
         <img src={src} alt="Execution image" style={{maxWidth:'80vw'}} />
@@ -40,8 +81,7 @@ function ExecutionImage({content}) {
 }
 
 let runId = 0
-
-const getComponent = (type, data) => {
+function getComponent(type: string, data: any) {
     switch (type) {
         case 'data':
             if (data.type == 'data') {
@@ -58,39 +98,49 @@ const getComponent = (type, data) => {
         case 'image':
             return <ExecutionImage content={data} />
     }
-    return <ExecutionMessage type="Error" message={JSON.stringify(result)} />
+    return <ExecutionMessage type="Error" message={JSON.stringify(data)} />
 }
 
-const useExecutor = (eventListener,src,limit=-1,stdIcon) => {
+const useExecutor = (eventListener: Function,src: string,limit=-1,stdIcon: iconType='info') => {
+    // Number of times run has been started
     let runId = 0
+    // Index of the next message
     let resultIdx = 0
-    const textDecoder = new TextDecoder('utf-8')
-    const [executionResults, setExecutionResults] = useState([])
-    const iconState = useState(stdIcon)
-    const [buttonIcon,setIcon] = iconState
-    const i = (icon) => setIcon('executionButton '+icon)
-    const testResult = useState('')
-    const [lastResult, setLastResult] = testResult
 
-    const pushResult = (line) => {
-        let result,type,data
+    const textDecoder = new TextDecoder('utf-8')
+    const [executionResults, setExecutionResults] = useState<(executionMessage | executionImage)[]>([])
+    const iconState = useState('info')
+    const [buttonIcon,setIcon] = iconState
+    const updateIcon = (icon: iconType) => setIcon('executionButton '+icon)
+
+    const [executionState, setExecutionState] = useState<'idle'|'running'|'completed'>('idle')
+    const [testResult, setTestResult] = useState<null|boolean>(null)
+    
+    const pushResult = (line: string) => {
+        const ro = {
+            result: {},
+            type: '',
+            data: null
+        }
+        
         try {
-            result = JSON.parse(line)
-            type = result.type
-            data = result.data
-            if (typeof data == 'undefined') {
-                data = result.testResult ?? result
-            }
-            if (typeof data.testResult != 'undefined') {
-                setLastResult(data.testResult.success ? 'success' : 'failed')
+            // expecting: {type: string, data: any}
+            // data may be {testResult: {success: boolean, message: string}, ...}
+            ro.result = JSON.parse(line) as any
+            ro.type = ro.type ?? 'info'
+            if (typeof ro.result == 'object' && typeof ro.result.hasOwnProperty('testResult')) {
+                const data = ro.result as any
+                ro.data = data.testResult
             }
         } catch (e) {
             console.error('Error parsing line:', line, e)
+            return
         }
-        if (type == 'event') {
-            // Yay !  - this should be {type, testcaseId, execution, updateResult, testresult}
+
+        if (ro.type == 'event') {
+            // This should be {type, testcaseId, execution, updateResult, testresult}
             // that we can update the screen with
-            console.info('Event', data)
+            console.info('Event', ro.data)
             if (typeof eventListener == 'function') {
                 if (typeof data.eventName == 'undefined') {
                     if (typeof data.success == 'boolean') {
@@ -115,15 +165,15 @@ const useExecutor = (eventListener,src,limit=-1,stdIcon) => {
             return newList
         })
     }
-    const replay = async () => {
-        const matchx = new RegExp(`(executionButton )?${stdIcon}`)
-        if (!buttonIcon.match(matchx)) {
-            console.error('Already running',buttonIcon,stdIcon,'executionButton '+stdIcon)
+    const run = async () => {
+        if (executionState == 'running') {
+            console.error('Already running')
             return
         }
+        
         runId++
         resultIdx = 0
-        i(stdIcon+' fa-spin')
+        updateIcon('running')
         setExecutionResults([])
         // fetch, reader = part of the browser API
         const streamingResponse = await fetch(src)

@@ -2,6 +2,7 @@ import child_process from 'child_process'
 import * as Auth from '@server/Auth'
 import * as Users from '@server/lib/Users'
 import * as Credentials from '@server/lib/Credentials'
+import { fetchCases } from '@server/kiwi/TestCase'
 
 const encoder = new TextEncoder()
    
@@ -92,27 +93,44 @@ function execute(command,args,env={}) {
     })
 }
 
-const creds = () => Auth.currentUser().then(usr => {
-    if (!usr) return {}
-    console.debug('Current user:', usr)
-    return Credentials.get(usr.userId,'puppeteer')
+const creds = () => Auth.currentUser().then(tor => {
+    if (!tor.data) return {}
+    
+    console.debug('Current user:', tor.data)
+    return Credentials.getFirstCredentialOfType(tor.data.userId,1) // Puppeteer type
     .then(userCreds => {
         if (!userCreds) return {}
         console.info('Credentials OK')
+        const creds = userCreds.credential
+
         return {
-            PUPPETEER_USER:userCreds.username,
-            PUPPETEER_PASS:userCreds.password
+            PUPPETEER_USER:creds.username,
+            PUPPETEER_PASS:creds.password
         }
     })
 })
 
-export function runTest(testCaseId,executionId) {
+/*
+I need to find a way to specify the credentialTypeId to use
+for each type of execution (Selenium, Puppeteer, Jast, etc)
+
+So, say Product is "kiwiTCMSNodeRunner"
+then, the Category is "Puppeteer" or "Jast"
+
+... therefore I need to build out categories for Products
+
+Then, when running a test case or test plan, I can look up the Product's Category,
+then find the CredentialType associated with that Category, and use that to fetch
+the correct credentials for the execution.
+*/
+
+export async function runTest(testCaseId:number,executionId?:number) {
     const command = 'runTest.js'
     const args = [testCaseId, `executionId=${executionId}`]
     // return execute(command, args)
     return creds().then(creds => execute(command, args, creds))
 }
-export function testPlan(testPlanId,testRunId=null) {
+export async function testPlan(testPlanId:number,testRunId?:number) {
     const command = 'testPlan.js'
     const args = [testPlanId]
     if (testRunId) args.push(testRunId)

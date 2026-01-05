@@ -89,11 +89,22 @@ type ResultSummaryItem = {
     results?: object
 }
 
-export const getRunResult = async (testRunId:number) => {
-    const executions = await http.search('TestExecution', {run:testRunId}, false)
-    if (executions == null || executions.length == 0) return []
+export type resultSet = {
+    passed: ResultSummaryItem[]
+    failed: ResultSummaryItem[]
+    other: ResultSummaryItem[]
+    successRate: {
+        passed: number
+        total: number
+        failed: number
+    }
+}
 
-    const results = {
+export const getRunResult = async (testRunId:number) : Promise<false|resultSet> => {
+    const executions = await http.search('TestExecution', {run:testRunId}, false)
+    if (executions == null || executions.length == 0) return false
+
+    const results: resultSet = {
         passed:[] as ResultSummaryItem[],
         failed:[] as ResultSummaryItem[],
         other:[] as ResultSummaryItem[],

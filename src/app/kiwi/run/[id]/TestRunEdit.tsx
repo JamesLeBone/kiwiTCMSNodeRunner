@@ -1,16 +1,15 @@
 'use client'
-import './run.css'
 // import Image from 'next/image'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ComponentSection } from '@/components/ComponentSection'
 import { FormField } from '@/components/FormField'
 import { IconButton } from '@/components/IconButton'
 import { ActionBar, ActionButton } from '@/components/Actions'
 
-import * as conn from '@server/kiwi/TestRun'
-import * as exec from '@server/kiwi/Execution'
+import * as TestRun from '@server/kiwi/TestRun'
+import * as Execution from '@server/kiwi/Execution'
 
 import { ExecutionRunner, ExecuteButton, remotePaths } from '@/components/kiwi/ScriptExecution'
 
@@ -57,7 +56,7 @@ const scriptValue = execution => {
 }
 const tableColSpan = 6
 
-function Execution(execution,executionResult) {
+function ExecutionView(execution,executionResult) {
     const url = "/kiwi/execution/" + execution.id
     const status = useState(execution.status)
     const iconState = useState('')
@@ -180,36 +179,32 @@ const updateExecutionResult = (runningStats,executionId,success,message) => {
     }
 }
 
-export default function TestRun({testRun,executions}) {
-    const executionData = useState(executions)
+type trp = {
+    testRun: TestRun.TestRun
+}
+export default function TestRunEdit(props: trp) {
+    const testRunId = props.testRun.id
+    const testRun = props.testRun
 
-    const header = <div>
-        <span>
-            {testRun.id} - {testRun.summary}
-        </span>
+    const testPlanUrl = `/kiwi/plan?id=${testRun.plan.id}`
+
+    return <div>
+        <ComponentSection header={`${testRunId} - ${testRun.name}`}>
+            <fieldset>
+                <FormField label="Summary">{testRun.name}</FormField>
+                <FormField label="Test Plan">
+                    <Link href={testPlanUrl}>{testRun.plan.name}</Link>
+                </FormField>
+            </fieldset>
+        </ComponentSection>
+
+        <RunComponent testRun={testRun} />
     </div>
-    const testRunUrl = `/kiwi/run/${testRun.id}`
-    const testPlanUrl = `/kiwi/plan/${testRun.plan.value}`
+}
 
-    const buttonState = useState('idle')
-
-    const refresh = () => {
-        buttonState[1]('loading')
-        conn.getCases(testRun.id)
-        .then(r => {
-            if (!r.status) {
-                buttonState[1]('error')
-                console.error(r.message)
-                return
-            }
-            executionData[1](r.message)
-            buttonState[1]('idle')
-        })
-    }
-
-    const runningStats = useStats(executionData[0].failed.length, executionData[0].passed.length, executionData[0].other.length)
-    const currentTestCaseId = useState(null)
-
+function RunComponent({testRun}: {testRun: TestRun.TestRun}) {
+    const testRunId = testRun.id
+    const executionData = useState<Execution.resultSet | false>(false)
     const executionEvents = (type,data) => {
         // testCase.skipped : {testCaseId,executionId}
         // testCase.finished : {testCaseId,executionId,testResult}
@@ -245,22 +240,24 @@ export default function TestRun({testRun,executions}) {
     const reportResult = (executionId,result) => {
         console.info('Todo: merge in the effects of running an individual test case', executionId, result)
     }
+    const runningStats = useStats(executionData[0].failed.length, executionData[0].passed.length, executionData[0].other.length)
+    const [currentTestCaseId, setCurrentTestCaseId] = useState(null)
 
+    const buttonState = useState('idle')
+    const refresh = () => {
+        buttonState[1]('loading')
+        Execution.getRunResult(testRunId)
+        .then(r => {
+            executionData[1](r)
+            buttonState[1]('idle')
+        })
+    }
+    useEffect(() => { refresh() }, [])
     return <div>
-        <ComponentSection header={header}>
-            <fieldset>
-                <FormField label="Summary">{testRun.summary}</FormField>
-                <FormField label="Test Plan">
-                    <Link href={testPlanUrl}>{testRun.plan.value}</Link>
-                </FormField>
-                <FormField label="Result">{executionData[0].successRate}</FormField>
-            </fieldset>
-        </ComponentSection>
-
         <div id="layout-split">
             <ComponentSection header="Run">
                 <fieldset>
-                    <FormField label="Current case">{currentTestCaseId[0] != null ? currentTestCaseId[0] : 'None'}</FormField>
+                    <FormField label="Current case">{currentTestCaseId != null ? currentTestCaseId : 'None'}</FormField>
                     <FormField label="Progress">
                         <div style={{width:'100%',backgroundColor:'#353232',borderRadius:'15px',overflow:'hidden',border:'1px solid black',height:'1.3em',display:'flex',justifyContent:'start'}}>
                             <div style={{width:runningStats.passedPerc[0],backgroundColor:'#429542'}}></div>
@@ -270,7 +267,7 @@ export default function TestRun({testRun,executions}) {
                     </FormField>
                     <FormField label="Last Updated">{runningStats.lastUpdate}</FormField>
                 </fieldset>
-                <ExecutionRunner src={`/api/runs/${testRun.plan.value}/${testRun.id}`} events={executionEvents} limit={10} />
+                <ExecutionRunner src={`/api/runs/${testRun.plan.id}/${testRun.id}`} events={executionEvents} limit={10} />
             </ComponentSection>
         
             <Executions id="executions-other" header="Other" list={executionData[0].other} reportResult={reportResult} />

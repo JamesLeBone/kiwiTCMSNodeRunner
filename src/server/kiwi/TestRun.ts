@@ -99,7 +99,7 @@ export const get = async (id: number) : Promise<TypedOperationResult<TestRun>> =
     return op
 }
 
-type CaseListItem = {
+export type CaseListItem = {
     id: number
     summary: string
     text: string
@@ -130,7 +130,7 @@ export const getCases = async (id: number) : Promise<CaseListItem[]> => {
                 securityGroupId = args.securityGroupId
             }
 
-            return {
+            const item: CaseListItem = {
                 id: l.values.id,
                 summary: l.values.summary,
                 text: l.values.text,
@@ -141,7 +141,8 @@ export const getCases = async (id: number) : Promise<CaseListItem[]> => {
                 category: l.values.category.name,
                 product: l.values.product.name,
                 script: l.values.script
-            } as CaseListItem
+            }
+            return item
         }))
     })
     

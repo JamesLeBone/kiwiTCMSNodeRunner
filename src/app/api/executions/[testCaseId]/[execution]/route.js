@@ -1,4 +1,4 @@
-import {runTest} from '@server/kiwi/PuppeteerExec.js'
+import {runTest} from '@server/kiwi/PuppeteerExec'
 
 export async function GET(request, {params}) {
     const {testCaseId,execution} = await params

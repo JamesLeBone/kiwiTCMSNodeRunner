@@ -19,7 +19,7 @@ with generalised concepts and all sensitive features removed.
 2. Refactor server-side libraries to Typescript (done)
 3. Build out Install scripts (done) - app.setup
 4. Verify UAC (User account control) functionality (done)
-5. Verify Kiwi Pages (see below)
+5. Verify Kiwi Pages (see below - mostly done!)
 
 Checkpoint: <b>minimal functionality</b>
 
@@ -37,11 +37,46 @@ Checkpoint <b>Stable</b>
 
 ### Kiwi pages:
 
-1. Test case
-2. Test plan
+1. Test case (tags,components,comments) - done
+2. Test plan - done
 3. Execution
-4. Execution Runner (non-running)
+4. Execution Runner
 5. Components
+
+## Current status
+
+I have verified the CRUD of the primary pages as above,
+however I have been migrating this from our single-product, single-platform testing operation method,
+to something universally applicable. This means implmenting functionality I had not done so before.
+
+I have noted I'm executing things differently from different screens (test plan, test case, test run, execution)
+and need to amlagomate these.  A portion of this has already been done, I need to update this method, then ensure
+all the endpoints are using this method.
+
+This works via:
+ScriptExecution.tsx (frontend)
+Where the user submits an API call off to the NextJs /api to do a test at the specified level.
+
+ie: `/api/runs/{{testPlanId}}/{{testRunId}}` to re-run a test plan.
+
+This file just organises the request back down to a singelton point in server/kiwi/PuppteerExec,
+which is now being renamed to /server/Executor.ts - to be more generic.
+
+Now for the tricky part:
+
+I was using a hard-coded credentialTypeId = 1 for Puppeteer.  But I can see this needs to be mapped
+to a Product.Category in Kiwi, so my credential types now becomes:
+
+```
+productId: number
+categoryId: number
+```
+
+From there I can get the name of the product and cetegory to describe the credential type instead of the existing
+name and description.
+
+This does introduce a point of instability, however the credentials are still encoded per-user and if they don't 
+work, they should be able to set them in UAC.
 
 ## Purpose
 

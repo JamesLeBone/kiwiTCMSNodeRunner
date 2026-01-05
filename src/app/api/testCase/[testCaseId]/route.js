@@ -1,4 +1,4 @@
-import {runTest} from '/src/app/api/Stream.js'
+import {runTest} from '/src/app/api/Stream'
 
 export async function GET(request, {params}) {
     const {testCaseId} = await params
