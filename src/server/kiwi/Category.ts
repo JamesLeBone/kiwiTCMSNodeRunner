@@ -1,4 +1,5 @@
 'use server'
+import { prepareStatus, StatusOperation, updateOpError, updateOpSuccess } from '@lib/Operation'
 import {
     http
 } from './Kiwi'
@@ -54,4 +55,28 @@ export const fetchCategory = async (id: number) : Promise<Category | null> => {
     const category = await http.getEntity<Category>('Category', id)
     if (!category) return null
     return djangoCategory(category)
+}
+
+export const updateCategory = async (id:number, name:string, description:string) : Promise<StatusOperation> => {
+    const op = prepareStatus('updateCategory')
+    const current = await fetchCategory(id)
+    if (!current) {
+        updateOpError(op, 'Category not found')
+        return op
+    }
+    const values = {
+        name,
+        description,
+        product: current.product
+    }
+    console.debug(values)
+
+    await http.update('Category', id, 'category_id', values)
+    .then( res => {
+        updateOpSuccess(op, 'Category updated successfully')
+    }, rej => {
+        console.error('Failed to update Category', rej)
+        updateOpError(op, 'Failed to update Category')
+    })
+    return op
 }

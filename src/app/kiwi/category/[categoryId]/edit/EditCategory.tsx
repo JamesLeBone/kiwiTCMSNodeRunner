@@ -5,14 +5,21 @@ import Link from 'next/link'
 
 import { FormInputField, FormActionBar, validationError, blankStatus, FormSelection, FormAction } from '@/components/FormActions'
 import { ComponentSection } from '@/components/ComponentSection'
+import { FormField } from '@/components/FormField'
 
 import type { Category } from '@server/kiwi/Category'
-import { FormField } from '@/components/FormField'
+import { updateCategory } from '@server/kiwi/Category'
+
+import { formDataValue } from '@lib/Functions'
 
 export default function EditCategory(props: {category: Category, productName: string}) {
     const [state, formAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
-            return blankStatus('updateCategory')
+            const name = formDataValue.getString(formData, 'name')
+            const description = formDataValue.getString(formData, 'description', '')
+
+            const result = await updateCategory(props.category.id, name, description)
+            return result
         },
         blankStatus('updateProduct')
     )

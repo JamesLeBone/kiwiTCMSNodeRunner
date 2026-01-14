@@ -31,7 +31,7 @@ export default async function CategoryEditPage(params: NextPageProps) {
         redirect('/kiwi/product')
     }
 
-    console.debug('Editing category', category, 'for product', product)
+    // console.debug('Editing category', category, 'for product', product)
     
     return <EditCategory category={category} productName={product.name} />
 }
