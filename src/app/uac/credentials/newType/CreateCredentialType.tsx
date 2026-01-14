@@ -18,6 +18,15 @@ const formInputOptions = {
     email: 'Email'
 }
 
+export type SelectionOption = {
+    productId: number
+    productName: string
+    categories: {
+        id: number
+        name: string
+    }[]
+}
+
 function CredentialProp({name, type, value}:{name:string, type:string, value?:string|number}) {
     const [baseName, setBaseName] = useState('credential[' + name + ']')
     const stringValue = type === 'password' ? ''  : value ? value.toString() : ''
@@ -46,7 +55,7 @@ function TypeEditor({fieldList, setFieldList}:{fieldList:credentialFieldSet, set
     </>
 }
 
-export default function CreateCredentialType() {
+export default function CreateCredentialType(props: {selectionOptions: SelectionOption[]}) {
     const [fieldList, setFieldList] = useState({
         'username': { type: 'string', value: '' },
         'password': { type: 'password', value: '' }
@@ -103,6 +112,7 @@ export default function CreateCredentialType() {
         <Form action={send}>
             <fieldset>
                 <FormInputField label="Description" name="description" type="text" required={true} />
+
             </fieldset>
             <TypeEditor fieldList={fieldList} setFieldList={setFieldList} />
             

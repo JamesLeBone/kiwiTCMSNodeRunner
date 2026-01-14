@@ -3,6 +3,7 @@ import ManageProducts from './ManageProducts'
 import * as Products from '@server/kiwi/Product'
 import { redirect } from 'next/navigation'
 import EditProduct from './EditProduct'
+import { listByProduct } from '@server/kiwi/Category'
 
 export async function generateMetadata(params: NextPageProps) {
     const title = process.env.APP_TITLE
@@ -31,10 +32,11 @@ export default async function ProductPage(params: NextPageProps) {
     const productId = Number.parseInt(searchParams.id as string)
     if (isNaN(productId)) return <AllProducts />
 
-    const [ product, classifications, versions ] = await Promise.all([
+    const [ product, classifications, versions, categories ] = await Promise.all([
         Products.fetch(productId),
         Products.fetchClassifications(),
-        Products.fetchProductVersions(productId)
+        Products.fetchProductVersions(productId),
+        listByProduct(productId)
     ])
     .catch( e => {
         console.error('Failed to fetch product data', e)
@@ -45,6 +47,7 @@ export default async function ProductPage(params: NextPageProps) {
         redirect('/kiwi/product')
     }
     // console.debug('Editing product', product, 'Classifications:', classifications)
+    const categoryList = categories[productId] ? categories[productId] : []
 
-    return <EditProduct product={product} classifications={classifications} versions={versions} />
+    return <EditProduct product={product} classifications={classifications} versions={versions} categories={categoryList} />
 }

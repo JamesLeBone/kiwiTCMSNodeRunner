@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS sessions (
 DROP TABLE IF EXISTS credential_types;
 CREATE TABLE IF NOT EXISTS credential_types (
     credential_type_id INTEGER PRIMARY KEY
+    , product_id INTEGER NOT NULL
+    , category_id INTEGER NOT NULL
     , description TEXT UNIQUE NOT NULL
     , fields TEXT
 );

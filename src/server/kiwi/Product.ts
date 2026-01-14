@@ -9,14 +9,12 @@ import {
 } from './Kiwi'
 import { updateOpError, updateOpSuccess, TypedOperationResult, StatusOperation, prepareStatus } from '@lib/Operation'
 import { DjangoEntity } from './Django'
-import { update } from '@server/Users'
 
 export type Product = {
     id: number
     name: string
     description: string
     classification: number
-    scriptPrefix?: string
 }
 
 export type ProductWithClassificationName = Product & {
@@ -168,7 +166,7 @@ export const fetch = async (productId: number) : Promise<ProductWithClassificati
     return p
 }
 
-export const updateProduct = async (productId: number, name:string, description:string, classification: number|string, scriptPrefix:string) : Promise<TypedOperationResult<ProductWithClassificationName>> => {
+export const updateProduct = async (productId: number, name:string, description:string, classification: number|string) : Promise<TypedOperationResult<ProductWithClassificationName>> => {
     const login = await http.login()
     if (!login) return unAuthenticated
 
@@ -180,8 +178,7 @@ export const updateProduct = async (productId: number, name:string, description:
     const updates = {
         name,
         description,
-        classification: classificationId,
-        script_prefix: scriptPrefix
+        classification: classificationId
     }
     console.debug('Updating Product', productId, updates)
 

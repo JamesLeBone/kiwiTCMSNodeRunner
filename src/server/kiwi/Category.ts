@@ -28,10 +28,13 @@ export const listByProduct = async (productId?: number) : Promise<CateogryByProd
     const query : Record<string, any> = {}
     if (productId) query['product'] = productId
 
-    const pl = await http.searchEntity<Category>('Category', query)
-    .catch( e => [] )
+    const pl = await http.searchEntity<Category>('Category', query, false)
+    .catch( e => {
+        console.warn('Failed to fetch categories by product', e)
+        return []
+    } )
     
-    const categorylist = {} as Record<number, Category[]>
+    const categorylist:Record<number, Category[]> = {}
     for (const category of pl) {
         if (typeof categorylist[category.product] === 'undefined') {
             categorylist[category.product] = []

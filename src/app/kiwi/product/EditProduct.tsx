@@ -1,15 +1,20 @@
 'use client'
 import { useState, useActionState, useEffect } from 'react'
+import Form from 'next/form'
+import Link from 'next/link'
+
 import type { ProductWithClassificationName, Classification } from "@server/kiwi/Product"
 import * as Product from '@server/kiwi/Product'
-import Form from 'next/form'
+
 import { FormInputField, FormActionBar, validationError, blankStatus, FormSelection, FormAction } from '@/components/FormActions'
 import { ComponentSection } from '@/components/ComponentSection'
-import { FormField } from '@/components/FormField'
-import { formDataValue } from '@lib/Functions'
-import { FormFieldAlternating } from '@/components/FormField'
+import { FormField, FormFieldAlternating } from '@/components/FormField'
 import Card from '@/components/Card'
+
+import { formDataValue } from '@lib/Functions'
 import ProductVersions from './ProductVersions'
+import { Category } from '@server/kiwi/Category'
+import { DynamicTable } from '@/components/DynamicTable'
 
 const getFormatClassificationOptions = (classifications: Classification[]) => {
     return classifications.reduce((acc, cls) => {
@@ -24,6 +29,7 @@ type editParams = {
     product: ProductWithClassificationName
     classifications: Classification[]
     versions: Product.Version[]
+    categories: Category[]
 }
 export default function EditProduct(params: editParams) {
     const product = params.product
@@ -47,7 +53,6 @@ export default function EditProduct(params: editParams) {
             const name = formDataValue.getString(formData, 'name')
             const description = formDataValue.getString(formData, 'description', '')
             const classification = formDataValue.getString(formData, 'classification')
-            const scriptPrefix = formDataValue.getString(formData, 'scriptPrefix', '')
 
             if (!name || name.trim().length === 0) {
                 return validationError('updateProduct', 'Product name is required')
@@ -57,8 +62,7 @@ export default function EditProduct(params: editParams) {
                 id,
                 name, 
                 description, 
-                classification,
-                scriptPrefix
+                classification
             )
             if (result.status && result.data) {
                 // If a string was entered for classification, update local options
@@ -87,9 +91,9 @@ export default function EditProduct(params: editParams) {
         }
     }, [product.id])
 
-    const actions = [
+    const actions: FormAction[] = [
         { label: 'Update' },
-        { label: 'Set Active' }
+        { label: 'Select as active product', title: 'Set this product as the product you are currently working on' }
     ]
 
     return <div>
@@ -104,13 +108,40 @@ export default function EditProduct(params: editParams) {
                 <fieldset>
                     <FormInputField label="Name" name="name" required={true} value={product.name} />
                     <FormFieldAlternating label="Classification" title='What type of product is this?' name="classification" required={true} options={classifications} />
-                    <FormInputField label="Description" name="description"  value={product.description} type="textarea" />
-                    <FormInputField label="Script Prefix" title="Prefix script executions with this" name="scriptPrefix" value={product.scriptPrefix ?? ''} type="textarea" />
+                </fieldset>
+                <fieldset style={{display:'block'}}>
+                    <FormInputField label="Description" name="description" value={product.description} type="textarea" />
                 </fieldset>
                 <FormActionBar pendingState={isPending} state={state} actions={actions} />
             </Form>
         </ComponentSection>
         
         <ProductVersions productId={product.id} versions={params.versions} />
+
+        <CategoriesComponent categories={params.categories} productId={product.id} />
     </div>
+}
+
+function CategoryRow(props: {category: Category, productId: number}) {
+    const category = props.category
+    const url = `/kiwi/category/${category.id}/edit`
+
+    return <tr>
+        <td>{category.id}</td>
+        <td>{category.name}</td>
+        <td>{category.description}</td>
+        <td>
+            <Link href={url}>Edit</Link>
+        </td>
+    </tr>
+}
+
+function CategoriesComponent(props: {categories: Category[], productId: number}) {
+    return <ComponentSection header="Test Categories">
+        <DynamicTable headers={['ID', 'Name', 'Description', 'Edit']} >
+            { props.categories.map( (category) => 
+                <CategoryRow key={category.id} category={category} productId={props.productId} />
+            ) }
+        </DynamicTable>
+    </ComponentSection>
 }

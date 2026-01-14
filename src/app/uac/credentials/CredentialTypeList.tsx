@@ -25,6 +25,8 @@ export default function CredentialTypeList({types} : {types:credentialType[]}) {
             <thead>
                 <tr>
                     <th>Description</th>
+                    <th>Product</th>
+                    <th>Category</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -32,6 +34,8 @@ export default function CredentialTypeList({types} : {types:credentialType[]}) {
                 {typeList.map((ct) => 
                     <tr key={ct.credentialTypeId}>
                         <td>{ct.description}</td>
+                        <td>{ct.productName}</td>
+                        <td>{ct.categoryName}</td>
                         <td className='align-right'>
                             { deleteButton(ct.credentialTypeId) }
                             <IconButton href={`/uac/credentials/new?typeId=${ct.credentialTypeId}`} className='fa fa-plus' title="Add Credential"></IconButton>

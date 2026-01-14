@@ -66,8 +66,9 @@ class DbSession {
         if (!(this.#expiresAt instanceof Date)) return true
         return this.#expiresAt < new Date()
     }
+    static duration = 1000*60*60*24*7 // 7 days
     static newExpiry() {
-        return new Date(new Date().getTime() + 1000*60*60*24*7)
+        return new Date(new Date().getTime() + DbSession.duration)
     }
     renewExpiry() {
         if (this.id == null) return null
@@ -217,12 +218,21 @@ export async function clear(username:string,sessionId:number|null) {
 }
 
 export async function list(userId:number) : Promise<DbSession[]> {
-    const list = await db.fetch(`Select * FROM SESSIONS WHERE USER_ID = ?`, [userId])
-    // console.debug('Session list for user', userId, ':', list)
-    const sessionList = list.map((r:Object) => {
-        const s = DbSession.readDbRecord(r)! // we know r is an object from db
-        return s
-    })
+    const currentTime = (new Date()).getTime()
+    
+    // I don't need to typecast the string/number in sqlite
+    const list = await db.fetch(`SELECT *
+        FROM SESSIONS
+        WHERE USER_ID = ?
+        AND expires_at > ?
+    `, [userId, currentTime])
+
+    const sessionList = []
+    for (const r of list) {
+        const s = DbSession.readDbRecord(r)
+        if (!s) continue // I don't need to check s.expired, as it's now done in the query.
+        sessionList.push(s)
+    }
     return sessionList
 }
 

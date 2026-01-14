@@ -1,31 +1,56 @@
 import { db } from '../db/Database'
-import { Operation, StatusOperation, TypedOperationResult } from '@lib/Operation'
+import { Operation, prepareStatus, StatusOperation, TypedOperationResult } from '@lib/Operation'
 import type { credentialFieldSet } from './Credentials'
+
+import { fetch as fetchProduct } from '../kiwi/Product'
+import { fetchCategory } from '../kiwi/Category'
 
 export type credentialType = {
     credentialTypeId: number
     description: string
     fields: credentialFieldSet
+    // Id and names are seperated as they can have a value in our database that does not match Kiwi.
+    productId: number
+    productName?: string
+    categoryId: number
+    categoryName?: string
 }
-const rowToCredentialType = (row:any) : credentialType => {
-    return {
+const rowToCredentialType = async (row:any) : Promise<credentialType> => {
+    const ct: credentialType = {
         credentialTypeId: row.credentialTypeId,
         description: row.description,
-        fields: JSON.parse(row.fields) as credentialFieldSet
-    } as credentialType
+        fields: JSON.parse(row.fields) as credentialFieldSet,
+        productId: row.productId,
+        categoryId: row.categoryId
+    }
+
+    const product = await fetchProduct(ct.productId)
+    if (product) ct.productName = product.name
+
+    const category = await fetchCategory(ct.categoryId)
+    if (category) ct.categoryName = category.name
+
+    return ct
 }
 
-export async function addType(description:string,fields:credentialFieldSet) : Promise<StatusOperation> {
-    const op = {
-        id: 'addCredentialType',
-        status: false,
-        statusType: 'error',
-        message: ''
-    } as StatusOperation
+export async function addType(productId:number, categoryId:number, description:string,fields:credentialFieldSet) : Promise<StatusOperation> {
+    const op = prepareStatus('addCredentialType')
+
+    const product = await fetchProduct(productId)
+    if (!product) {
+        op.message = 'Invalid product ID'
+        return op
+    }
+    const category = await fetchCategory(categoryId)
+    if (!category) {
+        op.message = 'Invalid category ID'
+        return op
+    }
+    
     try {
         const fieldsString = JSON.stringify(fields)
         const set = await db.insert('credential_types',
-            {description, fields:fieldsString}
+            {description, fields:fieldsString, productId, categoryId}
         )
         if (set.length == 0) {
             return op.message = 'Failed to add credential type', op
@@ -44,8 +69,8 @@ export async function addType(description:string,fields:credentialFieldSet) : Pr
     }
 }
 export async function getTypes() : Promise<credentialType[]> {
-    return db.fetch(`SELECT credential_type_id, description, fields FROM credential_types`)
-    .then(rows => rows.map(rowToCredentialType))
+    const rows = await db.fetch(`SELECT credential_type_id, description, fields, product_id, category_id FROM credential_types`)
+    return Promise.all(rows.map(rowToCredentialType))
 }
 export async function deleteType (id:number): Promise<Operation>  {
     const op = {

@@ -113,6 +113,7 @@ export type FormAction = {
     label: string
     id?: string
     onClick?: () => void
+    title?: string
 }
 
 type FormActionBarProps = {
@@ -131,9 +132,9 @@ export function FormActionBar({pendingState, state, actions} : FormActionBarProp
         {actions.map((action) => {
             const ident = action.id || action.label.toLowerCase().replace(/\s+/g, '_')
             if (action.onClick) {
-                return <span key={ident} onClick={action.onClick}>{action.label}</span>
+                return <span key={ident} onClick={action.onClick} title={action.title}>{action.label}</span>
             }
-            return <input key={ident} type="submit" value={action.label} name='action' disabled={pendingState} />
+            return <input key={ident} type="submit" title={action.title} value={action.label} name='action' disabled={pendingState} />
         })}
         <ServerResponseComponent type={state.statusType}>{state.message}</ServerResponseComponent>
     </ActionBar>
