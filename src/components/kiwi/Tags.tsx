@@ -9,7 +9,7 @@ import { FormInputField, FormActionBar, validationError, blankStatus, FormSelect
 
 import { useActionState } from 'react'
 import { StatusOperation } from '@lib/Operation';
-import { useMessage } from '@/components/ServerResponse'
+import { useMessage } from '@/components/useMessage'
 import { DynamicTable } from '../DynamicTable';
 
 type srpops = {

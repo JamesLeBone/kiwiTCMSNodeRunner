@@ -33,24 +33,16 @@ const rowToCredentialType = async (row:any) : Promise<credentialType> => {
     return ct
 }
 
-export async function addType(productId:number, categoryId:number, description:string,fields:credentialFieldSet) : Promise<StatusOperation> {
+export async function addType(description:string,fields:credentialFieldSet) : Promise<StatusOperation> {
     const op = prepareStatus('addCredentialType')
+    // Leave product and category null for now.
+    // the user will need to be able to connect to KIWI,
+    // to define their product and categories first!
 
-    const product = await fetchProduct(productId)
-    if (!product) {
-        op.message = 'Invalid product ID'
-        return op
-    }
-    const category = await fetchCategory(categoryId)
-    if (!category) {
-        op.message = 'Invalid category ID'
-        return op
-    }
-    
     try {
         const fieldsString = JSON.stringify(fields)
         const set = await db.insert('credential_types',
-            {description, fields:fieldsString, productId, categoryId}
+            {description, fields:fieldsString} 
         )
         if (set.length == 0) {
             return op.message = 'Failed to add credential type', op

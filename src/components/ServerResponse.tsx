@@ -1,64 +1,10 @@
 
-import { useState } from 'react'
-import type { Operation, OperationResult, statusType } from '@lib/Operation'
-
-function useMessage(defaultMessage?:Operation) {
-    const [messageType,setMessageType] = useState<statusType>(defaultMessage?.statusType || 'blank')
-    const [message,setMessage] = useState(defaultMessage?.message || '')
-    const clear = () => {
-        setMessageType('info')
-        setMessage('')
-    }
-
-    return {
-        errorHandler: (e:Error) => {
-            setMessageType('error')
-            setMessage(e.message || 'An error occurred')
-        },
-        statusResponse: (response:OperationResult, verifyData = true) => {
-            let status = response.status
-            if (verifyData && typeof response.data == 'undefined') status = false
-
-            if (typeof response.statusType != 'undefined') {
-                setMessageType(response.statusType)
-            } else if (status) {
-                setMessageType('success')
-            } else {
-                setMessageType('error')
-            }
-            setMessage(response.message)
-            return status
-        },
-        error: (message:string) => {
-            setMessageType('error')
-            setMessage(message)
-        },
-        success: (message:string) => {
-            setMessageType('success')
-            setMessage(message)
-        },
-        info: (message:string) => {
-            setMessageType('info')
-            setMessage(message)
-        },
-        warning: (message:string) => {
-            setMessageType('warning')
-            setMessage(message)
-        },
-        clear,
-        loading: () => {
-            setMessageType('loading')
-            setMessage('Loading...')
-        },
-        message: <ServerResponseComponent type={messageType}>{message}</ServerResponseComponent>,
-    }
-}
-
+import type { statusType } from '@lib/Operation'
 type ServerResponseProps = {
     children: React.ReactNode
     type?: statusType
 }
-function ServerResponseComponent({children,type='blank'}: ServerResponseProps) {
+export default function ServerResponse({children,type='blank'}: ServerResponseProps) {
     let hasResponse = ' hasResponse'
 
     let icon = 'status-icon '
@@ -91,8 +37,3 @@ function ServerResponseComponent({children,type='blank'}: ServerResponseProps) {
         <div className={type}>{children}</div>
     </div>
 }
-
-
-
-export { useMessage, ServerResponseComponent }
-

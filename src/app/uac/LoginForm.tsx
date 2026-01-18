@@ -2,7 +2,7 @@
 
 import * as Auth from '@server/Auth'
 import { useState, useEffect } from 'react'
-import { useMessage } from '@/components/ServerResponse'
+import { useMessage } from '@/components/useMessage'
 import { ComponentSection } from '@/components/ComponentSection'
 import { ActionBar } from '@/components/Actions'
 import { InputField } from '@/components/InputField'

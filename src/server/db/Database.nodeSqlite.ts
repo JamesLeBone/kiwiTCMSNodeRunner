@@ -66,7 +66,7 @@ async function check() {
     if (isDatabaseReady != null) return isDatabaseReady
     let rows:number = 0
     try {
-        const st = db.prepare(`SELECT count(*) as c FROM credential_types`)
+        const st = db.prepare(`SELECT count(*) as c FROM security_groups`)
         const row = st.get()
         
         if (row && row.c) {

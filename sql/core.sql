@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS sessions (
 DROP TABLE IF EXISTS credential_types;
 CREATE TABLE IF NOT EXISTS credential_types (
     credential_type_id INTEGER PRIMARY KEY
-    , product_id INTEGER NOT NULL
-    , category_id INTEGER NOT NULL
+    -- These need to be not required so that we can specify a generic login.
+    , product_id INTEGER
+    , category_id INTEGER
     , description TEXT UNIQUE NOT NULL
     , fields TEXT
 );
@@ -55,4 +56,4 @@ CREATE TABLE security_groups (
     , description TEXT
     , is_default NUMERIC DEFAULT 0
 );
-INSERT INTO security_groups (1, 'Administrators', 'System Administrators', 1);
+INSERT INTO security_groups (name,description,is_default) VALUES ('Administrators', 'System Administrators', 1);

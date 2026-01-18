@@ -4,7 +4,7 @@ import { ActionBar, ActionButton } from '@/components/Actions'
 import { ComponentSection } from '@/components/ComponentSection'
 import { FormField } from '@/components/FormField'
 import { useState, useEffect } from 'react'
-import { useMessage } from '@/components/ServerResponse'
+import { useMessage } from '@/components/useMessage'
 import { currentUser } from '@server/lib/Auth'
 
 import { getEmailDetails, send, emailRecipient } from '@server/lib/Email'

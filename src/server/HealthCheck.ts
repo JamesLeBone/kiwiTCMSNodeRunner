@@ -38,7 +38,7 @@ export async function initializeDatabase() : Promise<Operation> {
             return op.status=true,op.message='Database is already initialized', op
         }
         const sqlInstall = readFileSync('./sql/core.sql', 'utf-8')
-        const commands = sqlInstall.split(/;\s*$/m).map(cmd => cmd.trim()).filter(cmd => cmd.length > 0)
+        const commands = sqlInstall.split(/;\s*$/m).map(cmd => cmd.trim()).filter(cmd => cmd.length > 0 && !cmd.startsWith('--'))
 
         for (const sql of commands) {
             const r = await db.run(sql)

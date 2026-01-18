@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { FormField } from './FormField'
 import { ActionBar } from './Actions'
 import type { OperationResult, StatusOperation } from '@lib/Operation'
-import { ServerResponseComponent } from './ServerResponse'
+import ServerResponse from './ServerResponse'
 import { Selection } from './Selection'
 import { NumberInput } from './InputField'
 import BooleanInput from './BooleanInput'
@@ -136,7 +136,7 @@ export function FormActionBar({pendingState, state, actions} : FormActionBarProp
             }
             return <input key={ident} type="submit" title={action.title} value={action.label} name='action' disabled={pendingState} />
         })}
-        <ServerResponseComponent type={state.statusType}>{state.message}</ServerResponseComponent>
+        <ServerResponse type={state.statusType}>{state.message}</ServerResponse>
     </ActionBar>
 }
 

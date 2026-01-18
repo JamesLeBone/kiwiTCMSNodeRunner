@@ -35,12 +35,14 @@ export default function EditProduct(params: editParams) {
     const product = params.product
     const id = product.id
     const [classifications, setClassifications] = useState(getFormatClassificationOptions(params.classifications))
+    // Define the string so we can ensure it matches for detection.
+    const setActiveId = `Select as active product`
 
     const [state, formAction, isPending] = useActionState(
         async (prevState: any, formData: FormData) => {
 
             const action = formDataValue.getString(formData,'action')
-            if (action === 'Set Active') {
+            if (action === setActiveId) {
                 window.localStorage.setItem('activeProduct', product.id+'')
                 setIsActive( product.id )
                 const op = blankStatus('setActiveProduct')
@@ -93,7 +95,7 @@ export default function EditProduct(params: editParams) {
 
     const actions: FormAction[] = [
         { label: 'Update' },
-        { label: 'Select as active product', title: 'Set this product as the product you are currently working on' }
+        { label: setActiveId, title: 'Set this product as the product you are currently working on' }
     ]
 
     return <div>

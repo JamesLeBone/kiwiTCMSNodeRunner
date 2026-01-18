@@ -20,7 +20,7 @@ import { blankStatus,FormInputField,FormActionBar } from '@/components/FormActio
 // Types and hooks
 import { TypedOperationResult } from '@lib/Operation'
 import { formDataValue }   from '@lib/Functions'
-import { useMessage } from '@/components/ServerResponse'
+import { useMessage } from '@/components/useMessage'
 
 // Module-imported hooks
 import { useState,useActionState } from 'react'
@@ -169,7 +169,7 @@ function TestExecutionSection(props: tesProps) {
     return <div>
         { props.executions.map(execution => 
             <div key={execution.id}>
-                Execution #{execution.id} - Status: {execution.status}
+                Execution #{execution.id} - Status: {execution.status.name}
             </div>
         ) }
     </div>

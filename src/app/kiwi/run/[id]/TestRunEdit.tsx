@@ -9,13 +9,22 @@ import { IconButton } from '@/components/IconButton'
 import { ActionBar, ActionButton } from '@/components/Actions'
 
 import * as TestRun from '@server/kiwi/TestRun'
-import * as Execution from '@server/kiwi/Execution'
+import * as ex from '@server/kiwi/Execution'
 
 import { ExecutionRunner, ExecuteButton, remotePaths } from '@/components/kiwi/ScriptExecution'
 
 import Link from 'next/link'
+type RunningStatObject = {
+    remaining: [string, (n: string) => void],
+    passedPerc: [string, (s: string) => void],
+    failedPerc: [string, (s: string) => void],
+    pass: () => void,
+    update: () => void,
+    lastUpdate: string
+}
 
-const useStats = (failed,passed,other) => {
+
+const useStats = (failed:number,passed:number,other:number) => {
     const stats = useState({
         failed: failed,
         passed: passed,
@@ -23,13 +32,13 @@ const useStats = (failed,passed,other) => {
     })
     const lastUpdated = useState('')
     const total = failed + passed + other
-    const getPerc = v => Math.ceil(v / total * 100) + '%'
+    const getPerc = (v: number) => Math.ceil(v / total * 100) + '%'
 
     const passedPerc = useState(getPerc(passed))
     const failedPerc = useState(getPerc(failed))
     const remaining = useState((failed + other) + ' / ' + total)
 
-    return {
+    const stat: RunningStatObject = {
         remaining,
         passedPerc,
         failedPerc,
@@ -45,10 +54,11 @@ const useStats = (failed,passed,other) => {
         },
         lastUpdate: lastUpdated[0]
     }
+    return stat
 }
 
-const testCaseUrl = id => "/kiwi/testCase/" + id
-const scriptValue = execution => {
+const testCaseUrl = (id: number) => "/kiwi/testCase/" + id
+const scriptValue = (execution: any) => {
     const script = execution.case.script
     const testCaseId = execution.case.id
     if (script == null || isNaN(Number.parseInt(script))) return ''
@@ -56,29 +66,34 @@ const scriptValue = execution => {
 }
 const tableColSpan = 6
 
-function ExecutionView(execution,executionResult) {
+type ExecutionResult = {
+    eventName:string
+    data?:any
+}
+
+function ExecutionView({execution, executionResult}: {execution: any, executionResult: ExecutionReporter}) {
     const url = "/kiwi/execution/" + execution.id
     const status = useState(execution.status)
-    const iconState = useState('')
+    const iconState = useState(true)
 
     const reloadExecution = () => {
-        iconState[1]('loading')
-        exec.get(execution.id)
+        iconState[1](false)
+        ex.get(execution.id)
         .then(r => {
-            const txt = r.status ? 'success' : 'error'
-            iconState[1]('' + txt)
-            const execution = r.message
+            iconState[1](true)
+            if (!r.data) return
+            const execution = r.data
             status[1](execution.status.name)
-        }, x => iconState[1]('error'))
-        .catch(() => iconState[1]('error'))
+        }, x => iconState[1](true))
+        .catch(() => iconState[1](true))
     }
     const trId = 'testExecution-' + execution.id
 
-    const caseEvents = (eventName,data) => {
+    const caseEvents = (eventName: string, data: any) => {
         if (eventName != 'testResult.finish') {
             if (typeof executionResult == 'function') {
                 try {
-                    executionResult(eventName,data)
+                    executionResult(eventName, data)
                 } catch (e) {
                     console.error('Failed to execute executionResult callback', e)
                     console.log('eventListener', data)
@@ -97,19 +112,19 @@ function ExecutionView(execution,executionResult) {
             <td className='numeric'><Link href={testCaseUrl(execution.case.id)}>{execution.case.id}</Link></td>
             <td className='numeric'>{scriptValue(execution)}</td>
             <td>{execution.case.securityGroupId}</td>
-            <td rowSpan='2'>
+            <td rowSpan={2}>
                 <IconButton title="Reload" onClick={reloadExecution} className="fa fa-refresh" active={iconState[0]} />
-                <ExecuteButton src={remotePaths.execution(execution.case.id,execution.id)} events={caseEvents} />
+                <ExecuteButton src={remotePaths.execution(execution.case.id,execution.id)} events={caseEvents} >Run</ExecuteButton>
             </td>
         </tr>
         <tr>
-            <td colSpan='5'>{execution.case.summary}</td>
+            <td colSpan={5}>{execution.case.summary}</td>
         </tr>
-        <tr><td colSpan='5' id={trId+'-reason'} style={{whiteSpace:'pre',padding:'8px',fontFamily:'monospace'}}></td></tr>
+        <tr><td colSpan={5} id={trId+'-reason'} style={{whiteSpace:'pre',padding:'8px',fontFamily:'monospace'}}></td></tr>
     </tbody>
 }
 
-function Executions({id,header,list,reportResult}) {
+function Executions({id,header,list,reportResult}: {id: string, header: string, list: any[], reportResult: ExecutionReporter}) {
     if (list.length == 0) return ''
     return <table className='ExecutionList' id={id}>
         <thead>
@@ -125,17 +140,17 @@ function Executions({id,header,list,reportResult}) {
                 <th>Actions</th>
             </tr>
         </thead>
-        {list.map(execution => <Execution key={execution.id} {...execution} executionResult={result => reportResult(execution.id,result)}  />)}
+        {list.map(execution => <ExecutionView key={execution.id} execution={execution} executionResult={reportResult}  />)}
     </table>
 }
 
-const updateExecutionResult = (runningStats,executionId,success,message) => {
+const updateExecutionResult = (runningStats: RunningStatObject, executionId:number, success:boolean, message?:string) => {
     if (success) runningStats.pass()
     const tbody = document.getElementById('testExecution-' + executionId)
     if (tbody == null) return
 
     try {
-        const statusCell = tbody.childNodes[0].childNodes[0]
+        const statusCell = tbody.childNodes[0].childNodes[0] as HTMLElement
         if (statusCell == null) {
             console.warn('Could not find status cell for execution',executionId)
         } else {
@@ -202,10 +217,12 @@ export default function TestRunEdit(props: trp) {
     </div>
 }
 
+type ExecutionReporter = (eventName:string,data?:any) => void
+
 function RunComponent({testRun}: {testRun: TestRun.TestRun}) {
     const testRunId = testRun.id
-    const executionData = useState<Execution.resultSet | false>(false)
-    const executionEvents = (type,data) => {
+    const executionData = useState<ex.resultSet | false>(false)
+    const executionEvents = (type:string,data:any) => {
         // testCase.skipped : {testCaseId,executionId}
         // testCase.finished : {testCaseId,executionId,testResult}
         // testCase.start : {testCaseId}
@@ -216,7 +233,9 @@ function RunComponent({testRun}: {testRun: TestRun.TestRun}) {
             return
         }
         if (type == 'testCase.start') {
-            currentTestCaseId[1](data.testCaseId)
+            if (!data?.testCaseId) return
+            const testCaseId = Number.parseInt(data.testCaseId)
+            setCurrentTestCaseId(testCaseId)
             return
         }
         if (type == 'testCase.progres') {
@@ -225,7 +244,7 @@ function RunComponent({testRun}: {testRun: TestRun.TestRun}) {
         }
         if (type == 'testCase.skipped') {return;}
         if (type == 'testCase.finished') {
-            currentTestCaseId[1](data.testCaseId)
+            setCurrentTestCaseId(data.testCaseId)
             if (typeof data.testResult != 'undefined') {
                 try {
                     const {success,message} = data.testResult
@@ -237,16 +256,22 @@ function RunComponent({testRun}: {testRun: TestRun.TestRun}) {
         }
         console.debug('Unhandled Execution event',type,data)
     }
-    const reportResult = (executionId,result) => {
-        console.info('Todo: merge in the effects of running an individual test case', executionId, result)
+    const reportResult:ExecutionReporter = (event:string,result:any) => {
+        console.info('Todo: merge in the effects of running an individual test case', event, result)
     }
+    if (executionData[0] === false) {
+        return <div>Loading execution data...</div>
+    }
+
     const runningStats = useStats(executionData[0].failed.length, executionData[0].passed.length, executionData[0].other.length)
-    const [currentTestCaseId, setCurrentTestCaseId] = useState(null)
+    const [currentTestCaseId, setCurrentTestCaseId] = useState<string|null|number>(null)
+
+    const testRunUrl = `/kiwi/run?id=${testRunId}`
 
     const buttonState = useState('idle')
     const refresh = () => {
         buttonState[1]('loading')
-        Execution.getRunResult(testRunId)
+        ex.getRunResult(testRunId)
         .then(r => {
             executionData[1](r)
             buttonState[1]('idle')
@@ -277,7 +302,7 @@ function RunComponent({testRun}: {testRun: TestRun.TestRun}) {
 
         <ActionBar>
             <Link href={testRunUrl}>Test Run</Link>
-            <ActionButton action={refresh} text="Refresh" className={[buttonState[0]]} />
+            <ActionButton onClick={refresh} className={[buttonState[0]]}>Refresh</ActionButton>
         </ActionBar>
     </div>
 }

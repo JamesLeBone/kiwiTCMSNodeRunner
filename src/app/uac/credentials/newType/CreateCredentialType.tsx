@@ -43,7 +43,7 @@ function CredentialProp({name, type, value}:{name:string, type:string, value?:st
     return <fieldset style={style}>
         <FormInputField label='Name:' type="text" value={name} onChange={(newName) => updateName(newName)} />
         <FormSelection  label='Data Type:' name={baseName + '[type]'} value={type} options={formInputOptions} />
-        <FormInputField label='Default Value:' name={baseName + '[value]'} type="text" value={stringValue} />
+        <FormInputField label='Default Value:' name={baseName + '[value]'} type={type} value={stringValue} />
     </fieldset>
 }
 

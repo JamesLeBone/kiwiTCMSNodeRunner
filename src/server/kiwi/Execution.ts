@@ -45,7 +45,10 @@ export declare interface TestExecution {
     duration: string
     durationValue: number
     testCaseId: number
-    status: string
+    status: {
+        id: number
+        name: string
+    }
 }
 export declare interface DetailedTestExecution extends TestExecution {
     testCase: TestCase
