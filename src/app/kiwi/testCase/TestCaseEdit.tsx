@@ -29,12 +29,13 @@ const getCategoryName = (props: EditProps) : string => {
     if (!category) return 'Unknown'
     return category.name == '--default--' ? 'Default' : category.name
 }
+// XXX: Correct this to read from the credential type associated product
 const getScriptPrefix = (details: TestCase.TestCaseDetail) : string => {
     const category = details.category
     if (!category) return ''
     const product = category.productRecord
     if (!product) return ''
-    return product.scriptPrefix || ''
+    return ''
 }
 
 type EditProps = {

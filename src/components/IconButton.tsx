@@ -8,7 +8,7 @@ type inputProps = {
     href?: string | false
 }
 
-export function IconButton({className,title,onClick,children,style,active=false,href=false}: inputProps) {
+export function IconButton({className,title,onClick,children,style,active=true,href=false}: inputProps) {
     const doAction = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         if (onClick) onClick()

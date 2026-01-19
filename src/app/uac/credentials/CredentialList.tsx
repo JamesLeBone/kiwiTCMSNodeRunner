@@ -24,8 +24,8 @@ function CList({list} : {list:userCredentialList}) {
             const url = `/uac/credentials/${cred.userCredentialId}`
             return <tr key={cred.userCredentialId}>
                 <td>{cred.description}</td>
-                <td className='align-right'>
-                    <IconButton href={url} className='button fa fa-edit' title="Edit Credential Details"/>
+                <td className='actionCell'>
+                    <IconButton href={url} className='fa fa-edit' title="Edit Credential Details"/>
                     <IconButton onClick={() => dca(cred.userCredentialId)} className='fa fa-trash' title="Delete Credential" />
                 </td>
             </tr>

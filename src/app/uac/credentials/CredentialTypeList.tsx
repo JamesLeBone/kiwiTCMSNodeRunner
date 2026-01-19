@@ -14,7 +14,7 @@ export default function CredentialTypeList({types} : {types:credentialType[]}) {
         await deleteType(id)
         setTypeList(typeList.filter(ct => ct.credentialTypeId !== id))
     }
-    const header = <IconButton href="/uac/credentials/newType" className="button fa fa-plus" title="Add New Credential Type" />
+    const header = <IconButton href="/uac/credentials/newType" className="fa fa-plus" title="Add New Credential Type" />
     const deleteButton = (id:number) => {
         if (id === 1) return null // Cannot delete default type
         return <IconButton title="Delete" className='fa fa-trash' onClick={() => removeCred(id)}></IconButton>

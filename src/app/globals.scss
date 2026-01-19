@@ -223,6 +223,11 @@ table {
     td {
         padding: 8px;
     }
+    .actionCell {
+        white-space: nowrap;
+        width: 70px;
+        text-align: right;
+    }
 }
 
 a[rel="external"]::after {
@@ -424,8 +429,28 @@ body > header {
     background-color: var(--panelBackground);
 }
 
-.IconButton span {
-    margin-left: 4px;
+.IconButton {
+    @include clickable;
+    background-color: var(--buttonBackground);
+    border: 1px solid var(--buttonBorder, transparent);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    &[title] {
+        text-decoration: none;
+    }
+    
+    &:hover {
+        color: var(--buttonColorHover);
+        background-color: var(--buttonBackgroundHover);
+    }
+
+    > i {
+        display: block;
+        height: 1.5em;
+        line-height: 1.5em;
+    }
+    span {
+        margin-left: 4px;
+    }
 }
 .button {
     @include clickable;
@@ -676,7 +701,7 @@ fieldset {
     }
 }
 
-label[title] {
+*[title] {
     cursor: help;
     text-decoration: underline dotted;
 }

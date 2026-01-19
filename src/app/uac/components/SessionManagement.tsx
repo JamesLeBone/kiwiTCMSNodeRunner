@@ -91,7 +91,13 @@ export default function SessionManagement() {
         })
     }
 
-    const headers = ['ID','User Agent','IP Address','Expires At','Actions']
+    const headers = [
+        'ID',
+        'User Agent',
+        <span title='IP (v6)'>IP Address</span>,
+        'Expires At',
+        'Actions'
+    ]
     const style = {
         display: 'grid',
         gridTemplateRows: 'auto min-content',

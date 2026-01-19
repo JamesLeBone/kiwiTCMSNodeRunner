@@ -17,10 +17,12 @@ export default function PageHeader({userName} : {userName:string}) {
         </Link>
     })
 
+    const uacLink = userName === '' ? null : <Link className='right nav-separator' href='/uac/credentials' title='Settings'>{userName}</Link>
+
     return <header>
         <nav>
             { items }
-            <span className='right nav-separator'>{userName}</span>
+            { uacLink }
             <Link href='/uac' className='right' title='Settings'>
                 <i className='fa fa-cog'></i>
             </Link>

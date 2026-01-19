@@ -25,6 +25,11 @@ const djangoCategory = async (c: Category) : Promise<Category> => {
 
 type CateogryByProduct = Record<number, Category[]>
 
+/**
+ * Get a list of categories indexed by product ID
+ * @param productId Optional filter of product
+ * @returns an indexed list of categories by product ID
+ */
 export const listByProduct = async (productId?: number) : Promise<CateogryByProduct> => {
     const query : Record<string, any> = {}
     if (productId) query['product'] = productId

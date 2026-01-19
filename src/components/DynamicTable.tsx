@@ -1,5 +1,5 @@
 export type DynamicTableProps = {
-    headers: string[],
+    headers: React.ReactNode[],
     children: React.ReactNode[] | React.ReactNode,
     [key: string]: any
 }

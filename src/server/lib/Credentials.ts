@@ -17,6 +17,8 @@ export type decryptedCredentialDetails = {
     userCredentialId: number
     description: string
     credential: credentialFieldSet
+    productId?: number
+    categoryId?: number
 }
 
 const decryptCredential = (encrypted:string, secret:string) : credentialFieldSet|false => {
@@ -115,6 +117,8 @@ async function getCredential(userId:number, fieldName:string, value:number) {
         c.user_credential_id
         , ct.description
         , ct.fields
+        , ct.product_id
+        , ct.category_id
         , c.credential
         , users.secret
     FROM credentials c
@@ -130,12 +134,15 @@ async function getCredential(userId:number, fieldName:string, value:number) {
 
     try {
         const decrypted = decryptCredential(dbRow.credential, dbRow.secret)
+        const credential:credentialFieldSet = decrypted || {} as credentialFieldSet
 
-        const uc = {
+        const uc:decryptedCredentialDetails = {
             userCredentialId: dbRow.userCredentialId,
             description: dbRow.description,
-            credential: decrypted
-        } as decryptedCredentialDetails
+            credential,
+            productId: dbRow.productId,
+            categoryId: dbRow.categoryId
+        }
         return uc
     } catch (e) {
         console.error('Error parsing credential type', e)

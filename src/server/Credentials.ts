@@ -4,9 +4,12 @@ import * as credentials from './lib/Credentials'
 import * as credentialTypes from './lib/CredentialTypes'
 import type { credentialFieldSet } from './lib/Credentials'
 import { getCurrentUser } from '@server/lib/Auth'
+import { Category, fetchCategory } from './kiwi/Category'
 
 import { Operation, StatusOperation, TypedOperationResult, unauthorised } from '@lib/Operation'
 import { credentialType } from './lib/CredentialTypes'
+import type { ProductWithClassificationName } from './kiwi/Product'
+import { fetch as fetchProduct } from './kiwi/Product'
 
 // Exported
 export async function addCredential(credential:credentialFieldSet, credentialTypeId:number = 1) : Promise<Operation> {
@@ -51,7 +54,13 @@ export async function deleteCredential(userCredentialId:number) : Promise<Operat
     }
 }
 
-export async function getCredentials(userCredentialId:number) : Promise<TypedOperationResult<credentials.decryptedCredentialDetails>> {
+export type credentialDetails = {
+    credentials: credentials.decryptedCredentialDetails
+    category?: Category
+    product?: ProductWithClassificationName
+}
+
+export async function getCredentials(userCredentialId:number) : Promise<TypedOperationResult<credentialDetails>> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
     const userId = login.data.userId
@@ -65,11 +74,26 @@ export async function getCredentials(userCredentialId:number) : Promise<TypedOpe
     }
     
     if (!creds) return operation.message = 'No credentials found', operation
+
+    const returnData:credentialDetails = {
+        credentials: creds
+    }
+
+    if (creds.categoryId) {
+        const category = await fetchCategory(creds.categoryId)
+        if (category) returnData.category = category
+    }
+
+    if (creds.productId) {
+        const product = await fetchProduct(creds.productId)
+        if (product) returnData.product = product
+    }
+
     return {
         ...operation,
         status: true,
         message: 'Credentials found',
-        data: creds
+        data: returnData
     }
 }
 export async function getFirstCredentialOfType(credentialTypeId:number) : Promise<credentials.decryptedCredentialDetails | null> {

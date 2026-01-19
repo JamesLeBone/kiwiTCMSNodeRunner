@@ -15,15 +15,17 @@ export interface selectionOption {
     disabled?: boolean
 }
 
+export type selectionOptionProps = Record<string, selectionValue|selectionValue[]>
+
 export type SelectionProps = {
     name: string
     value?: selectionValue
-    options?: Record<string, selectionValue|selectionValue[]>
+    options?: selectionOptionProps
     required?: boolean
-    onChange: (val: selectionValue) => void
+    onChange?: (val: selectionValue) => void
 }
 export function Selection({name, value, required, options, onChange}: SelectionProps) {
-    const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)
+    const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => onChange && onChange(e.target.value)
     const opts = options ? Object.entries(options).map(([key, val], idx) => {
         if (Array.isArray(val)) {
             return <OptionGroup key={idx} label={key}>
@@ -36,6 +38,34 @@ export function Selection({name, value, required, options, onChange}: SelectionP
     return <select name={name} value={value} onChange={setValue} required={required}>
         {opts}
     </select>
+}
+
+type groupedOptionsProps = {
+    options: groupedOptions[]
+    selectAttribs?: React.SelectHTMLAttributes<HTMLSelectElement>
+}
+export function GroupedSelection(props: groupedOptionsProps) {
+    return <select {...props.selectAttribs}>
+        <GroupedOptions options={props.options} />
+    </select>
+}
+
+export type groupedOptions = {
+    label: string,
+    groupId: string|number,
+    attribs?: { [ key:string ]: string }
+    options: selectionOption[]
+}
+function GroupedOptions({options}: {options: groupedOptions[]}) {
+    return <>
+        {options.map( (group) => {
+            return <OptionGroup key={group.groupId} label={group.label} {...group.attribs}>
+                {group.options.map( (opt, oidx) => {
+                    return <ListOpt key={oidx} value={opt.value} label={opt.label} disabled={opt.disabled ?? false} />
+                } )}
+            </OptionGroup>
+        } )}
+    </>
 }
 
 export type SelectionDetailedProps = {
