@@ -1,3 +1,4 @@
+import { on } from "node:cluster"
 
 export function ListOpt({value, label, disabled}: {value: string|number, label: string|number, disabled?: boolean}) {
     return <option value={value} disabled={disabled}>{label}</option>
@@ -22,7 +23,7 @@ export type SelectionProps = {
     value?: selectionValue
     options?: selectionOptionProps
     required?: boolean
-    onChange?: (val: selectionValue) => void
+    onChange?: (val: string) => void
 }
 export function Selection({name, value, required, options, onChange}: SelectionProps) {
     const setValue = (e: React.ChangeEvent<HTMLSelectElement>) => onChange && onChange(e.target.value)
@@ -34,8 +35,11 @@ export function Selection({name, value, required, options, onChange}: SelectionP
         }
         return <ListOpt key={idx} value={key} label={val} />
     }) : []
+
+    // Determine whether to use controlled or uncontrolled component
+    const valueProp = onChange ? {value:value} : {defaultValue:value}
     
-    return <select name={name} value={value} onChange={setValue} required={required}>
+    return <select name={name} {...valueProp} onChange={setValue} required={required}>
         {opts}
     </select>
 }
@@ -43,9 +47,24 @@ export function Selection({name, value, required, options, onChange}: SelectionP
 type groupedOptionsProps = {
     options: groupedOptions[]
     selectAttribs?: React.SelectHTMLAttributes<HTMLSelectElement>
+    onChange?: (val: string) => void
 }
 export function GroupedSelection(props: groupedOptionsProps) {
-    return <select {...props.selectAttribs}>
+    // I was going to override the onChange to extract the value
+    // however, I need to pass it through instead to avoid conflicting typescript errors.
+    // you can still pass through onChange in selectAttribs but it will be overridden here.
+    if (props.selectAttribs?.onChange) {
+        console.warn("GroupedSelection: onChange in selectAttribs will be overridden.")
+    }
+
+    const change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        if (props.onChange) {
+            const value:string = e.target.value
+            props.onChange(value)
+        }
+    }
+
+    return <select {...props.selectAttribs} onChange={change}>
         <GroupedOptions options={props.options} />
     </select>
 }

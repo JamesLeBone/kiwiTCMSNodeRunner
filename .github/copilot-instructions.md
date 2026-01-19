@@ -19,7 +19,10 @@ This is a Next.js 15 TypeScript application that provides a frontend and automat
 import * as TestPlan from '@server/kiwi/TestPlan'  // Server actions
 import { FormInputField } from '@/components/FormActions'  // Components
 import { prepareStatus } from '@lib/Operation'  // Utilities
+import type { Category, fetchCategory } from './kiwi/Category' // Types only
 ```
+
+* Preference importing types only when needed to avoid client bundle bloat.
 
 ## Form Pattern (Critical)
 

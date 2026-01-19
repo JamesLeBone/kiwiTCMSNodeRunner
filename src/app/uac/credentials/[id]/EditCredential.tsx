@@ -12,9 +12,12 @@ import { updateCredential } from "@server/Credentials"
 import type { credentialDetails } from '@server/Credentials'
 
 import Form from 'next/form'
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 
 import type { categoryOptionList } from './page'
+import { updateProduct } from "@server/kiwi/Product"
+import { updateCategory } from "@server/kiwi/Category"
+import { formDataValue } from "@lib/Functions"
 
 const mapProductOptions = (categoryOptions: categoryOptionList) : selectionOptionProps => {
     const options:selectionOptionProps = {
@@ -67,8 +70,10 @@ export default function EditCredential(props : ecprops) {
                     value: value as string
                 }
             }
+            const productId = formDataValue.getOptionalNumber(formData, 'productId')
+            const categoryId = formDataValue.getOptionalNumber(formData, 'categoryId')
 
-            const op = await updateCredential(userCredentialId, credentialFS)
+            const op = await updateCredential(userCredentialId, credentialFS, productId, categoryId)
             op.statusType = op.status ? 'success' : 'error'
             return op as StatusOperation
         },
@@ -78,6 +83,28 @@ export default function EditCredential(props : ecprops) {
 
     const productId = props.credential.product ? props.credential.product.id.toString() : ''
     const categoryId = props.credential.category ? props.credential.category.id.toString() : ''
+
+    const selectedProductState = useState(productId)
+    const selectedCategoryState = useState(categoryId)
+    const updateProduct = async (newProductId: string) => {
+        selectedProductState[1](newProductId)
+        // Reset category selection when product changes
+        selectedCategoryState[1]('')
+    }
+    const updateCategory = (newCategoryId: string) => {
+        selectedCategoryState[1](newCategoryId)
+        for (const co of props.categories) {
+            for (const c of co.categories) {
+                if (c.id.toString() === newCategoryId) {
+                    selectedProductState[1](co.product.id.toString())
+                    return
+                }
+            }
+        }
+        // Product not found for category, reset product selection
+        // This should not normally happen but is safer than leaving it set.
+        selectedProductState[1]('')
+    }
     
     return <ComponentSection header={header}>
         <Form action={actionUpdate} >
@@ -97,10 +124,10 @@ export default function EditCredential(props : ecprops) {
             </fieldset>
             <fieldset>
                 <FormField label="Product">
-                    <Selection name="product" options={productOptions} value={productId} />
+                    <Selection name="productId" options={productOptions} value={selectedProductState[0]} onChange={(newProductId) => updateProduct(newProductId)}  />
                 </FormField>
                 <FormField label="Category">
-                    <GroupedSelection selectAttribs={{name:'category', value:categoryId}} options={categoryOptions} />
+                    <GroupedSelection selectAttribs={{name:'categoryId', value:selectedCategoryState[0]}} options={categoryOptions} onChange={updateCategory} />
                 </FormField>
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={[{ label: 'Update' }]} />

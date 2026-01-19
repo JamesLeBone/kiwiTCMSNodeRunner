@@ -74,7 +74,6 @@ export const updateCategory = async (id:number, name:string, description:string)
         description,
         product: current.product
     }
-    console.debug(values)
 
     await http.update('Category', id, 'category_id', values)
     .then( res => {

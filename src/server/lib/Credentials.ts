@@ -78,7 +78,14 @@ export async function getOwner(userCredentialId:number) : Promise<number|null> {
     if (!cred) return null
     return cred.userId
 }
-export async function update(userCredentialId:number, credential:credentialFieldSet) : Promise<Operation> {
+
+type updateCredentialTuple = {
+    credential: string
+    productId?: number|null
+    categoryId?: number|null
+}
+
+export async function update(userCredentialId:number, credential:credentialFieldSet, productId?: number, categoryId?: number) : Promise<Operation> {
     const op = {
         id: 'updateCredentials',
         status: false,
@@ -90,10 +97,15 @@ export async function update(userCredentialId:number, credential:credentialField
     try {
         const encrypted = await encrypt(credential, userId)
         if (!encrypted) return op.message = 'Error encrypting credentials', op
+
+        const dataSet: updateCredentialTuple = {credential:encrypted}
+        if (productId !== undefined) dataSet['productId'] = productId
+        if (categoryId !== undefined) dataSet['categoryId'] = categoryId
+
         const updated = await db.update(
             'credentials',
             userCredentialId,
-            {credential:encrypted},
+            dataSet,
             'user_credential_id'
         )
         if (!updated) 

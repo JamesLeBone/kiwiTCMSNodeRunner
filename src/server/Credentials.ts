@@ -6,7 +6,7 @@ import type { credentialFieldSet } from './lib/Credentials'
 import { getCurrentUser } from '@server/lib/Auth'
 import { Category, fetchCategory } from './kiwi/Category'
 
-import { Operation, StatusOperation, TypedOperationResult, unauthorised } from '@lib/Operation'
+import { Operation, prepareStatus, StatusOperation, TypedOperationResult, unauthorised, updateOpError, updateOpSuccess } from '@lib/Operation'
 import { credentialType } from './lib/CredentialTypes'
 import type { ProductWithClassificationName } from './kiwi/Product'
 import { fetch as fetchProduct } from './kiwi/Product'
@@ -20,19 +20,46 @@ export async function addCredential(credential:credentialFieldSet, credentialTyp
     return credentials.addCredential(userId, credential, credentialTypeId)
 }
 
-export async function updateCredential(userCredentialId:number, credential:credentialFieldSet) : Promise<Operation> {
+export async function updateCredential(userCredentialId:number, credential:credentialFieldSet, productId?: number, categoryId?: number) : Promise<StatusOperation> {
     const login = await getCurrentUser()
     if (!login.data) return unauthorised
+    const op = prepareStatus('updateCredential')
     const userId = login.data.userId
 
     const owner = await credentials.getOwner(userCredentialId)
-    if (owner !== userId) return {
-        id: 'unauthorised',
-        status: false,
-        message: 'You do not own this credential'
+    if (owner !== userId) {
+        updateOpError(op, 'You do not own this credential')
+        return op
+    }
+
+    if (categoryId !== undefined) {
+        const category = await fetchCategory(categoryId) 
+        if (!category) {
+            updateOpError(op, 'Invalid category selected')
+            return op
+        }
+        if (productId === undefined) {
+            productId = category.product
+        } else if (productId !== category.product) {
+            const productName = category.productRecord ? category.productRecord.name : 'the selected product'
+            updateOpError(op, category.name+' does not belong to '+productName)
+            return op
+        }
+    } else if (productId !== undefined) {
+        const product = await fetchProduct(productId)
+        if (!product) {
+            updateOpError(op, 'Invalid product selected')
+            return op
+        }
     }
     
-    return credentials.update(userCredentialId,credential)
+    const result = await credentials.update(userCredentialId,credential, productId, categoryId)
+    if (result) {
+        updateOpSuccess(op, 'Credential updated')
+    } else {
+        updateOpError(op, 'Failed to update credential')
+    }
+    return op
 }
 
 export async function deleteCredential(userCredentialId:number) : Promise<Operation> {
