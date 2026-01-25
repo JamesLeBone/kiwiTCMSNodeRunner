@@ -123,11 +123,18 @@ export async function getCredentials(userCredentialId:number) : Promise<TypedOpe
         data: returnData
     }
 }
-export async function getFirstCredentialOfType(credentialTypeId:number) : Promise<credentials.decryptedCredentialDetails | null> {
+export async function getKiwiCredentials() : Promise<credentials.decryptedCredentialDetails | null> {
     const login = await getCurrentUser()
     if (!login.data) return null
     const userId = login.data.userId
-    return await credentials.getFirstCredentialOfType(userId, credentialTypeId)
+    return await credentials.getCredential(userId)
+}
+
+export async function getCredentialByCategory(categoryId:number) : Promise<credentials.decryptedCredentialDetails|null> {
+    const login = await getCurrentUser()
+    if (!login.data) return null
+    const userId = login.data.userId
+    return await credentials.getCredentialByCategory(userId, categoryId)
 }
 
 export async function listUserCredentials() : Promise<TypedOperationResult<credentials.userCredentialList>> {

@@ -14,6 +14,7 @@ export type credentialType = {
     productName?: string
     categoryId: number
     categoryName?: string
+    scriptPrefix: string
 }
 const rowToCredentialType = async (row:any) : Promise<credentialType> => {
     const ct: credentialType = {
@@ -21,7 +22,8 @@ const rowToCredentialType = async (row:any) : Promise<credentialType> => {
         description: row.description,
         fields: JSON.parse(row.fields) as credentialFieldSet,
         productId: row.productId,
-        categoryId: row.categoryId
+        categoryId: row.categoryId,
+        scriptPrefix: row.scriptPrefix ?? ''
     }
 
     const product = await fetchProduct(ct.productId)
@@ -37,12 +39,12 @@ export async function addType(description:string,fields:credentialFieldSet) : Pr
     const op = prepareStatus('addCredentialType')
     // Leave product and category null for now.
     // the user will need to be able to connect to KIWI,
-    // to define their product and categories first!
+    // to define their product and categories first!  In that case, they should both save as null.
 
     try {
         const fieldsString = JSON.stringify(fields)
         const set = await db.insert('credential_types',
-            {description, fields:fieldsString} 
+            {description, fields:fieldsString, productId: null, categoryId: null}
         )
         if (set.length == 0) {
             return op.message = 'Failed to add credential type', op
@@ -61,7 +63,7 @@ export async function addType(description:string,fields:credentialFieldSet) : Pr
     }
 }
 export async function getTypes() : Promise<credentialType[]> {
-    const rows = await db.fetch(`SELECT credential_type_id, description, fields, product_id, category_id FROM credential_types`)
+    const rows = await db.fetch(`SELECT * FROM credential_types`)
     return Promise.all(rows.map(rowToCredentialType))
 }
 export async function deleteType (id:number): Promise<Operation>  {
@@ -70,7 +72,6 @@ export async function deleteType (id:number): Promise<Operation>  {
         status: false,
         message: ''
     }
-    if (id < 2) return op.message = 'Cannot delete default credential types', op
 
     const nInUse = await db.fetchOne(`SELECT COUNT(*) as cnt FROM credentials WHERE credential_type_id = ?`, [id])
     if (nInUse.cnt > 0) {
@@ -88,4 +89,11 @@ export async function deleteType (id:number): Promise<Operation>  {
         return op.message = 'Error deleting credential type', op
     })
     
+}
+
+export async function getCredentialType(credentialTypeId:number) : Promise<credentialType|null> {
+    const sql = `SELECT * FROM credential_types WHERE credential_type_id = ?`
+    const rows = await db.fetch(sql, [credentialTypeId])
+    if (rows.length == 0) return null
+    return rowToCredentialType(rows[0])
 }

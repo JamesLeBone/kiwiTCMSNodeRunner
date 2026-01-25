@@ -13,6 +13,8 @@
     --buttonColorHover: #075985;
     --buttonBorder: #cbd5e0;
     --componentPadding : 12px;
+
+    --inputHeight: 33px;
     
     // Input field variables
     --inputBackground: #ffffff;
@@ -142,7 +144,7 @@ select {
 
 input, button {
     line-height: 1.2em;
-    height: 33px;
+    height: var(--inputHeight);
 }
 
 textarea {
@@ -249,7 +251,7 @@ a[rel="external"]::after {
     background-color: var(--inputBackground);
     border-radius: var(--input-border-radius);
     min-width: 90px;
-    height: 100%;
+    height: var(--inputHeight);
     padding: var(--input-padding);
     overflow: hidden;
     position: relative;
@@ -716,7 +718,7 @@ fieldset {
     }
     > div {
         position: relative;
-        height: 33px;
+        height: var(--inputHeight);
         
         > input,
         > select,
@@ -734,7 +736,7 @@ fieldset {
         grid-template-columns: auto min-content;
         grid-template-rows: 50% 50%;
         gap: 0px;
-        height: 33px;
+        height: var(--inputHeight);
         
         input {
             grid-column: 1;
@@ -809,7 +811,7 @@ fieldset {
     &.no-input > div {
         border-style: none;
         height: auto;
-        min-height: 33px;
+        min-height: var(--inputHeight);
         padding: 4px 0px;
     }
 }

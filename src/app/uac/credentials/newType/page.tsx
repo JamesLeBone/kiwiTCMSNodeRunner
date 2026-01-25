@@ -1,7 +1,9 @@
 
 import { fetchList } from '@server/kiwi/Product'
-import CreateCredentialType, { SelectionOption } from './CreateCredentialType'
+import CreateCredentialType from './CreateCredentialType'
 import { listByProduct } from '@server/kiwi/Category'
+
+import type { SelectionOption } from '../types.d.ts'
 
 export async function generateMetadata() {
     const title = process.env.APP_TITLE

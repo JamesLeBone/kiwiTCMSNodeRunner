@@ -15,7 +15,7 @@ import os from 'os'
 import path from 'path'
 import fs from 'fs'
 
-import { getFirstCredentialOfType } from '@server/Credentials'
+import { getKiwiCredentials } from '@server/Credentials'
 const kiwiCredentialTypeId = 1
 type methodParameters = Object | Array<any> | null
 
@@ -102,7 +102,7 @@ class KiwiCall {
     }
     
     async login() : Promise<boolean> {
-        const creds = await getFirstCredentialOfType(kiwiCredentialTypeId)
+        const creds = await getKiwiCredentials()
         if (!creds) {
             console.debug('No Kiwi credentials found')
             return false

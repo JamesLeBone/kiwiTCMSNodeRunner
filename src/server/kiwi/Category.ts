@@ -15,6 +15,7 @@ export type Category = {
     product: number
     productRecord?: ProductWithClassificationName
     description: string
+    scriptPrefix?: string
 }
 
 const djangoCategory = async (c: Category) : Promise<Category> => {
@@ -53,11 +54,14 @@ export const listByProduct = async (productId?: number) : Promise<CateogryByProd
 }
 export const fetchCategories = async (dtls : Partial<Category>) : Promise<Category[]> => {
     const categories = await http.searchEntity<Category>('Category', dtls, false)
+    .catch( e => {console.warn('Failed to fetch categories', e);return []})
+
     return categories
 }
 
 export const fetchCategory = async (id: number) : Promise<Category | null> => {
     const category = await http.getEntity<Category>('Category', id)
+    .catch( e => {console.warn('Failed to fetch categories', e); return null } )
     if (!category) return null
     return djangoCategory(category)
 }

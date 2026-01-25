@@ -142,6 +142,9 @@ export const getList = async () : Promise<TypedOperationResult<ProductWithClassi
 }
 
 export const fetchList = async (searchParams? : Partial<Product>) : Promise<ProductWithClassificationName[]> => {
+    const login = await http.login()
+    if (!login) return []
+
     const filter = searchParams || {}
     const pl = await http.searchEntity<Product>('Product', filter)
     .then(

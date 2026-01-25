@@ -29,14 +29,6 @@ const getCategoryName = (props: EditProps) : string => {
     if (!category) return 'Unknown'
     return category.name == '--default--' ? 'Default' : category.name
 }
-// XXX: Correct this to read from the credential type associated product
-const getScriptPrefix = (details: TestCase.TestCaseDetail) : string => {
-    const category = details.category
-    if (!category) return ''
-    const product = category.productRecord
-    if (!product) return ''
-    return ''
-}
 
 type EditProps = {
     details: TestCase.TestCaseDetail
@@ -113,7 +105,8 @@ export default function TestCaseEdit(props: EditProps) {
     }, { '' : 'None' } as Record<string,string> )
 
     const categoryName = getCategoryName(props)
-    const scriptPrefix = getScriptPrefix(props.details)
+    // TODO: add a link to go off and edit the credential type's script prefix.
+    const scriptPrefix = props.details.scriptPrefix
 
     return <div>
         <ComponentSection header='Test Case Edit' style={{display:'grid'}} id="testCaseEditForm">

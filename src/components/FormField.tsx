@@ -10,11 +10,11 @@ type FormFieldProps = {
     className?: string
     [key: string]: any
 }
-export function FormField({label,children, ...props} : FormFieldProps) {
+export function FormField({label,children, title, ...props} : FormFieldProps) {
     props.className = 'FormField ' + (props.className ? props.className : '')
 
     return <div {...props}>
-        <label title={props.title}>{label}</label>
+        <label title={title}>{label}</label>
         <div>{children}</div>
     </div>
 }

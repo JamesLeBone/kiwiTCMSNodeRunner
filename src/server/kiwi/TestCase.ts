@@ -23,6 +23,8 @@ import { Category, fetchCategories, fetchCategory } from './Category'
 import { search as searchExecutions, TestExecution } from './Execution'
 import { search as searchPlan, TestPlan } from './TestPlan'
 
+import { getCredentialByCategory } from '@server/Credentials'
+
 export const django2Case = async (dj : DjangoEntity) : Promise<TestCase> => {
     if (!dj.values.id) throw new Error('django2Case: Invalid Django Entity, missing id')
     
@@ -400,6 +402,12 @@ export const clone = async (id:number, newCaseKvp:Partial<KiwiUpdateTestCasePara
     op.data = createdCase
     return updateOpSuccess(op, 'Test Case cloned successfully')
 }
+
+const fetchScriptPrefix = async (categoryId:number) : Promise<string> => {
+    const credential = await getCredentialByCategory(categoryId)
+    return credential ? credential.scriptPrefix : ''
+}
+
 export type TestCaseDetail = {
     testCase: TestCase
     components: AmalgomatedComponent[]
@@ -410,6 +418,7 @@ export type TestCaseDetail = {
     executions: TestExecution[]
     plans: TestPlan[]
     category: Category | null
+    scriptPrefix: string
 }
 export const getDetail = async (testCaseId:number) : Promise<TypedOperationResult<TestCaseDetail>> => {
     const op = { id : 'getTestCaseDetail', status: false, message: '', statusType: 'blank' } as TypedOperationResult<any>
@@ -431,6 +440,8 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
 
     const category = await fetchCategory(testCase.category.id)
 
+    const scriptPrefix = await fetchScriptPrefix(testCase.category.id)
+
     const detailObject: TestCaseDetail = {
         testCase,
         components,
@@ -440,7 +451,8 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
         attachments,
         executions,
         plans,
-        category
+        category,
+        scriptPrefix
     }
     updateOpSuccess(op, 'Test Case detail fetched successfully')
     op.data = detailObject

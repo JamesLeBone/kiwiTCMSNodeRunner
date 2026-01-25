@@ -14,49 +14,13 @@ import type { credentialDetails } from '@server/Credentials'
 import Form from 'next/form'
 import { useActionState, useState } from "react"
 
-import type { categoryOptionList } from './page'
-import { updateProduct } from "@server/kiwi/Product"
-import { updateCategory } from "@server/kiwi/Category"
 import { formDataValue } from "@lib/Functions"
-
-const mapProductOptions = (categoryOptions: categoryOptionList) : selectionOptionProps => {
-    const options:selectionOptionProps = {
-        '': 'None'
-    }
-    for (const co of categoryOptions) {
-        const productName = co.product.name
-        const productId = co.product.id.toString()
-        
-        options[productId] = productName
-    }
-    return options
-}
-const mapCategoryOptions = (categoryOptions: categoryOptionList) : groupedOptions[] => {
-    const options: groupedOptions[] = [
-        {label: 'None', groupId: 'none', options: [ { value: '', label: 'None' } ] }
-    ]
-    for (const co of categoryOptions) {
-        const productId = co.product.id.toString()
-        const productName = co.product.name
-        const option:groupedOptions = {
-            label: productName,
-            groupId: productId,
-            options: co.categories.map( c => ({ value: c.id.toString(), label: c.name }) )
-        }
-        options.push(option)
-    }
-    return options
-}
-
 type ecprops = {
     credential: credentialDetails
-    categories: categoryOptionList
 }
 export default function EditCredential(props : ecprops) {
     const { userCredentialId, description } = props.credential.credentials
     const fields = props.credential.credentials.credential
-    const productOptions = mapProductOptions( props.categories )
-    const categoryOptions = mapCategoryOptions( props.categories )
 
     const [state, actionUpdate, isPending] = useActionState(
         async (prevState: StatusOperation, formData: FormData) => {
@@ -80,31 +44,6 @@ export default function EditCredential(props : ecprops) {
         blankStatus('actionUpdate')
     )
     const header = `Edit ${description}`
-
-    const productId = props.credential.product ? props.credential.product.id.toString() : ''
-    const categoryId = props.credential.category ? props.credential.category.id.toString() : ''
-
-    const selectedProductState = useState(productId)
-    const selectedCategoryState = useState(categoryId)
-    const updateProduct = async (newProductId: string) => {
-        selectedProductState[1](newProductId)
-        // Reset category selection when product changes
-        selectedCategoryState[1]('')
-    }
-    const updateCategory = (newCategoryId: string) => {
-        selectedCategoryState[1](newCategoryId)
-        for (const co of props.categories) {
-            for (const c of co.categories) {
-                if (c.id.toString() === newCategoryId) {
-                    selectedProductState[1](co.product.id.toString())
-                    return
-                }
-            }
-        }
-        // Product not found for category, reset product selection
-        // This should not normally happen but is safer than leaving it set.
-        selectedProductState[1]('')
-    }
     
     return <ComponentSection header={header}>
         <Form action={actionUpdate} >
@@ -121,14 +60,6 @@ export default function EditCredential(props : ecprops) {
                         value={fieldDef.value ? fieldDef.value.toString() : ''} 
                     />
                 })}
-            </fieldset>
-            <fieldset>
-                <FormField label="Product">
-                    <Selection name="productId" options={productOptions} value={selectedProductState[0]} onChange={(newProductId) => updateProduct(newProductId)}  />
-                </FormField>
-                <FormField label="Category">
-                    <GroupedSelection selectAttribs={{name:'categoryId', value:selectedCategoryState[0]}} options={categoryOptions} onChange={updateCategory} />
-                </FormField>
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={[{ label: 'Update' }]} />
         </Form>

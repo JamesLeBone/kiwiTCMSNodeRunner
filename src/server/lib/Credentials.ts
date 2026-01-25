@@ -19,6 +19,7 @@ export type decryptedCredentialDetails = {
     credential: credentialFieldSet
     productId?: number
     categoryId?: number
+    scriptPrefix: string
 }
 
 const decryptCredential = (encrypted:string, secret:string) : credentialFieldSet|false => {
@@ -124,23 +125,52 @@ export async function deleteCredential(userCredentialId:number) : Promise<void> 
     await db.run(`DELETE FROM credentials WHERE user_credential_id = ?`, [userCredentialId])
 }
 
-async function getCredential(userId:number, fieldName:string, value:number) {
-    const sql = `SELECT 
+type CredentialType = {
+    credentialTypeId: number
+    description: string
+    fields: credentialFieldSet
+    productId?: number
+    categoryId?: number
+    scriptPrefix: string
+}
+export async function fetchType(credentialTypeId:number) : Promise<CredentialType|null> {
+    const sql = `SELECT * FROM credential_types WHERE credential_type_id = ?`
+    const rows = await db.fetch(sql, [credentialTypeId])
+    if (rows.length == 0) return null
+    const ct:CredentialType = {
+        credentialTypeId: rows[0].credentialTypeId,
+        description: rows[0].description,
+        fields: JSON.parse(rows[0].fields) as credentialFieldSet,
+        productId: rows[0].productId,
+        categoryId: rows[0].categoryId,
+        scriptPrefix: rows[0].scriptPrefix ?? ''
+    }
+    return ct
+}
+
+async function queryCredential(userId:number, fieldName:string, value:number|null) {
+    let sql = `SELECT 
         c.user_credential_id
         , ct.description
         , ct.fields
         , ct.product_id
         , ct.category_id
+        , ct.script_prefix
         , c.credential
         , users.secret
     FROM credentials c
         JOIN credential_types ct ON ct.credential_type_id = c.credential_type_id
         JOIN users on users.user_id = c.user_id
-    WHERE c.user_id = ?
-    AND c.${fieldName} = ?`
-    const creds = await db.fetch(sql,
-        [userId, value]
-    )
+    WHERE c.user_id = ?`
+    const params = [userId]
+
+    if (value !== null) {
+        sql += ` AND ${fieldName} = ?`
+        params.push(value)
+    } else {
+        sql += ` AND ${fieldName} IS NULL`
+    }
+    const creds = await db.fetch(sql,params)
     if (creds.length == 0) return null
     const dbRow = creds[0]
 
@@ -153,7 +183,8 @@ async function getCredential(userId:number, fieldName:string, value:number) {
             description: dbRow.description,
             credential,
             productId: dbRow.productId,
-            categoryId: dbRow.categoryId
+            categoryId: dbRow.categoryId,
+            scriptPrefix: dbRow.scriptPrefix ?? ''
         }
         return uc
     } catch (e) {
@@ -163,7 +194,24 @@ async function getCredential(userId:number, fieldName:string, value:number) {
 }
 
 export async function find(userId:number, credentialId:number) : Promise<decryptedCredentialDetails|null> {
-    return getCredential(userId, 'user_credential_id', credentialId)
+    return queryCredential(userId, 'c.user_credential_id', credentialId)
+}
+
+export async function getCredentialByCategory(userId:number, categoryId:number) : Promise<decryptedCredentialDetails|null> {
+    return queryCredential(userId, 'ct.category_id', categoryId)
+}
+
+export async function getCredential(userId:number, productId?:number, categoryId?:number) {
+    if (typeof productId === 'undefined' && typeof categoryId === 'undefined') {
+        return queryCredential(userId, 'ct.product_id', null) // Kiwi Credentials
+    }
+    if (typeof categoryId !== 'undefined') {
+        return queryCredential(userId, 'ct.category_id', categoryId) // Category-specific Credentials
+    }
+    if (typeof productId === 'undefined') {
+        return queryCredential(userId, 'ct.product_id', null) // Kiwi Credentials
+    }
+    return queryCredential(userId, 'ct.product_id', productId) // Product-specific, Category-generic Credentials
 }
 
 /**
@@ -172,7 +220,7 @@ export async function find(userId:number, credentialId:number) : Promise<decrypt
  * @returns Decrypted credential details or null
  */
 export async function getFirstCredentialOfType(userId:number, credentialTypeId:number) : Promise<decryptedCredentialDetails|null> {
-    return getCredential(userId, 'credential_type_id', credentialTypeId)
+    return queryCredential(userId, 'c.credential_type_id', credentialTypeId)
 }
 
 export async function list(userId:number) : Promise<userCredentialList> {
