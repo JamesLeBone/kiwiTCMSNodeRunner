@@ -34,7 +34,7 @@ export function FormInputField({className,maxLength,placeholder,style,label,titl
     }
 
     if (!name || name.length === 0) {
-        return <FormField label={label}>{value}</FormField>
+        return <FormField label={label}>{value}{children}</FormField>
     }
     if (typeof value === 'boolean') {
         type = 'checkbox'

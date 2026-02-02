@@ -100,7 +100,7 @@ const fetchOne = async (sql:string, params: SQLParams = []) => {
     
     if (!result || result.length === 0) return null
     if (result.length != 1) return null
-    return result[0]
+    return result[0] as Record<string, any>
 }
 
 class Transaction {

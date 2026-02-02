@@ -10,7 +10,7 @@ function useMessage(defaultMessage?:Operation) {
     const [messageType,setMessageType] = useState<statusType>(defaultMessage?.statusType || 'blank')
     const [message,setMessage] = useState(defaultMessage?.message || '')
     const clear = () => {
-        setMessageType('info')
+        setMessageType('blank')
         setMessage('')
     }
 

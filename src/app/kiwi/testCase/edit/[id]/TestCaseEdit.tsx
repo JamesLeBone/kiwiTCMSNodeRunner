@@ -76,7 +76,7 @@ export default function TestCaseEdit(props: EditProps) {
                 )
                 if (cloneResult.status && cloneResult.data) {
                     const newId = cloneResult.data.id
-                    redirect( '/kiwi/testCase/?id=' + newId )
+                    redirect( '/kiwi/testCase/edit/' + newId )
                 }
                 return cloneResult
             }

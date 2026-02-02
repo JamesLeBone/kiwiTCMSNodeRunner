@@ -37,7 +37,6 @@ export default async function Page(props: NextPageProps) {
         </div>
     }
     const products = productRequest.data
-    console.debug('Products for Credential Type Edit', products)
     const selectionOptions: CategorySelectionOption[] = []
     
     await Promise.all(products.map( async (product) => {

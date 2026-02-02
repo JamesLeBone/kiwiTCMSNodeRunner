@@ -213,3 +213,10 @@ Jest configured for React Testing Library. Run with `npm test` or `npm run test:
 - Styling: `src/app/globals.scss`
 - Server actions: `src/server/kiwi/TestPlan.ts`, `src/server/kiwi/TestCase.ts`
 - Components: `src/components/FormActions.tsx`, `src/components/ComponentSection.tsx`
+
+# Next Structure
+
+* Pages are defined in files called `page.tsx` within the `src/app/` directory.
+* Pages should be server components by default, using `'use server'` directive for server actions.
+* Pages that use parameters are identified by square brackets in filenames, e.g., `[id]`.
+* Pages using parameters should include `import { redirect } from 'next/navigation'` to handle invalid parameters.

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { DynamicTable } from '../DynamicTable'
 
 function TestCaseSummary({testCase} : {testCase: TestCase}) {
-    const path = "/kiwi/testCase?id="+testCase.id
+    const path = "/kiwi/testCase/edit/"+testCase.id
         
     const status = testCase.caseStatus
     const statusText = status.description ?? status.name.charAt(0).toUpperCase() + status.name.slice(1).toLowerCase()

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 const KiwiLinks = [
-    {url:'/kiwi/testCase', title:'Cases', icon: 'fa fa-briefcase'},
+    {url:'/kiwi/testCase/search', title:'Cases', icon: 'fa fa-briefcase'},
     {url:'/kiwi/plan', title:'Plans', icon: 'fa fa-list-check'},
     {url:'/kiwi/execution', title:'Executions', icon: 'fa fa-bolt'},
     {url:'/kiwi/product', title:'Products', icon: 'fa fa-boxes'},

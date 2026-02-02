@@ -1,7 +1,7 @@
 'use client'
 import { TestCase } from '@server/kiwi/TestCase'
-import CaseScript from './CaseScript';
-import ChildrenScripts from './ChildrenScripts';
+import CaseScript from './CaseScript'
+import ChildrenScripts from './ChildrenScripts'
 
 type CommentsProps = {
     testCaseId: number

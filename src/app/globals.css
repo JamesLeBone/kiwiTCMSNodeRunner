@@ -873,4 +873,9 @@ fieldset {
 .inlineForm .FormField > div {
   padding: var(--componentPadding);
   height: auto;
+}
+
+.TypeFieldsetEditor header {
+  text-align: center;
+  border-bottom: 1px solid var(--sectionBorder);
 }/*# sourceMappingURL=globals.css.map */

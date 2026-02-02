@@ -175,3 +175,10 @@ export async function deleteType(credentialTypeId:number) : Promise<Operation> {
     return credentialTypes.deleteType(credentialTypeId)
 }
 
+export async function updateType(credentialTypeId:number, description:string, fields:credentialFieldSet, scriptPrefix:string, productId?: number, categoryId?: number) : Promise<StatusOperation> {
+    const login = await getCurrentUser()
+    if (!login.data) return unauthorised
+
+    return credentialTypes.updateType(credentialTypeId, description, fields, scriptPrefix, productId, categoryId)
+}
+

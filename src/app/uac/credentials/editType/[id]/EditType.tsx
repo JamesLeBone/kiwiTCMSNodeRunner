@@ -1,5 +1,6 @@
 'use client'
-import type { credentialType } from '@server/lib/CredentialTypes'
+import { type credentialType } from '@server/lib/CredentialTypes'
+import { updateType } from '@server/Credentials'
 
 import { ComponentSection } from "@/components/ComponentSection"
 import { FormField } from '@/components/FormField'
@@ -12,8 +13,10 @@ import Form from 'next/form'
 import { useActionState, useState } from "react"
 import { StatusOperation } from '@lib/Operation'
 import { credentialFieldSet } from '@server/lib/Credentials'
+import TypeFieldsetEditor, {getFormDataValues} from '../../TypeFieldsetEditor'
 
 import type { CategorySelectionOption } from '@lib/types'
+const formPrefixString = 'credential'
 
 type EditTypeProps = {
     type: credentialType
@@ -23,16 +26,38 @@ export default function EditType(props: EditTypeProps) {
 
     const [state, actionUpdate, isPending] = useActionState(
         async (prevState: StatusOperation, formData: FormData) => {
-            return blankStatus('actionUpdate')
+            const submissionData = {
+                credentialTypeId: props.type.credentialTypeId,
+                description: formDataValue.getString(formData, 'description'),
+                productId: formDataValue.getOptionalNumber(formData, 'productId'),
+                categoryId: formDataValue.getOptionalNumber(formData, 'categoryId'),
+                fields: getFormDataValues(formData, formPrefixString),
+                scriptPrefix: formDataValue.getString(formData, 'scriptPrefix')
+            }
+            
+            const updateResult = await updateType(
+                submissionData.credentialTypeId,
+                submissionData.description,
+                submissionData.fields,
+                submissionData.scriptPrefix,
+                submissionData.productId,
+                submissionData.categoryId
+            )
+            return updateResult
         },
         blankStatus('actionUpdate')
     )
 
     return <ComponentSection header="Edit Credential Type">
         <Form action={actionUpdate}>
-            <h1>Edit Credential Type: {props.type.description}</h1>
-            <p>{props.type.categoryId}</p>
+            <fieldset>
+                <FormInputField label="Description" name="description" type="text" required={true} value={props.type.description} />
+                <FormInputField label='Script Prefix' name='scriptPrefix' type='text' value={props.type.scriptPrefix} />
+            </fieldset>
             <ProductCategorySelection productId={props.type.productId} categoryId={props.type.categoryId} selectionOptions={props.selectionOptions} />
+            <TypeFieldsetEditor fieldList={props.type.fields} keyPrefix={formPrefixString} />
+            
+            <FormActionBar pendingState={isPending} state={state} actions={'Save'} />
         </Form>
     </ComponentSection>
 

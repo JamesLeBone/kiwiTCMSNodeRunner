@@ -1,3 +1,5 @@
+-- If you are using the SQLITE extension for VSCode
+-- you can run this file to create the core database structure. (ctrl shift Q)
 DROP TABLE IF EXISTS users;
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY
@@ -31,11 +33,12 @@ CREATE TABLE IF NOT EXISTS sessions (
 DROP TABLE IF EXISTS credential_types;
 CREATE TABLE IF NOT EXISTS credential_types (
     credential_type_id INTEGER PRIMARY KEY
-    -- These need to be not required so that we can specify a generic login.
+    -- These need to be not required so that we can specify a generic login to loign to KIWI or by product.
     , product_id INTEGER
     , category_id INTEGER
     , description TEXT UNIQUE NOT NULL
     , fields TEXT
+    , script_prefix TEXT
 );
 
 INSERT INTO credential_types (credential_type_id, description, fields)

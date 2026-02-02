@@ -1,5 +1,5 @@
 import { db } from '../db/Database'
-import { Operation, prepareStatus, StatusOperation, TypedOperationResult } from '@lib/Operation'
+import { Operation, prepareStatus, StatusOperation, TypedOperationResult, updateOpError, updateOpSuccess } from '@lib/Operation'
 import type { credentialFieldSet } from './Credentials'
 
 import { fetch as fetchProduct } from '../kiwi/Product'
@@ -33,6 +33,13 @@ const rowToCredentialType = async (row:any) : Promise<credentialType> => {
     if (category) ct.categoryName = category.name
 
     return ct
+}
+type CredentialTypeTuple = {
+    description: string
+    fields: string
+    productId?: number | null
+    categoryId?: number | null
+    scriptPrefix?: string
 }
 
 export async function addType(description:string,fields:credentialFieldSet) : Promise<StatusOperation> {
@@ -74,7 +81,10 @@ export async function deleteType (id:number): Promise<Operation>  {
     }
 
     const nInUse = await db.fetchOne(`SELECT COUNT(*) as cnt FROM credentials WHERE credential_type_id = ?`, [id])
-    if (nInUse.cnt > 0) {
+    if (!nInUse) return op.message = 'Failed to check if credential type is in use', op
+    const numInUse :number = Number.parseInt(nInUse.cnt)
+
+    if (numInUse > 0) {
         return op.message = 'Cannot delete a credential type that is in use', op
     }
     
@@ -96,4 +106,26 @@ export async function getCredentialType(credentialTypeId:number) : Promise<crede
     const rows = await db.fetch(sql, [credentialTypeId])
     if (rows.length == 0) return null
     return rowToCredentialType(rows[0])
+}
+
+export async function updateType(credentialTypeId:number, description:string, fields:credentialFieldSet, scriptPrefix:string, productId?:number, categoryId?:number) : Promise<StatusOperation> {
+    const op:StatusOperation = prepareStatus('updateCredentialType')
+    const ct = await getCredentialType(credentialTypeId)
+    if (!ct) { updateOpError(op, 'Credential type not found'); return op }
+
+    const tuple: CredentialTypeTuple = {
+        description,
+        fields: JSON.stringify(fields),
+        scriptPrefix
+    }
+    if (productId !== undefined) { tuple.productId = productId }
+    if (categoryId !== undefined) { tuple.categoryId = categoryId }
+    
+    const result = await db.update('credential_types', credentialTypeId, tuple, 'credential_type_id')
+    if (result) {
+        updateOpSuccess(op, 'Credential type updated')
+    } else {
+        updateOpError(op, 'Failed to update credential type')
+    }
+    return op
 }

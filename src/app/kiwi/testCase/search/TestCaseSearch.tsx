@@ -40,7 +40,7 @@ export default function TestCaseSearch() {
             }
             
             const searchResult = await search({summary:testName.trim()})
-            console.debug("Search Result:", searchResult.data)
+            // console.debug("Search Result:", searchResult.data)
             if (searchResult.data) setTestCaseList(searchResult.data)
 
             return searchResult
