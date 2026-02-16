@@ -317,6 +317,9 @@ class KiwiCall {
     }
 
     async getEntity<T>(entity:string,id:number,idName='id'): Promise<T | undefined> {
+        const sess = await this.login()
+        if (!sess) throw autoUnauthroised(entity.toUpperCase() + '_GET')
+        
         const query: Record<string, number> = {
             [idName]: id
         }

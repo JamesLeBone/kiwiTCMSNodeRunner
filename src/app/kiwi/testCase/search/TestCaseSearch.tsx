@@ -25,6 +25,7 @@ export default function TestCaseSearch() {
                     return validationError('searchTestCase', 'Invalid Test Case ID')
                 }
                 const op = await getTestCase(id)
+                console.debug("Get Test Case Result:", op)
                 const list: TestCase[] = []
                 if (op.data) list.push(op.data)
                 setTestCaseList(list)

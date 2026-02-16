@@ -86,10 +86,15 @@ export type TestCase = {
 
 export const getTestCase = async (testCaseId:number) : Promise<TypedOperationResult<TestCase>> => {
     const op = { id : 'getTestCase', status: false, message: '', statusType: 'blank' } as TypedOperationResult<TestCase>
-    const testCase = await fetchTestCase(testCaseId)
-    if (!testCase) return updateOpError(op, 'Test Case not found')
-    op.data = testCase
-    return updateOpSuccess(op, 'Test Case fetched successfully')
+    await http.getEntity<TestCase>('TestCase', testCaseId)
+    .then( tc => {
+        op.data = tc
+        updateOpSuccess(op, 'Test Case fetched successfully')
+    })
+    .catch( e => {
+        updateOpError(op, e.message || 'Failed to fetch test case')
+    })
+    return op
 }
 export const fetchTestCase = async (testCaseId:number) : Promise<TestCase | null> => {
     return http.get('TestCase', testCaseId, django2Case)
