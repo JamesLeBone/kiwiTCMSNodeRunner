@@ -9,12 +9,14 @@ import { AmalgomatedComponent, ComponentAttachable, search } from '@server/kiwi/
 import { OperationResult } from '@lib/Operation'
 import { DynamicTable } from '../DynamicTable'
 
+import { Component as ComponentPath } from '@lib/Paths'
+
 type ComponentSummaryItemProps = {
     component: AmalgomatedComponent
     actions?: GenericClickEvent[]
 }
 function ComponentSummaryItem(props : ComponentSummaryItemProps) {
-    const name = props.component.name
+    const name = <Link href={ComponentPath.edit(props.component.id)}>{props.component.name}</Link>
     const size = props.component.cases.length
 
     if (!props.actions || props.actions.length == 0) {

@@ -11,6 +11,8 @@ import { ActionBar, ActionButton } from '@/components/Actions'
 import * as TestRun from '@server/kiwi/TestRun'
 import * as ex from '@server/kiwi/Execution'
 
+import { TestCase as TestCasePath } from '@lib/Paths'
+
 import { ExecutionRunner, ExecuteButton, remotePaths } from '@/components/kiwi/ScriptExecution'
 
 import Link from 'next/link'
@@ -57,12 +59,11 @@ const useStats = (failed:number,passed:number,other:number) => {
     return stat
 }
 
-const testCaseUrl = (id: number) => "/kiwi/testCase/" + id
 const scriptValue = (execution: any) => {
     const script = execution.case.script
     const testCaseId = execution.case.id
     if (script == null || isNaN(Number.parseInt(script))) return ''
-    return <Link href={testCaseUrl(script)}>{script}</Link>
+    return <Link href={TestCasePath.edit(script)}>{script}</Link>
 }
 const tableColSpan = 6
 
@@ -109,7 +110,7 @@ function ExecutionView({execution, executionResult}: {execution: any, executionR
         <tr>
             <td className={'status '+status[0]} style={{textAlign:'left'}}>{status[0]}</td>
             <td className='numeric'><Link href={url}>{execution.id}</Link></td>
-            <td className='numeric'><Link href={testCaseUrl(execution.case.id)}>{execution.case.id}</Link></td>
+            <td className='numeric'><Link href={TestCasePath.edit(execution.case.id)}>{execution.case.id}</Link></td>
             <td className='numeric'>{scriptValue(execution)}</td>
             <td>{execution.case.securityGroupId}</td>
             <td rowSpan={2}>

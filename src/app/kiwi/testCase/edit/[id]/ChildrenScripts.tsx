@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import type { TestCase } from '@server/kiwi/TestCase'
+import { TestCase as TestCasePath } from '@lib/Paths'
 
 function CaseScriptItem(props: TestCase) {
-    const url = '/kiwi/testCase/'+props.id
+    const url = TestCasePath.edit(props.id)
     const id = props.id
     const summary = props.summary
     const securityGroupId = props.securityGroupId ? ' - ' + props.securityGroupId : ''

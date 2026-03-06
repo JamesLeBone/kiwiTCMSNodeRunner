@@ -5,7 +5,7 @@ import ChildrenScripts from './ChildrenScripts'
 
 type CommentsProps = {
     testCaseId: number
-    script?: number|string
+    script?: number
     children: TestCase[]
 }
 export default function TestCaseLineage(props: CommentsProps) {

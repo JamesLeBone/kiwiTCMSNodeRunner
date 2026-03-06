@@ -253,7 +253,6 @@ export const getComponents = async (testCaseId:number) : Promise<TypedOperationR
     op.data = res
     return updateOpSuccess(op, 'Components fetched successfully')
 }
-export const fetchComponents = componentCases
 
 export const addComponent  = async (testCaseId:number, reference:string, productId:number) : Promise<TypedOperationResult<AmalgomatedComponent>> => {
     const op = prepareStatus('addComponentToTestCase') as TypedOperationResult<AmalgomatedComponent>
@@ -398,7 +397,7 @@ export const clone = async (id:number, newCaseKvp:Partial<KiwiUpdateTestCasePara
         http.call('Testcase.add_tag', {case_id:testCaseId, tag:tag.name})
     }
 
-    const components = await fetchComponents(id)
+    const components = await componentCases(id)
     if (components.length > 0) console.info(`Cloning test case with ${components.length} components`)
     for (let component of components) {
         http.call('TestCase.add_component', {case_id:testCaseId, component:component.name})
@@ -437,7 +436,7 @@ export const getDetail = async (testCaseId:number) : Promise<TypedOperationResul
     })
     
     const tags = await fetchTags(testCaseId)
-    const components = await fetchComponents(testCaseId)
+    const components = await componentCases(testCaseId)
     const comments  = await fetchTestCaseComments(testCaseId)
     const attachments = await fetchAttachments(testCaseId)
     const executions = await fetchExecutions(testCaseId)

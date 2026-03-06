@@ -24,6 +24,8 @@ import Form from 'next/form'
 import Link from 'next/link'
 import type { SecurityGroup } from '@server/lib/SecurityGroups'
 
+import { TestCase as TestCasePath } from '@lib/Paths'
+
 const getCategoryName = (props: EditProps) : string => {
     const category = props.details.category
     if (!category) return 'Unknown'
@@ -76,7 +78,7 @@ export default function TestCaseEdit(props: EditProps) {
                 )
                 if (cloneResult.status && cloneResult.data) {
                     const newId = cloneResult.data.id
-                    redirect( '/kiwi/testCase/edit/' + newId )
+                    redirect( TestCasePath.edit(newId) )
                 }
                 return cloneResult
             }

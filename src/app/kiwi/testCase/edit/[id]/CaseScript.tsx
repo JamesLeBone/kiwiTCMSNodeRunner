@@ -9,32 +9,34 @@ import { FormInputField, FormActionBar, validationError } from '@/components/For
 
 import { formDataValue } from '@lib/Functions'
 
+import { TestCase as TestCasePath } from '@lib/Paths'
+
 type CaseScriptProps = {
     testCaseId: number
-    script?: number|string
+    script?: number
 }
 
-const useScriptId = (initialValue: number|string) : number|'' => {
+const useScriptId = (initialValue: number) : number => {
     if (typeof initialValue === 'number') {
         return initialValue
     }
     const parsed = Number.parseInt(initialValue)
-    if (isNaN(parsed)) return ''
+    if (isNaN(parsed)) return 0
     return parsed
 }
 
-const ParentScriptDetails = ({ testCase, script }: { testCase: TestCase|null, script: number|string }) => {
-    if (script === '') {
+const ParentScriptDetails = ({ testCase, script }: { testCase: TestCase|null, script: number }) => {
+    if (!script) {
         return <i style={{padding:'4px'}}>No parent script assigned.</i>
     }
     const linkText = testCase ? `${testCase.id} - ${testCase.summary}` : script
     return <div>
-        Parent Script: <Link href={'/kiwi/testCase/'+script}>{linkText}</Link>
+        Parent Script: <Link href={TestCasePath.edit(script)}>{linkText}</Link>
     </div>
 }
 
 export default function CaseScript(props: CaseScriptProps) {
-    const [script,setScript] = useState<number|string>(useScriptId(props.script || ''))
+    const [script,setScript] = useState<number>(useScriptId(props.script || 0))
     const [parentScript,setParentScript] = useState<TestCase|null>(null)
 
     const verifyScript = async (scriptId:number) : Promise<OperationResult> => {
@@ -55,7 +57,7 @@ export default function CaseScript(props: CaseScriptProps) {
         if (scriptId === 0) {
             const result = await update(props.testCaseId, { script: scriptId } )
             if (result.status) {
-                setScript('')
+                setScript(-1)
                 setParentScript(null)
             }
             return result
@@ -100,7 +102,7 @@ export default function CaseScript(props: CaseScriptProps) {
         <Form action={scriptAction}>
             <ParentScriptDetails testCase={parentScript} script={script} />
             <fieldset>
-                <FormInputField type='number' label="Parent Script ID" value={props.script ? props.script+'' : ''} name="scriptId" />
+                <FormInputField type='number' label="Parent Script ID" value={props.script+''} name="scriptId" />
             </fieldset>
             <FormActionBar pendingState={isPending} state={state} actions={formActions} />
         </Form>

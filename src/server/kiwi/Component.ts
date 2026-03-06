@@ -34,6 +34,7 @@ export type AmalgomatedComponent = {
     id: number
     name: string
     cases: TestCase[]
+    description?: string
     // plans: 
 }
 

@@ -7,6 +7,8 @@ import { kiwiBaseUrl } from '@lib/Functions'
 import TestCaseEdit from './TestCaseEdit'
 import { redirect } from 'next/navigation'
 
+import { TestCase as TestCasePath } from '@lib/Paths'
+
 import { getList as fetchSecurityGroups } from '@server/lib/SecurityGroups'
 
 export async function generateMetadata(props : NextPageProps) {
@@ -20,11 +22,9 @@ export async function generateMetadata(props : NextPageProps) {
     return metaData
 }
 
-// Path example: /kiwi/testCase/edit/123
-const basePath = '/kiwi/testCase/search'
 const redirectPath = (message?:string) => {
-    if (!message) return basePath
-    return `${basePath}?error=${encodeURIComponent(message)}`
+    if (!message) return TestCasePath.search
+    return `${TestCasePath.search}?error=${encodeURIComponent(message)}`
 }
 
 export default async function TestCase(params: NextPageProps) {
