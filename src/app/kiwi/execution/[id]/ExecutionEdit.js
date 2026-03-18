@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link'
-import { ExecutionRunner } from '@/components/kiwi/ScriptExecution.js'
+import { ExecutionRunner } from '@/components/kiwi/ScriptExecution'
 
 import { ComponentSection } from '@/components/ComponentSection'
 import { FormField } from '@/components/FormField'

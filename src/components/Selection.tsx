@@ -1,5 +1,3 @@
-import { on } from "node:cluster"
-
 export function ListOpt({value, label, disabled}: {value: string|number, label: string|number, disabled?: boolean}) {
     return <option value={value} disabled={disabled}>{label}</option>
 }

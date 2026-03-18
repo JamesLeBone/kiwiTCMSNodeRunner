@@ -30,8 +30,8 @@
       "@app/*": [
         "./src/app/*"
       ],
-      "@api": [
-        "./src/api/*"
+      "@api/*": [
+        "./src/app/api/*"
       ]
     },
     "plugins": [

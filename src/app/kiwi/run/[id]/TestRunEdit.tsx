@@ -11,9 +11,9 @@ import { ActionBar, ActionButton } from '@/components/Actions'
 import * as TestRun from '@server/kiwi/TestRun'
 import * as ex from '@server/kiwi/Execution'
 
-import { TestCase as TestCasePath } from '@lib/Paths'
+import { TestCase as TestCasePath, api } from '@lib/Paths'
 
-import { ExecutionRunner, ExecuteButton, remotePaths } from '@/components/kiwi/ScriptExecution'
+import { ExecutionRunner, ExecuteButton } from '@/components/kiwi/ScriptExecution'
 
 import Link from 'next/link'
 type RunningStatObject = {
@@ -115,7 +115,9 @@ function ExecutionView({execution, executionResult}: {execution: any, executionR
             <td>{execution.case.securityGroupId}</td>
             <td rowSpan={2}>
                 <IconButton title="Reload" onClick={reloadExecution} className="fa fa-refresh" active={iconState[0]} />
-                <ExecuteButton src={remotePaths.execution(execution.case.id,execution.id)} events={caseEvents} >Run</ExecuteButton>
+                <ExecuteButton src={api.execution(execution.case.id,execution.id)} eventHandler={caseEvents} >
+                    Run
+                </ExecuteButton>
             </td>
         </tr>
         <tr>

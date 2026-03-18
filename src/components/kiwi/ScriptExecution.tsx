@@ -5,17 +5,22 @@ import { useState,cloneElement } from 'react';
 import { ComponentSection } from '@/components/ComponentSection'
 import { FormField } from '@/components/FormField'
 import { IconButton } from '@/components/IconButton'
+import { ActionBar } from '@/components/Actions'
+import { api as remotePaths } from '@lib/Paths'
 
 import './scriptExecution.css'
 
-type iconType = 'info' | 'debug' | 'error' | 'warning' | 'success' | 'running'
+type iconType = 'info' | 'debug' | 'error' | 'warning' | 'idle' | 'success' | 'running'
+type messageType = 'data' | 'warning' | 'debug' | 'info' | 'error' | 'success' | 'image'
+/**
+ * A message that reflects output from the execution.
+ * This is the type we pass to the component for rendering.
+ */
 type executionMessage = {
     icon: iconType
     message: string
 }
-type executionImage = {
-    content: string
-}
+type eventHandler = (eventName: string, data: Record<string, any>) => void
 
 const iconDef: {[key in iconType]: string} = {
     info: 'fa fa-info',
@@ -23,11 +28,33 @@ const iconDef: {[key in iconType]: string} = {
     error: 'fa fa-exclamation-triangle',
     warning: 'fa fa-exclamation-circle',
     success: 'fa fa-check',
-    running: 'fa fa-spinner fa-spin'
+    running: 'fa fa-spinner fa-spin',
+    idle: 'fa fa-bolt'
 }
 function Icon({type}: {type: iconType}) {
     const icon = iconDef[type] ?? 'fa fa-info'
     return <i className={icon} />
+}
+
+type eventOccuranceIndicator = {
+    eventName: string
+    success: boolean
+}
+
+/**
+ * When reading from the raw output,
+ * we parse the string.
+ * if it's an object we set it to data,
+ * otherwise we set it to a string message.  
+ * 
+ * The type is determined by the type field in the JSON, or set to info by default.
+ */
+type testOutputSegment = {
+    testResult?: Record<string, any>
+    stringMessage?: string
+    data?: object
+    event?: eventOccuranceIndicator
+    type: messageType
 }
 
 const parseMessage = (message:any) : executionMessage | null => {
@@ -63,6 +90,9 @@ type messageProps = {
     type: string
     message: string | string[] | object
 }
+/**
+ * Component to display a message with an icon based on the type of message.
+ */
 function ExecutionMessage({type,message}: messageProps) {
     if (typeof message == 'undefined') return <></>
     const parsedMessage = parseMessage(message)
@@ -80,84 +110,88 @@ function ExecutionImage({content}: {content:string}) {
     </div>
 }
 
-let runId = 0
-function getComponent(type: string, data: any) {
-    switch (type) {
-        case 'data':
-            if (data.type == 'data') {
-                console.error('Recurisive data', data)
-                return <span>Data</span>
-            }
-            return getComponent(data.type, data.data)
-        case 'warning':
-        case 'debug':
-        case 'info':
-        case 'error':
-        case 'success':
-            return <ExecutionMessage type={type} message={data} />
-        case 'image':
-            return <ExecutionImage content={data} />
+function getComponent(result: testOutputSegment) {
+    const stringValue = result.stringMessage ? result.stringMessage : JSON.stringify(result.data,null,4)
+
+    if (result.type == 'image' && typeof result.data == 'string') {
+        return <ExecutionImage content={result.data} />
     }
-    return <ExecutionMessage type="Error" message={JSON.stringify(data)} />
+
+    return <ExecutionMessage type={result.type} message={stringValue} />
 }
 
-const useExecutor = (eventListener: Function,src: string,limit=-1,stdIcon: iconType='info') => {
+function ExecutionResults({results}: {results: testOutputSegment[]}) {
+    return <div className='executionResults'>
+        {results.map((result, index) => (
+            <div key={index}>
+                {getComponent(result)}
+            </div>
+        ))}
+    </div>
+}
+
+const parseLine = (line: string) : testOutputSegment => {
+    const ro: testOutputSegment = {
+        type: 'info'
+    }
+    let parsed : any
+
+    try {
+        parsed = JSON.parse(line)
+        if (typeof parsed != 'object') {
+            ro.stringMessage = line
+            return ro
+        }
+    } catch (e) {
+        ro.stringMessage = line
+        return ro
+    }
+    const parsedObject = parsed as Record<string, any>
+    ro.data = parsed
+    if (parsedObject.type && typeof parsedObject.type == 'string') {
+        const ptype = parsedObject.type.toLowerCase()
+        if (['data','warning','debug','info','error','success','image'].includes(ptype)) {
+            ro.type = ptype as messageType
+        }
+    }
+
+    if (typeof parsedObject.testResult == 'object' && typeof parsedObject.testResult.hasOwnProperty('testResult') && typeof parsedObject.testResult.testResult == 'object') {
+        const testResult = parsedObject.testResult as Record<string, any>
+        ro.testResult = testResult
+        // Validate the test result has the expected fields
+        if (typeof testResult.status == 'boolean') {
+            ro.type = testResult.status ? 'success' : 'error'
+        }
+    }
+
+    if (typeof parsedObject.eventName == 'string' && typeof parsedObject.success == 'boolean') {
+        ro.event = { eventName: parsedObject.eventName, success: parsedObject.success }
+    }
+
+    return ro
+}
+
+const useExecutor = (eventListener: eventHandler,src: string,limit=-1,defaultIcon?:iconType) => {
     // Number of times run has been started
     let runId = 0
-    // Index of the next message
-    let resultIdx = 0
+    const inactiveIcon: iconType = defaultIcon ?? stdIcon
 
     const textDecoder = new TextDecoder('utf-8')
-    const [executionResults, setExecutionResults] = useState<(executionMessage | executionImage)[]>([])
-    const iconState = useState('info')
+    const [executionResults, setExecutionResults] = useState<testOutputSegment[]>([])
+    const iconState = useState<iconType>(inactiveIcon)
     const [buttonIcon,setIcon] = iconState
-    const updateIcon = (icon: iconType) => setIcon('executionButton '+icon)
 
     const [executionState, setExecutionState] = useState<'idle'|'running'|'completed'>('idle')
     const [testResult, setTestResult] = useState<null|boolean>(null)
     
     const pushResult = (line: string) => {
-        const ro = {
-            result: {},
-            type: '',
-            data: null
-        }
-        
-        try {
-            // expecting: {type: string, data: any}
-            // data may be {testResult: {success: boolean, message: string}, ...}
-            ro.result = JSON.parse(line) as any
-            ro.type = ro.type ?? 'info'
-            if (typeof ro.result == 'object' && typeof ro.result.hasOwnProperty('testResult')) {
-                const data = ro.result as any
-                ro.data = data.testResult
-            }
-        } catch (e) {
-            console.error('Error parsing line:', line, e)
-            return
+        const ro = parseLine(line)
+        if (ro.event) {
+            eventListener(ro.event.eventName, { success: ro.event.success })
         }
 
-        if (ro.type == 'event') {
-            // This should be {type, testcaseId, execution, updateResult, testresult}
-            // that we can update the screen with
-            console.info('Event', ro.data)
-            if (typeof eventListener == 'function') {
-                if (typeof data.eventName == 'undefined') {
-                    if (typeof data.success == 'boolean') {
-                        data.eventName = 'testResult.finish'
-                    } else {
-                        // This would be an error but I don't have full push perms to puppeteer to fix it.
-                        console.debug('No eventName in data')
-                        data.eventName = 'unknownEvent'
-                    }
-                }
-                eventListener(data.eventName,data)
-            }
-            return
-        }
-        const computedResult = {type, data}
         setExecutionResults(prev => {
-            const newList = [computedResult, ...prev]
+            const newList = [ro, ...prev]
             if (limit == -1) return newList
             if (newList.length > limit) {
                 newList.splice(0, limit)
@@ -165,15 +199,13 @@ const useExecutor = (eventListener: Function,src: string,limit=-1,stdIcon: iconT
             return newList
         })
     }
-    const run = async () => {
+    const replay = async () => {
         if (executionState == 'running') {
-            console.error('Already running')
-            return
+            throw new Error('Already running')
         }
         
         runId++
-        resultIdx = 0
-        updateIcon('running')
+        setIcon('running')
         setExecutionResults([])
         // fetch, reader = part of the browser API
         const streamingResponse = await fetch(src)
@@ -186,211 +218,114 @@ const useExecutor = (eventListener: Function,src: string,limit=-1,stdIcon: iconT
         while (true) {
             const { done, value } = await reader.read()
             if (done) {
-                resultIdx = 0
-                i(stdIcon)
+                setIcon(inactiveIcon)
+                console.info('Stream complete')
                 break
             }
             const chunk = textDecoder.decode(value)
-            // console.info(chunk)
-            // console.info('chunkLength', chunk.length)
             if (chunk.length == 0) continue
             // Contents can only be a string coming in, but chunks are split by new lines.
             const lines = chunk.split('\n')
             for (let line of lines) {
                 // Don't process empty lines
                 if (line.length == 0) continue
-                // console.debug('buffer',streamBuffer.length)
-                // Read-in the current buffer to the start of the next incoming line
+                // If we have a buffer from the previous chunk
+                // prepend it to the current line and clear the buffer.
                 if (streamBuffer.length > 0) {
                     line = streamBuffer + line
                     streamBuffer = ''
                 }
-                // console.debug('line', line.length)
+
                 // If the line doesn't end with a }, it is not complete.
-                // We need to buffer it until we get a complete line.
-                // console.debug(line, typeof line, line.trim().length)
-                const parseable = line[line.length-1] == '}'
-                if (parseable) {
-                    // We have a complete line, so we can process it.
-                    // console.debug('Parseable',line)
+                // We need to buffer it until we get a complete line and wait
+                // for the next chunk to come in.
+                const parseableStart = line[0] == '[' || line[0] == '{'
+                const parseableEnd = line[line.length-1] == '}'
+                if (parseableStart && parseableEnd) {
                     pushResult(line)
                     continue
                 }
-                // console.debug('Incomplete',line)
+                // We have a string message that is not JSON, we can push it as is.
+                if (line.includes(' ') && !parseableStart) {
+                    pushResult(line)
+                    continue
+                }
+                // Attempt to continue to buffering.
                 streamBuffer = line
                 continue
             }
         }
-        i(stdIcon)
+        // We have an artifact in the buffer that we haven't been able to parse
+        // push the rest of the buffer as a string.
+        if (streamBuffer.length > 0) {
+            for (const line of streamBuffer.split('\n')) {
+                if (line.length == 0) continue
+                pushResult(line)
+            }
+        }
+
+        setIcon(inactiveIcon)
         console.info('Done')
     }
     return {
         replay,
+        buttonIcon,
         executionResults,
         iconState,
         testResult
     }
 }
 
-const stdIcon = 'fa fa-bolt'
+const stdIcon: iconType = 'idle'
 
-export function ExecuteButton({src,events,children,icon=stdIcon}) {
-    const executor = useExecutor(events,src,-1,icon)
+type executeButtonProps = {
+    src: string
+    eventHandler: eventHandler
+    children?: React.ReactNode
+    defaultIcon?: iconType
+}
+export function ExecuteButton({src,eventHandler,children,defaultIcon=stdIcon}: executeButtonProps) {
+    const executor = useExecutor(eventHandler,src,-1,defaultIcon)
     const body = children || ''
-    // TODO: test result isn't coming through
     return <IconButton title="Execute" onClick={executor.replay} className={executor.iconState[0]}>
-        {body + executor.testResult[0]}
+        {body}
     </IconButton>
 }
 
-export function ExecutionRunner({src,events,limit=-1}) {
-    const [buttonIcon,setIcon] = useState(stdIcon)
-    const [executionResults, setExecutionResults] = useState([])
-    const textDecoder = new TextDecoder('utf-8')
-    let resultIdx = 0
-
-    // TODO: get this to use useExecutor and use useEffect to 
-    // convert the data into visible components
-
-    const pushResult = (line) => {
-        let result,type,data
-        try {
-            result = JSON.parse(line)
-            type = result.type
-            data = result.data
-        } catch (e) {
-            console.error('Error parsing line:', line, e)
-        }
-        if (type == 'event') {
-            // Yay !  - this should be {type, testcaseId, execution, updateResult, testresult}
-            // that we can update the screen with
-            // console.info('Event', data.eventName, data)
-            if (typeof events == 'function') {
-                if (typeof data.eventName == 'undefined') {
-                    if (typeof data.success == 'boolean') {
-                        data.eventName = 'testResult.finish'
-                    } else {
-                        // This would be an error but I don't have full push perms to puppeteer to fix it.
-                        console.debug('No eventName in data')
-                        data.eventName = 'unknownEvent'
-                    }
-                }
-                events(data.eventName,data)
-            }
-            return
-        }
-
-        const component = getComponent(type, data)
-        const resultWithKey = cloneElement(component, {
-            key: `exec-${runId}-${resultIdx++}`,
-        })
-        setExecutionResults(prev => {
-            const newList = [resultWithKey, ...prev]
-            if (limit == -1) {
-                return newList
-            }
-            if (newList.length > limit) {
-                newList.splice(0, limit)
-            }
-            return newList
-        })
-    }
-
-    const replay = async () => {
-        if (buttonIcon != stdIcon) {
-            console.error('Already running')
-            return
-        }
-        runId++
-        resultIdx = 0
-        setIcon(stdIcon+' fa-spin')
-        setExecutionResults([])
-        
-        // Signal the start of a new run
-        if (typeof events == 'function') {
-            events('testRun.start', {})
-        }
-        
-        // fetch, reader = part of the browser API
-        const streamingResponse = await fetch(src)
-        const reader = streamingResponse.body?.getReader()
-        
-        if (reader) {
-            let streamBuffer = ''
-            while (true) {
-                const { done, value } = await reader.read()
-                if (done) {
-                    setIcon(stdIcon)
-                    break
-                }
-                const chunk = textDecoder.decode(value)
-                // console.info('chunkLength', chunk.length)
-                if (chunk.length == 0) continue
-                // Contents can only be a string coming in, but chunks are split by new lines.
-                const lines = chunk.split('\n')
-                for (let line of lines) {
-                    // Don't process empty lines
-                    if (line.length == 0) continue
-                    // console.debug('buffer',streamBuffer.length)
-                    // Read-in the current buffer to the start of the next incoming line
-                    if (streamBuffer.length > 0) {
-                        line = streamBuffer + line
-                        streamBuffer = ''
-                    }
-                    // console.debug('line', line.length)
-                    // If the line doesn't end with a }, it is not complete.
-                    // We need to buffer it until we get a complete line.
-                    // console.debug(line, typeof line, line.trim().length)
-                    const parseable = line[line.length-1] == '}'
-                    if (parseable) {
-                        // We have a complete line, so we can process it.
-                        // console.debug('Parseable',line)
-                        pushResult(line)
-                        continue
-                    }
-                    // console.debug('Incomplete',line)
-                    streamBuffer = line
-                    continue
-                }
-            }
-        } else {
-            console.error('No reader available, was it really a stream?')
-        }
-        
-        if (typeof events == 'function') {
-            events('done',{status:'done'})
-        }
-    }
+type executionRunnerProps = {
+    src: string
+    events: eventHandler
+    limit?: number
+}
+export function ExecutionRunner({src,events,limit=-1}: executionRunnerProps) {
+    const executor = useExecutor(events,src,limit)
     
     return <ActionBar>
-        <IconButton title="Execute" onClick={replay} className={buttonIcon}>Execute</IconButton>
-        <div className='executionRun'>
-            {executionResults}
-        </div>
+        <IconButton title="Execute" onClick={executor.replay} className={executor.iconState[0]}>Execute</IconButton>
+        <ExecutionResults results={executor.executionResults} />
     </ActionBar>
 }
 
-export const remotePaths = {
-    test: (testId) => `/api/testCase/${testId}`,
-    execution: (testId,executionId) => `/api/executions/${testId}/${executionId}`,
-    run: (planId,runId=null) => runId == null ? `/api/runs/${planId}` : `/api/runs/${planId}/${runId}`
+type runStats = {
+    failed: number
+    passed: number
+    other: number
 }
-
 const useStats = (failed=0,passed=0,other=0) => {
-    const stats = useState({
+    const stats = useState<runStats>({
         failed: failed,
         passed: passed,
         other: other
     })
     const lastUpdated = useState('')
     const total = useState( failed + passed + other )
-    const getPerc = (v, currentTotal) => currentTotal == 0 ? '0%' : Math.ceil(v / currentTotal * 100) + '%'
+    const getPerc = (v:number, currentTotal:number) => currentTotal == 0 ? '0%' : Math.ceil(v / currentTotal * 100) + '%'
 
     const passedPerc = useState(getPerc(passed, failed + passed + other))
     const failedPerc = useState(getPerc(failed, failed + passed + other))
     const remaining = useState((failed + other) + ' / ' + (failed + passed + other))
 
-    const updatePercentages = (currentStats, currentTotal) => {
+    const updatePercentages = (currentStats: runStats, currentTotal: number) => {
         const completed = currentStats.passed + currentStats.failed
         const remainingCount = currentTotal - completed
         passedPerc[1](getPerc(currentStats.passed, currentTotal))
@@ -399,7 +334,7 @@ const useStats = (failed=0,passed=0,other=0) => {
     }
 
     return {
-        setTotal: (newTotal) => {
+        setTotal: (newTotal: number) => {
             console.debug('useStats.setTotal() called with:', newTotal)
             total[1](newTotal)
             updatePercentages(stats[0], newTotal)
@@ -409,7 +344,7 @@ const useStats = (failed=0,passed=0,other=0) => {
         failedPerc,
         reset: () => {
             console.debug('useStats.reset() called - resetting all stats to 0')
-            const resetStats = { failed: 0, passed: 0, other: 0 }
+            const resetStats: runStats = { failed: 0, passed: 0, other: 0 }
             stats[1](resetStats)
             total[1](0)
             passedPerc[1]('0%')
@@ -438,7 +373,7 @@ const useStats = (failed=0,passed=0,other=0) => {
     }
 }
 
-function ProgressBar({stats}) {
+function ProgressBar({stats} : {stats: ReturnType<typeof useStats>}) {
     return <FormField label="Progress">
         <div style={{width:'100%',backgroundColor:'#353232',borderRadius:'15px',overflow:'hidden',border:'1px solid black',height:'1.3em',display:'flex',justifyContent:'start'}}>
             <div style={{width:stats.passedPerc[0],backgroundColor:'#429542'}}></div>
@@ -448,25 +383,20 @@ function ProgressBar({stats}) {
     </FormField>
 }
 
-export function TestPlanRunner({planId,runId=null}) {
-    const src = useState(remotePaths.run(planId))
-    const runIdState = useState(runId)
+type testPlanRunnerProps = {
+    planId: number
+    runId?: number
+}
+export function TestPlanRunner(props: testPlanRunnerProps) {
+    const src = useState(remotePaths.run(props.planId, props.runId))
+    // const runIdState = useState(runId)
     const runningStats = useStats()
     const currentTestCaseId = useState('')
 
-    const executionEvents = (type,data) => {
-        // testCase.skipped : {testCaseId,executionId}
-        // testCase.finished : {testCaseId,executionId,testResult}
-        // testCase.start : {testCaseId}
-        // testRun.progress : {progress: {idx, total}, testRunId}
-        // testRun.finished
-        
+    const executionEvents = (type: string, data: any) => {
         console.debug('TestPlanRunner.executionEvents:', type, data)
-        
         runningStats.update()
-        
         if (type == 'done') { // This comes from ScriptExecution
-            // refresh()
             return
         }
         
