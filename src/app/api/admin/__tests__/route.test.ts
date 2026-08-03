@@ -4,6 +4,7 @@
 
 import { GET, POST } from '../route.js'
 import { NextRequest } from 'next/server'
+import type * as DatabaseModule from '@server/db/Database'
 
 // Mock the dependencies
 jest.mock('@server/lib/Users', () => ({
@@ -125,8 +126,8 @@ describe('/api/admin Route Tests', () => {
         { id: 1, username: 'testuser', login_time: '2023-01-01' }
       ]
 
-      const { db } = require('@server/db/Database.ts')
-      db.fetch.mockReturnValue(mockLogins)
+      const dbm = require('@server/db/Database.ts') as typeof DatabaseModule
+      dbm.fetch.mockReturnValue(mockLogins)
 
       const request = new NextRequest('http://localhost:3000/api/admin?action=logins', {
         headers: {

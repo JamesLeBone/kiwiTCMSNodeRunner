@@ -17,7 +17,7 @@ export default function PageHeader({userName} : {userName:string}) {
         </Link>
     })
 
-    const uacLink = userName === '' ? null : <Link className='right nav-separator' href='/uac/credentials' title='Settings'>{userName}</Link>
+    const uacLink = userName === '' ? '' : <Link className='right nav-separator' href='/uac/credentials' title='Settings'>{userName}</Link>
 
     return <header>
         <nav>

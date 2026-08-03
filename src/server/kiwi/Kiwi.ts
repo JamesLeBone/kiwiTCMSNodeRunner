@@ -1,7 +1,7 @@
 // Fetch is refusing to send the cookies
 // have to use other request methods
 // import { request } from 'http'
-import { StatusOperation } from '@lib/Operation'
+import { StatusOperation, TypedOperationResult, updateOpError, updateOpSuccess } from '@lib/Operation'
 import { SimpleHttp } from '../lib/SimpleHttp'
 import { 
     DjangoEntity,
@@ -29,12 +29,28 @@ declare interface RPCReply {
         data?: any // can be null.
     }
 }
-declare interface JsonRPCError extends RPCReply {
+export interface JsonRPCError extends RPCReply {
     error: {
         code: number,
         message: string,
         data?: any // can be null.
     }
+}
+
+export const handlePromiseResult = async (op: TypedOperationResult<any>, promise: Promise<any>, successMessage?: string) => {
+    await promise.then( (result) => {
+        op.data = result
+        updateOpSuccess(op, successMessage || 'Operation completed successfully')
+    })
+    .catch( (e : any | JsonRPCError) => {
+        console.error('Operation failed', e)
+        if (e.error?.message && typeof e.error.message == 'string') {
+            updateOpError(op, e.error.message)
+            return
+        }
+        updateOpError(op, e.message || 'Operation failed')
+    })
+    return op
 }
 
 const autoUnauthroised = (requestId: string) => {

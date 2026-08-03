@@ -151,7 +151,7 @@ class Transaction {
     }
 }
 
-export const dbi = {
+export const dbi: DBCommon.commonDbHandler = {
     check,
     methods: {
         fetch,

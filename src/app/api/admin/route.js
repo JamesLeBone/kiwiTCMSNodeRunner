@@ -21,8 +21,8 @@ const verifyJson = async request => {
     
     const headers = request.headers
     if (!headers.has('Content-Type') || headers.get('Content-Type') != 'application/json') {
-        console.debug('Invalid content type', headers.get('Content-Type'))
-        return new Response('Invalid content type', {status: 415})
+        const supplied = headers.get('Content-Type') ?? 'None'
+        return new Response('Invalid content type: '+supplied, {status: 415})
     }
 
     try {
@@ -116,7 +116,7 @@ export async function POST(request) {
     }
 
     const {action, params} = parseResult
-    console.debug('Admin action', action, params)
+    // console.debug('Admin action', action, params)
 
     try {
         if (action == 'login') {
@@ -125,7 +125,7 @@ export async function POST(request) {
                 return new Response('Missing parameters', {status: 400})
             }
             const user = await Users.login(username, password)
-            console.debug('User login result', user)
+            // console.debug('User login result', user)
             return new Response('OK', {status: 200})
         }
     } catch (e) {

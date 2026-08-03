@@ -1,0 +1,65 @@
+
+services:
+    postgres:
+        container_name: kiwi_postgres
+        image: postgres:17
+        restart: always
+        environment:
+            POSTGRES_DB: kiwi
+            POSTGRES_USER: kiwi
+            POSTGRES_PASSWORD: kiwi
+        ports:
+            - 5432:5432
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U kiwi -d kiwi']
+            interval: 10s
+            timeout: 5s
+            retries: 10
+
+    kiwi:
+        container_name: kiwi_web
+        image: pub.kiwitcms.eu/kiwitcms/kiwi:latest
+        restart: always
+        depends_on:
+            postgres:
+                condition: service_healthy
+        volumes:
+            - uploads:/Kiwi/uploads
+            - ./kiwi:/venv/lib/python3.11/site-packages/tcms
+            - ./static:/Kiwi/static
+        environment:
+            KIWI_DB_ENGINE: django.db.backends.postgresql
+            KIWI_DB_HOST: postgres
+            KIWI_DB_PORT: 5432
+            KIWI_DB_NAME: kiwi
+            KIWI_DB_USER: kiwi
+            KIWI_DB_PASSWORD: kiwi
+            KIWI_BASE_URL: http://localhost
+        cap_drop:
+            - ALL
+
+    app:
+        container_name: kiwiTCMSNodeRunner
+        image: node:24-bookworm-slim
+        restart: unless-stopped
+        depends_on:
+            - kiwi
+        working_dir: /workspace
+        entrypoint: ['bash', '/workspace/docker/init-node.sh']
+        command: ['bash']
+        stdin_open: true
+        tty: true
+        ports:
+            - ${PORT:-80}:80
+        volumes:
+            - ./:/workspace
+            - node_modules:/workspace/node_modules
+        environment:
+            NODE_ENV: development
+
+volumes:
+    postgres_data:
+    uploads:
+    node_modules:

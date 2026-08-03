@@ -52,3 +52,23 @@ export type {
     dataSetRowConvertible,
     queryParams
 }
+
+export type TransactionHandler = {
+    begin: () => Promise<void>
+    close: () => Promise<void>
+    cancel: () => Promise<void>
+    setError: () => void
+    get isError(): boolean
+    get status(): string
+}
+
+export type commonDbHandler = {
+    check: () => Promise<boolean>,
+    methods: {
+        fetch: (sql:string, params: queryParams) => Promise<dataSetRow[]>,
+        fetchOne: (sql:string, params: queryParams) => Promise<dataSetRow | null>,
+        insert: (table:string, data:dataSetRowConvertible) => Promise<dataSetRow | null>,
+        run: (sql:string, params: queryParams) => Promise<boolean>,
+        dates: typeof dates
+    }
+}

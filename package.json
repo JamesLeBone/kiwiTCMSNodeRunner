@@ -1,11 +1,10 @@
 {
-  "name": "reacttoolbox",
-  "version": "0.1.0",
+  "name": "TCMSNodeRunner",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 8084",
-    "build": "next build",
-    "start": "next start -p 8084",
+    "dev": "next dev -p 80",
+    "start": "next build && next start -p 80",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -19,21 +18,17 @@
   },
   "dependencies": {
     "@fontsource/roboto": "^5.2.9",
-    "dompurify": "^3.3.1",
     "dotenv": "^17.2.3",
-    "fast-xml-parser": "^5.3.3",
     "js-sha256": "^0.11.1",
-    "mailparser": "^3.9.1",
     "mariadb": "^3.4.5",
     "my-ua-parser": "^2.0.4",
     "ncrypt-js": "^2.1.2",
-    "next": "^16.1.1",
-    "nodemailer": "^7.0.12",
+    "next": "^16.2.12",
+    "nodemailer": "^9.0.3",
     "pg": "^8.16.3",
     "react": "19.2",
     "react-dom": "19.2",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.11.0",
     "remark-gfm": "^4.0.1",
     "uuid": "^13.0.0"
   },
@@ -43,7 +38,6 @@
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
-    "@types/mailparser": "^3.4.6",
     "@types/node": "25.0.3",
     "@types/nodemailer": "^7.0.4",
     "@types/react": "^19.2.7",
@@ -53,5 +47,9 @@
     "ts-jest": "^29.4.6",
     "typescript": "5.9.3",
     "whatwg-fetch": "^3.6.20"
+  },
+  "overrides": {
+    "postcss": "^8.5.25",
+    "sharp": "^0.35.3"
   }
 }
